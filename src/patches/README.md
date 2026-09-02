@@ -4,9 +4,7 @@ List of patches applied
 
 ## p1 - Half-Life 2 assets
 
-The beta expects the shared Half-Life 2 files that Steam used to mount for it, but those files are not part of the `852_0` depot itself. Modern Steam keeps them inside VPK archives that this extracts and takes the needed stuff from. Voice vpk is excluded since it was causing problems and I don't think is needed.
-
-TODO: copy only the needed assets
+The beta expects the shared Half-Life 2 files that Steam used to mount for it, but those files are not part of the `852_0` depot itself. Modern Steam keeps them inside VPK archives that this extracts and takes the needed stuff from.
 
 ## p2 - Search paths
 

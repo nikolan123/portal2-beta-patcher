@@ -2,7 +2,7 @@ from threading import Event
 
 from models import BuildReport, PatchContext
 from patches import PATCHES
-from patches.p1_hl2_assets import copy_loose_hl2_scripts
+from patches.p1_hl2_assets import ASSET_MARKER, HL2_ASSET_ALLOWLIST, copy_loose_hl2_scripts
 from patches.p2_search_paths import SearchPathsPatch
 from patches.p5_thread_fix import ARCHIVE_SHA256, DOWNLOAD_URL, FILES
 from patches.p6_launchers import LAUNCHER
@@ -20,6 +20,14 @@ def test_source_thread_fix_release_is_pinned():
 
 def test_launcher_uses_source_thread_fix_wrapper():
     assert b'"%ROOT%hl2.wrap.exe"' in LAUNCHER
+
+
+def test_hl2_assets_use_curated_compatibility_allowlist():
+    assert ASSET_MARKER == "p1-curated-v2\n"
+    assert len(HL2_ASSET_ALLOWLIST) == 312
+    assert "sound/weapons/physcannon/physcannon_pickup.wav" in HL2_ASSET_ALLOWLIST
+    assert "sound/vo/novaprospekt/al_pickherup.wav" not in HL2_ASSET_ALLOWLIST
+    assert not any(path.startswith("media/") for path in HL2_ASSET_ALLOWLIST)
 
 
 def test_loose_hl2_scripts_are_copied_without_overwriting(tmp_path):
