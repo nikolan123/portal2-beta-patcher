@@ -17,6 +17,7 @@ except ImportError:
     TkBase = tk.Tk
 
 from models import BuildCancelled, BuildInputs, ProgressEvent
+from patches import PATCHES, normalize_patch_ids
 from pipeline import BuildPipeline
 from steam import detect_half_life_2
 
@@ -47,9 +48,13 @@ class PatcherUI(TkBase):
         self.blob_var = tk.StringVar()
         self.dat_var = tk.StringVar()
         self.hl2_var = tk.StringVar()
+        self.hl2_warning_var = tk.StringVar()
+        self.hl2_var.trace_add("write", self.update_hl2_warning)
         self.message_var = tk.StringVar()
         self.percent_var = tk.StringVar(value="0%")
         self.progress_fraction = 0.0
+        self.patch_vars = {patch.id: tk.BooleanVar(value=True) for patch in PATCHES}
+        self.last_selected_patch_ids = tuple(patch.id for patch in PATCHES)
 
         self.container = tk.Frame(self, bg=BG)
         self.container.pack(fill="both", expand=True, padx=28, pady=24)
@@ -91,11 +96,20 @@ class PatcherUI(TkBase):
         self.file_row(form, "DAT file", self.dat_var, ".dat", False)
         self.file_row(form, "Half-Life 2 folder", self.hl2_var, "", True)
 
+        tk.Label(
+            self.container,
+            textvariable=self.hl2_warning_var,
+            bg=BG,
+            fg="#d6aa62",
+            font=("Segoe UI", 9),
+        ).pack(anchor="w", pady=(0, 4))
+        self.update_hl2_warning()
+
         self.error_label = tk.Label(self.container, textvariable=self.message_var, bg=BG, fg="#e58b8b", font=("Segoe UI", 9))
         self.error_label.pack(anchor="w", pady=(0, 4))
         bottom = tk.Frame(self.container, bg=BG)
         bottom.pack(side="bottom", fill="x")
-        self.button(bottom, "Start", self.start_build, width=13).pack(side="right")
+        self.button(bottom, "Next", self.show_patch_chooser, width=13).pack(side="right")
 
     def file_row(self, parent, label, variable, extension, folder):
         row = tk.Frame(parent, bg=BG)
@@ -138,18 +152,139 @@ class PatcherUI(TkBase):
         if detected:
             self.events.put(("hl2", detected))
 
-    def start_build(self):
+    def update_hl2_warning(self, *_args) -> None:
+        if self.hl2_var.get().strip():
+            self.hl2_warning_var.set("")
+        else:
+            self.hl2_warning_var.set("No Half-Life 2 folder: HL2 content support will be unavailable.")
+
+    def selected_patch_ids(self) -> tuple[str, ...]:
+        return normalize_patch_ids(patch_id for patch_id, variable in self.patch_vars.items() if variable.get())
+
+    def set_patch_choice(self, patch_ids: tuple[str, ...], selected: bool) -> None:
+        for patch_id in patch_ids:
+            self.patch_vars[patch_id].set(selected)
+
+    def validate_file_choices(self) -> None:
+        if not Path(self.blob_var.get()).is_file():
+            raise ValueError("Select the 852_0 BLOB file first.")
+        if not Path(self.dat_var.get()).is_file():
+            raise ValueError("Select the 852_0 DAT file first.")
+        hl2_value = self.hl2_var.get().strip()
+        if hl2_value and not Path(hl2_value).is_dir():
+            raise ValueError("The selected Half-Life 2 folder does not exist.")
+
+    def show_patch_chooser(self):
         try:
-            blob = Path(self.blob_var.get())
-            dat = Path(self.dat_var.get())
-            hl2 = Path(self.hl2_var.get())
-            if not blob.is_file() or not dat.is_file() or not hl2.is_dir():
-                raise ValueError("Select the BLOB, DAT, and Half-Life 2 folder first.")
-            output = dat.resolve().parent / "852_0_fixed"
-            inputs = BuildInputs(blob, dat, hl2, output)
+            self.validate_file_choices()
         except Exception as error:
             self.message_var.set(str(error))
             return
+
+        self.message_var.set("")
+        self.clear()
+        self.heading("Choose fixes", "Recommended fixes are selected by default.")
+
+        bottom = tk.Frame(self.container, bg=BG)
+        bottom.pack(side="bottom", fill="x", pady=(10, 0))
+        self.button(bottom, "Back", self.show_files, secondary=True, width=10).pack(side="left")
+        self.button(bottom, "Build", self.start_build, width=13).pack(side="right")
+        self.error_label = tk.Label(self.container, textvariable=self.message_var, bg=BG, fg="#e58b8b", font=("Segoe UI", 9))
+        self.error_label.pack(side="bottom", anchor="w")
+
+        list_frame = tk.Frame(self.container, bg=BG)
+        list_frame.pack(fill="both", expand=True, pady=(16, 0))
+        canvas = tk.Canvas(list_frame, bg=BG, highlightthickness=0, borderwidth=0)
+        scrollbar = tk.Scrollbar(
+            list_frame,
+            orient="vertical",
+            command=canvas.yview,
+            bg=FIELD,
+            activebackground=BORDER,
+            troughcolor=BG,
+            relief="flat",
+            borderwidth=0,
+            highlightthickness=0,
+        )
+        canvas.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side="right", fill="y")
+        canvas.pack(side="left", fill="both", expand=True, padx=(0, 8))
+
+        choices = tk.Frame(canvas, bg=BG)
+        choices_window = canvas.create_window((0, 0), window=choices, anchor="nw")
+        choices.bind("<Configure>", lambda _event: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.bind("<Configure>", lambda event: canvas.itemconfigure(choices_window, width=event.width))
+        patch_by_id = {patch.id: patch for patch in PATCHES}
+        has_hl2 = bool(self.hl2_var.get().strip())
+        if not has_hl2:
+            self.set_patch_choice(("p1", "p3"), False)
+        choices_to_show = (
+            (
+                ("p1", "p3"),
+                "Half-Life 2 content support",
+                "Copy the required HL2 assets and register their sound scripts.",
+            ),
+            (("p4",), patch_by_id["p4"].display_name, patch_by_id["p4"].description),
+            (("p5",), patch_by_id["p5"].display_name, patch_by_id["p5"].description),
+        )
+        for patch_ids, name, detail in choices_to_show:
+            primary_id = patch_ids[0]
+            panel = tk.Frame(choices, bg=PANEL, highlightbackground=BORDER, highlightthickness=1)
+            panel.pack(fill="x", pady=(0, 7))
+            checkbox = tk.Checkbutton(
+                panel,
+                text=name,
+                variable=self.patch_vars[primary_id],
+                command=lambda ids=patch_ids, variable=self.patch_vars[primary_id]: self.set_patch_choice(ids, variable.get()),
+                bg=PANEL,
+                fg=TEXT,
+                selectcolor=FIELD,
+                activebackground=PANEL,
+                activeforeground=TEXT,
+                font=("Segoe UI Semibold", 10),
+                borderwidth=0,
+                highlightthickness=0,
+            )
+            checkbox.pack(anchor="w", padx=14, pady=(7, 0))
+            unavailable = not has_hl2 and "p1" in patch_ids
+            if unavailable:
+                checkbox.configure(state="disabled", disabledforeground=MUTED)
+                detail += "  Unavailable because no Half-Life 2 folder was selected."
+            tk.Label(
+                panel,
+                text=detail,
+                bg=PANEL,
+                fg=MUTED,
+                anchor="w",
+                justify="left",
+                wraplength=610,
+                font=("Segoe UI", 8),
+            ).pack(fill="x", padx=36, pady=(1, 7))
+
+        def scroll(event):
+            canvas.yview_scroll(-1 if event.delta > 0 else 1, "units")
+
+        def bind_wheel(widget):
+            widget.bind("<MouseWheel>", scroll)
+            for child in widget.winfo_children():
+                bind_wheel(child)
+
+        bind_wheel(list_frame)
+
+    def start_build(self):
+        try:
+            self.validate_file_choices()
+            blob = Path(self.blob_var.get())
+            dat = Path(self.dat_var.get())
+            hl2_value = self.hl2_var.get().strip()
+            hl2 = Path(hl2_value) if hl2_value else None
+            selected_patch_ids = self.selected_patch_ids()
+            output = dat.resolve().parent / "852_0_fixed"
+            inputs = BuildInputs(blob, dat, hl2, output, selected_patch_ids)
+        except Exception as error:
+            self.message_var.set(str(error))
+            return
+        self.last_selected_patch_ids = selected_patch_ids
         self.message_var.set("")
         self.cancel_event.clear()
         self.show_progress()
@@ -227,8 +362,9 @@ class PatcherUI(TkBase):
         tk.Label(inner, text=str(output), bg=PANEL, fg=TEXT, font=("Cascadia Mono", 9)).pack(anchor="w", pady=(6, 0))
         summary = tk.Frame(self.container, bg=BG)
         summary.pack(fill="x", pady=(18, 0))
-        for text in ("p1  HL2 assets", "p2  Search paths", "p3  Sound manifest", "p4  GLaDOS dialogue", "p5  Source thread fix", "p6  Launch files"):
-            tk.Label(summary, text=f"✓  {text}", bg=BG, fg=MUTED, font=("Segoe UI", 9)).pack(anchor="w", pady=1)
+        for patch in PATCHES:
+            if patch.id in self.last_selected_patch_ids:
+                tk.Label(summary, text=f"✓  {patch.id}  {patch.display_name}", bg=BG, fg=MUTED, font=("Segoe UI", 9)).pack(anchor="w", pady=1)
         bottom = tk.Frame(self.container, bg=BG)
         bottom.pack(side="bottom", fill="x")
         self.button(bottom, "Open folder", lambda: os.startfile(output), secondary=True, width=12).pack(side="left")

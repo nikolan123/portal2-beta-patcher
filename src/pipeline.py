@@ -13,7 +13,7 @@ import uuid
 
 from extractor import extract_depot
 from models import BuildCancelled, BuildInputs, BuildReport, PatchContext, ProgressEvent, ProgressCallback
-from patches import PATCHES
+from patches import PATCHES, normalize_patch_ids
 from steam import validate_hl2
 
 
@@ -43,14 +43,29 @@ class BuildPipeline:
     def run(self, inputs: BuildInputs) -> Path:
         blob = inputs.blob_path.expanduser().resolve()
         dat = inputs.dat_path.expanduser().resolve()
-        hl2 = validate_hl2(inputs.hl2_path)
         output = inputs.output_path.expanduser().resolve()
+        requested_ids = (
+            tuple(patch.id for patch in PATCHES)
+            if inputs.selected_patch_ids is None
+            else inputs.selected_patch_ids
+        )
+        known_ids = {patch.id for patch in PATCHES}
+        unknown_ids = set(requested_ids) - known_ids
+        if unknown_ids:
+            raise ValueError(f"Unknown patch IDs: {', '.join(sorted(unknown_ids))}")
+        selected_ids = set(normalize_patch_ids(requested_ids))
+        needs_hl2 = bool(selected_ids & {"p1", "p3"})
+        if needs_hl2 and inputs.hl2_path is None:
+            raise ValueError("Half-Life 2 is required for the HL2 content support fix")
+        hl2 = validate_hl2(inputs.hl2_path) if needs_hl2 else None
         if not blob.is_file() or not dat.is_file():
             raise FileNotFoundError("The selected BLOB or DAT does not exist")
         if output.exists():
             raise FileExistsError(f"Output already exists: {output}")
 
         report = BuildReport()
+        if hl2 is None:
+            report.warnings.append("Half-Life 2 content support was not installed")
         blob_hash = hash_file(blob, "validate", self.emit, self.cancel_event)
         dat_hash = hash_file(dat, "validate", self.emit, self.cancel_event)
         report.input_hashes = {"blob": blob_hash, "dat": dat_hash}
@@ -63,10 +78,11 @@ class BuildPipeline:
         try:
             report.extraction = extract_depot(blob, dat, staging, self.emit, self.cancel_event)
             context = PatchContext(staging, hl2, report, self.cancel_event)
-            for index, patch in enumerate(PATCHES, start=1):
+            selected_patches = [patch for patch in PATCHES if patch.id in selected_ids]
+            for index, patch in enumerate(selected_patches, start=1):
                 if self.cancel_event.is_set():
                     raise BuildCancelled("Build cancelled")
-                self.emit(ProgressEvent("patches", index - 1, len(PATCHES), f"{patch.id}: {patch.display_name}"))
+                self.emit(ProgressEvent("patches", index - 1, max(len(selected_patches), 1), f"{patch.id}: {patch.display_name}"))
                 needed = patch.check(context)
                 if needed:
                     patch.apply(context, self.emit)
@@ -74,7 +90,7 @@ class BuildPipeline:
                 report.patches.append(
                     {"id": patch.id, "name": patch.display_name, "status": "applied" if needed else "already_applied"}
                 )
-                self.emit(ProgressEvent("patches", index, len(PATCHES), f"Finished {patch.id}"))
+                self.emit(ProgressEvent("patches", index, max(len(selected_patches), 1), f"Finished {patch.id}"))
 
             report_data = asdict(report)
             report_data["completed_at"] = datetime.now(timezone.utc).isoformat()

@@ -72,6 +72,7 @@ HL2_SOUND_SCRIPTS = (
 class SoundManifestPatch:
     id = "p3"
     display_name = "Sound manifest"
+    description = "Register the missing Half-Life 2 sound scripts so maps can precache and play their sounds."
 
     def _path(self, context: PatchContext):
         return context.root / "portal2" / "scripts" / "game_sounds_manifest.txt"
@@ -100,4 +101,3 @@ class SoundManifestPatch:
     def verify(self, context: PatchContext) -> None:
         if self.check(context):
             raise RuntimeError("Sound manifest is missing restored HL2 entries")
-

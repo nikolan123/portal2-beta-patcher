@@ -17,3 +17,22 @@ PATCHES = [
     LaunchersPatch(),
 ]
 
+PATCH_DEPENDENCIES = {
+    "p3": {"p1"},
+}
+
+REQUIRED_PATCH_IDS = {"p2", "p6"}
+
+
+def normalize_patch_ids(selected_ids) -> tuple[str, ...]:
+    """Add required patches and return IDs in execution order."""
+    selected = set(selected_ids) | REQUIRED_PATCH_IDS
+    changed = True
+    while changed:
+        changed = False
+        for patch_id in tuple(selected):
+            dependencies = PATCH_DEPENDENCIES.get(patch_id, set())
+            if not dependencies.issubset(selected):
+                selected.update(dependencies)
+                changed = True
+    return tuple(patch.id for patch in PATCHES if patch.id in selected)

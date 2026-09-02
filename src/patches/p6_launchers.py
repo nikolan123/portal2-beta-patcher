@@ -14,7 +14,10 @@ setlocal
 set "ROOT=%~dp0"
 set "VGame=%ROOT%"
 set "VContent=%ROOT%"
-start "" /D "%ROOT%" "%ROOT%hl2.wrap.exe" -game portal2 -windowed -w 1366 -h 768 -console %*
+set "GAME=hl2.exe"
+if exist "%ROOT%hl2.wrap.exe" set "GAME=hl2.wrap.exe"
+
+start "" /D "%ROOT%" "%ROOT%%GAME%" -game portal2 -windowed -w 1366 -h 768 -console %*
 endlocal
 '''.replace("\n", "\r\n").encode("ascii")
 
@@ -22,6 +25,7 @@ endlocal
 class LaunchersPatch:
     id = "p6"
     display_name = "Launch files"
+    description = "Create a launcher that sets the beta content paths and uses the thread fix when installed."
 
     def _path(self, context: PatchContext):
         return context.root / "Launch Portal 2.cmd"

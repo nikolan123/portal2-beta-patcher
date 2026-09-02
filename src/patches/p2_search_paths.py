@@ -1,5 +1,5 @@
 """
-Patch 2: Edit GameInfo.txt so the beta can find its platform and hl2 folders
+Patch 2: Mount the beta's required content folders and optional HL2 assets
 """
 from __future__ import annotations
 
@@ -15,6 +15,7 @@ SEARCH_BLOCK = re.compile(r"(SearchPaths\s*\{)(.*?)(\n\s*\})", re.IGNORECASE | r
 class SearchPathsPatch:
     id = "p2"
     display_name = "Game search paths"
+    description = "Make the beta mount its temp content and platform files, plus Half-Life 2 when selected."
 
     def _path(self, context: PatchContext):
         return context.root / "portal2" / "GameInfo.txt"
@@ -22,12 +23,13 @@ class SearchPathsPatch:
     def check(self, context: PatchContext) -> bool:
         text = self._path(context).read_text(encoding="utf-8", errors="replace").casefold()
         tempcontent = re.search(r"\bgame\s+portal2_tempcontent\b", text)
+        platform = "|gameinfo_path|..\\platform" in text
         hl2 = re.search(r"\bgame\s+hl2\b", text)
         return (
-            "|gameinfo_path|..\\platform" not in text
+            not platform
             or tempcontent is None
-            or hl2 is None
-            or tempcontent.start() > hl2.start()
+            or (context.hl2_source is not None and hl2 is None)
+            or (hl2 is not None and tempcontent.start() > hl2.start())
         )
 
     def apply(self, context: PatchContext, progress: ProgressCallback) -> None:
@@ -40,25 +42,24 @@ class SearchPathsPatch:
         body = match.group(2)
         lines = body.splitlines()
         content = [line for line in lines if line.strip()]
-        if not any("|gameinfo_path|..\\platform" in line.casefold() for line in content):
-            content.insert(1 if content else 0, "\t\t\tGame\t\t\t\t|gameinfo_path|..\\platform")
-        if not any(re.search(r"\bgame\s+hl2\b", line, re.IGNORECASE) for line in content):
+        content = [
+            line
+            for line in content
+            if "|gameinfo_path|..\\platform" not in line.casefold()
+            and not re.search(r"\bgame\s+portal2_tempcontent\b", line, re.IGNORECASE)
+        ]
+        insert_at = next(
+            (index + 1 for index, line in enumerate(content) if "|gameinfo_path|." in line.casefold()),
+            0,
+        )
+        content[insert_at:insert_at] = [
+            "\t\t\tGame\t\t\t\tportal2_tempcontent",
+            "\t\t\tGame\t\t\t\t|gameinfo_path|..\\platform",
+        ]
+        if context.hl2_source is not None and not any(
+            re.search(r"\bgame\s+hl2\b", line, re.IGNORECASE) for line in content
+        ):
             content.append("\t\t\tGame\t\t\t\thl2")
-        tempcontent_index = next(
-            (index for index, line in enumerate(content) if re.search(r"\bgame\s+portal2_tempcontent\b", line, re.IGNORECASE)),
-            None,
-        )
-        tempcontent_line = (
-            content.pop(tempcontent_index)
-            if tempcontent_index is not None
-            else "\t\t\tGame\t\t\t\tportal2_tempcontent"
-        )
-        hl2_index = next(
-            index
-            for index, line in enumerate(content)
-            if re.search(r"\bgame\s+hl2\b", line, re.IGNORECASE)
-        )
-        content.insert(hl2_index, tempcontent_line)
         replacement = match.group(1) + "\n" + "\n".join(content) + match.group(3)
         atomic_write(path, (text[: match.start()] + replacement + text[match.end() :]).encode("utf-8"))
 

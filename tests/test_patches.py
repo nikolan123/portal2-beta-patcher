@@ -1,8 +1,9 @@
+import re
 from threading import Event
 
 from models import BuildReport, PatchContext
-from patches import PATCHES
-from patches.p1_hl2_assets import ASSET_MARKER, HL2_ASSET_ALLOWLIST, copy_loose_hl2_scripts
+from patches import PATCHES, normalize_patch_ids
+from patches.p1_hl2_assets import ASSET_MARKER, HL2_ASSET_ALLOWLIST, copy_selected_loose_assets
 from patches.p2_search_paths import SearchPathsPatch
 from patches.p5_thread_fix import ARCHIVE_SHA256, DOWNLOAD_URL, FILES
 from patches.p6_launchers import LAUNCHER
@@ -10,6 +11,12 @@ from patches.p6_launchers import LAUNCHER
 
 def test_patch_registry_is_explicitly_numbered():
     assert [patch.id for patch in PATCHES] == ["p1", "p2", "p3", "p4", "p5", "p6"]
+    assert all(patch.description for patch in PATCHES)
+
+
+def test_patch_dependencies_and_required_launcher():
+    assert normalize_patch_ids(()) == ("p2", "p6")
+    assert normalize_patch_ids(("p3",)) == ("p1", "p2", "p3", "p6")
 
 
 def test_source_thread_fix_release_is_pinned():
@@ -18,8 +25,10 @@ def test_source_thread_fix_release_is_pinned():
     assert set(FILES) == {"hl2.wrap.exe", "LICENCE-threadfix"}
 
 
-def test_launcher_uses_source_thread_fix_wrapper():
+def test_launcher_uses_wrapper_with_normal_executable_fallback():
     assert b'"%ROOT%hl2.wrap.exe"' in LAUNCHER
+    assert b'set "GAME=hl2.exe"' in LAUNCHER
+    assert b'if exist "%ROOT%hl2.wrap.exe"' in LAUNCHER
 
 
 def test_hl2_assets_use_curated_compatibility_allowlist():
@@ -30,7 +39,7 @@ def test_hl2_assets_use_curated_compatibility_allowlist():
     assert not any(path.startswith("media/") for path in HL2_ASSET_ALLOWLIST)
 
 
-def test_loose_hl2_scripts_are_copied_without_overwriting(tmp_path):
+def test_selected_loose_hl2_assets_are_copied_without_overwriting(tmp_path):
     source = tmp_path / "source"
     destination = tmp_path / "destination"
     (source / "talker").mkdir(parents=True)
@@ -39,9 +48,10 @@ def test_loose_hl2_scripts_are_copied_without_overwriting(tmp_path):
     (source / "talker" / "npc.txt").write_text("source npc", encoding="utf-8")
     (destination / "game_sounds.txt").write_text("existing sound", encoding="utf-8")
 
-    written, skipped, byte_count, file_count = copy_loose_hl2_scripts(
+    written, skipped, byte_count, file_count = copy_selected_loose_assets(
         source,
         destination,
+        {"game_sounds.txt", "talker/npc.txt"},
         Event(),
         lambda *_args: None,
     )
@@ -71,3 +81,25 @@ def test_search_paths_mount_beta_tempcontent_before_retail_hl2(tmp_path):
 
     result = game_info.read_text(encoding="utf-8")
     assert result.index("Game\t\t\t\tportal2_tempcontent") < result.index("Game hl2")
+
+
+def test_search_paths_work_without_half_life_2(tmp_path):
+    game_dir = tmp_path / "portal2"
+    game_dir.mkdir()
+    game_info = game_dir / "GameInfo.txt"
+    game_info.write_text(
+        '"GameInfo"\n{\n\tFileSystem\n\t{\n\t\tSearchPaths\n\t\t{\n'
+        '\t\t\tGame |gameinfo_path|.\n\t\t\tGame portal\n'
+        '\t\t}\n\t}\n}\n',
+        encoding="utf-8",
+    )
+    context = PatchContext(tmp_path, None, BuildReport(), Event())
+    patch = SearchPathsPatch()
+
+    patch.apply(context, lambda *_args: None)
+    patch.verify(context)
+
+    result = game_info.read_text(encoding="utf-8")
+    assert "portal2_tempcontent" in result
+    assert "|gameinfo_path|..\\platform" in result
+    assert not re.search(r"\bGame\s+hl2\b", result, re.IGNORECASE)

@@ -10,8 +10,9 @@ from typing import Callable, Protocol
 class BuildInputs:
     blob_path: Path
     dat_path: Path
-    hl2_path: Path
+    hl2_path: Path | None
     output_path: Path
+    selected_patch_ids: tuple[str, ...] | None = None
 
 
 @dataclass(frozen=True)
@@ -39,7 +40,7 @@ class BuildReport:
 @dataclass
 class PatchContext:
     root: Path
-    hl2_source: Path
+    hl2_source: Path | None
     report: BuildReport
     cancel_event: Event
 
@@ -47,6 +48,7 @@ class PatchContext:
 class Patch(Protocol):
     id: str
     display_name: str
+    description: str
 
     def check(self, context: PatchContext) -> bool: ...
     def apply(self, context: PatchContext, progress: ProgressCallback) -> None: ...
@@ -55,4 +57,3 @@ class Patch(Protocol):
 
 class BuildCancelled(RuntimeError):
     pass
-

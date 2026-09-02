@@ -24,27 +24,6 @@ def load_asset_allowlist() -> frozenset[str]:
 HL2_ASSET_ALLOWLIST = load_asset_allowlist()
 
 
-def copy_loose_hl2_scripts(source, destination, cancel_event, progress):
-    """Copy a loose directory without overwriting files already present."""
-    files = sorted(path for path in source.rglob("*") if path.is_file())
-    written = skipped = byte_count = 0
-    for index, path in enumerate(files, start=1):
-        if cancel_event.is_set():
-            raise BuildCancelled("Build cancelled")
-        relative = path.relative_to(source)
-        target = destination / relative
-        if target.exists():
-            skipped += 1
-        else:
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(path, target)
-            written += 1
-            byte_count += path.stat().st_size
-        if index == 1 or index == len(files) or index % 25 == 0:
-            progress(index, max(len(files), 1), relative.as_posix())
-    return written, skipped, byte_count, len(files)
-
-
 def selected_vpk_entries(archives):
     """Return allowlisted entries once, preferring the first VPK that has one."""
     selected = []
@@ -114,6 +93,7 @@ def copy_selected_loose_assets(source, destination, selected_paths, cancel_event
 class Hl2AssetsPatch:
     id = "p1"
     display_name = "Half-Life 2 assets"
+    description = "Copy the selected materials, models, sounds, and scripts this beta needs from your Half-Life 2 install."
 
     def _marker(self, context: PatchContext):
         return context.root / "hl2" / ".p2patcher-assets-complete"
@@ -123,6 +103,8 @@ class Hl2AssetsPatch:
         return not marker.is_file() or marker.read_text(encoding="ascii", errors="replace") != ASSET_MARKER
 
     def apply(self, context: PatchContext, progress: ProgressCallback) -> None:
+        if context.hl2_source is None:
+            raise RuntimeError("Half-Life 2 is required for this fix")
         archive_paths = relevant_hl2_vpks(context.hl2_source)
         archives = [(path, VPKArchive(path)) for path in archive_paths]
         destination = context.root / "hl2"

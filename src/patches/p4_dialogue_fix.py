@@ -30,6 +30,7 @@ EXPECTED_SHA256 = hashlib.sha256(SCRIPT).hexdigest()
 class DialogueFixPatch:
     id = "p4"
     display_name = "GLaDOS dialogue"
+    description = "Create the missing GLaDOS actor after map startup so her dialogue can play."
 
     def _path(self, context: PatchContext):
         return context.root / "portal2" / "scripts" / "vscripts" / "mapspawn.nut"

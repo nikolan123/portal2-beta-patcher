@@ -52,6 +52,7 @@ def read_thread_fix_files(archive: bytes) -> dict[str, bytes]:
 class ThreadFixPatch:
     id = "p5"
     display_name = "Source Thread Fix"
+    description = "Install the Source Thread Fix wrapper for CPUs with more threads than this engine supports."
 
     def check(self, context: PatchContext) -> bool:
         return any(
