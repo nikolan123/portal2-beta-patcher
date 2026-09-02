@@ -1,0 +1,105 @@
+name: Build nightly
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nightly-release
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked --all-groups
+
+      - name: Run tests
+        run: uv run pytest -q
+
+      - name: Build executable
+        run: uv run pyinstaller --noconfirm build.spec
+
+      - name: Write checksum
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash -Algorithm SHA256 "dist\Portal2BetaPatcher.exe").Hash.ToLowerInvariant()
+          $text = "$hash  Portal2BetaPatcher.exe`n"
+          [IO.File]::WriteAllText(
+              "dist\Portal2BetaPatcher.exe.sha256",
+              $text,
+              [Text.UTF8Encoding]::new($false)
+          )
+
+      - name: Move nightly tag to this commit
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag --force nightly $env:GITHUB_SHA
+          git push origin refs/tags/nightly --force
+
+      - name: Create or update nightly release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $shortCommit = $env:GITHUB_SHA.Substring(0, 7)
+          $commitUrl = "https://github.com/$env:GITHUB_REPOSITORY/commit/$env:GITHUB_SHA"
+          $notes = "Automated build from commit [$shortCommit]($commitUrl)."
+
+          $releaseId = gh api `
+              "repos/$env:GITHUB_REPOSITORY/releases" `
+              --paginate `
+              --jq '.[] | select(.tag_name == "nightly") | .id' |
+              Select-Object -First 1
+
+          if ($releaseId) {
+              gh release upload nightly `
+                  "dist\Portal2BetaPatcher.exe" `
+                  "dist\Portal2BetaPatcher.exe.sha256" `
+                  --clobber
+          }
+          else {
+              gh release create nightly `
+                  "dist\Portal2BetaPatcher.exe" `
+                  "dist\Portal2BetaPatcher.exe.sha256" `
+                  --verify-tag `
+                  --title "Nightly" `
+                  --notes $notes `
+                  --latest
+          }
+
+          $releaseId = gh api `
+              "repos/$env:GITHUB_REPOSITORY/releases/tags/nightly" `
+              --jq '.id'
+
+          gh api --method PATCH `
+              "repos/$env:GITHUB_REPOSITORY/releases/$releaseId" `
+              -f name="Nightly" `
+              -f body="$notes" `
+              -F draft=false `
+              -F prerelease=false `
+              -f make_latest=true
