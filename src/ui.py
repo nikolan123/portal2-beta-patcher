@@ -6,7 +6,7 @@ from pathlib import Path
 import queue
 import threading
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 
 try:
     from tkinterdnd2 import DND_FILES, TkinterDnD
@@ -18,6 +18,7 @@ except ImportError:
 
 from models import BuildCancelled, BuildInputs, ProgressEvent
 from patches import PATCHES, normalize_patch_ids
+from patches.p7_hammer import repair_moved_tools
 from pipeline import BuildPipeline
 from steam import detect_half_life_2, detect_portal_2
 
@@ -96,6 +97,7 @@ class PatcherUI(TkBase):
         self.heading("Portal 2 July 2009 Patcher", "Select your 852_0 files.")
         bottom = tk.Frame(self.container, bg=BG)
         bottom.pack(side="bottom", fill="x")
+        self.button(bottom, "Fix moved build", self.repair_tools, secondary=True, width=17).pack(side="left")
         self.button(bottom, "Next", self.show_patch_chooser, width=13).pack(side="right")
         form = tk.Frame(self.container, bg=BG)
         form.pack(fill="x", pady=(20, 0))
@@ -161,6 +163,26 @@ class PatcherUI(TkBase):
         selected = filedialog.askdirectory()
         if selected:
             variable.set(selected)
+
+    def repair_tools(self) -> None:
+        messagebox.showinfo(
+            "Fix moved build",
+            "Use this after moving a patched 852_0_fixed folder. It updates Hammer and HLMV to use the folder's new location.",
+            parent=self,
+        )
+        selected = filedialog.askdirectory(title="Select the moved 852_0_fixed folder")
+        if not selected:
+            return
+        try:
+            repair_moved_tools(Path(selected))
+        except Exception as error:
+            messagebox.showerror("Fix moved build", str(error), parent=self)
+            return
+        messagebox.showinfo(
+            "Fix moved build",
+            "Hammer and HLMV now use this folder's current location.",
+            parent=self,
+        )
 
     def detect_hl2(self):
         detected = detect_half_life_2()

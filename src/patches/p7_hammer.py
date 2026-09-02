@@ -208,6 +208,35 @@ def ensure_junction(link: Path, target: Path) -> None:
         raise PatchError(f"Could not create junction {link.name}: {detail}")
 
 
+def repair_moved_tools(root: Path) -> None:
+    """Rewrite p7's location-dependent files after its output folder is moved."""
+    root = root.expanduser().resolve()
+    required_files = (
+        root / "bin" / "hammer.exe",
+        root / "bin" / "hlmv.exe",
+        root / "bin" / "tier0.dll",
+        root / "platform" / "materials" / "Editor" / "wireframe.vmt",
+    )
+    if any(not path.is_file() for path in required_files):
+        raise PatchError("This folder does not contain an installed Hammer and HLMV fix")
+    if sha256((root / "bin" / "tier0.dll").read_bytes()) != PATCHED_TIER0_SHA256:
+        raise PatchError("This folder does not contain p7's patched tier0.dll")
+
+    links = [(root / "game" / name, root / name) for name in JUNCTION_NAMES]
+    for link, _target in links:
+        if os.path.lexists(link) and not link.is_junction():
+            raise PatchError(f"Refusing to replace non-junction path: {link}")
+
+    for link, target in links:
+        if link.is_junction() and normalized_path(os.readlink(link)) != normalized_path(target):
+            os.rmdir(link)
+        ensure_junction(link, target)
+
+    atomic_write(root / "bin" / "GameConfig.txt", game_config(root))
+    atomic_write(root / "Launch Hammer.cmd", hammer_launcher(root))
+    atomic_write(root / "Launch HLMV.cmd", hlmv_launcher(root))
+
+
 class HammerPatch:
     id = "p7"
     display_name = "Hammer and HLMV tools"
