@@ -1,5 +1,5 @@
 """
-Patch 6: Fix GLaDOS dialogue
+Patch 6: Add launcher
 This patch adds launcher script to the game's directory
 """
 from __future__ import annotations
