@@ -13,6 +13,7 @@ class BuildInputs:
     hl2_path: Path | None
     output_path: Path
     selected_patch_ids: tuple[str, ...] | None = None
+    portal2_path: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -43,6 +44,8 @@ class PatchContext:
     hl2_source: Path | None
     report: BuildReport
     cancel_event: Event
+    portal2_source: Path | None = None
+    final_root: Path | None = None
 
 
 class Patch(Protocol):

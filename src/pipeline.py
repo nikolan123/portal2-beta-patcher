@@ -14,7 +14,7 @@ import uuid
 from extractor import extract_depot
 from models import BuildCancelled, BuildInputs, BuildReport, PatchContext, ProgressEvent, ProgressCallback
 from patches import PATCHES, normalize_patch_ids
-from steam import validate_hl2
+from steam import validate_hl2, validate_portal_2
 
 
 BLOB_SHA256 = "3a6ea6546058bfe1a396d5167a869f626e26b9118eee9c95594d08e2b87c169f"
@@ -58,6 +58,10 @@ class BuildPipeline:
         if needs_hl2 and inputs.hl2_path is None:
             raise ValueError("Half-Life 2 is required for the HL2 content support fix")
         hl2 = validate_hl2(inputs.hl2_path) if needs_hl2 else None
+        needs_hammer = "p7" in selected_ids
+        if needs_hammer and inputs.portal2_path is None:
+            raise ValueError("A retail Portal 2 installation is required for the Hammer and HLMV fix")
+        portal2 = validate_portal_2(inputs.portal2_path) if needs_hammer else None
         if not blob.is_file() or not dat.is_file():
             raise FileNotFoundError("The selected BLOB or DAT does not exist")
         if output.exists():
@@ -77,7 +81,7 @@ class BuildPipeline:
         staging = output.with_name(f".{output.name}.partial-{uuid.uuid4().hex[:8]}")
         try:
             report.extraction = extract_depot(blob, dat, staging, self.emit, self.cancel_event)
-            context = PatchContext(staging, hl2, report, self.cancel_event)
+            context = PatchContext(staging, hl2, report, self.cancel_event, portal2, output)
             selected_patches = [patch for patch in PATCHES if patch.id in selected_ids]
             for index, patch in enumerate(selected_patches, start=1):
                 if self.cancel_event.is_set():

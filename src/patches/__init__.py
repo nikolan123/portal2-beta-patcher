@@ -6,6 +6,7 @@ from patches.p3_sound_manifest import SoundManifestPatch
 from patches.p4_dialogue_fix import DialogueFixPatch
 from patches.p5_thread_fix import ThreadFixPatch
 from patches.p6_launchers import LaunchersPatch
+from patches.p7_hammer import HammerPatch
 
 
 PATCHES = [
@@ -15,6 +16,7 @@ PATCHES = [
     DialogueFixPatch(),
     ThreadFixPatch(),
     LaunchersPatch(),
+    HammerPatch(),
 ]
 
 PATCH_DEPENDENCIES = {

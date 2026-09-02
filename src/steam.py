@@ -134,6 +134,29 @@ def detect_half_life_2() -> Path | None:
     return None
 
 
+def validate_portal_2(path: Path) -> Path:
+    path = path.expanduser().resolve()
+    editor = path / "platform" / "materials" / "Editor"
+    required = ("wireframe.vmt", "flat.vmt", "logic_coop_manager.vmt")
+    if not (path / "portal2").is_dir() or not editor.is_dir():
+        raise SteamDetectionError("The selected folder is not a Portal 2 installation")
+    if any(not (editor / name).is_file() for name in required):
+        raise SteamDetectionError("The selected Portal 2 installation has incomplete Hammer resources")
+    return path
+
+
+def detect_portal_2() -> Path | None:
+    for library in steam_libraries():
+        manifest = library / "steamapps" / "appmanifest_620.acf"
+        game = library / "steamapps" / "common" / "Portal 2"
+        if manifest.is_file() and game.is_dir():
+            try:
+                return validate_portal_2(game)
+            except SteamDetectionError:
+                continue
+    return None
+
+
 def relevant_hl2_vpks(hl2_root: Path) -> list[Path]:
     folder = validate_hl2(hl2_root) / "hl2"
     required = (

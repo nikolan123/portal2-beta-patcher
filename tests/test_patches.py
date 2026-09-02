@@ -7,10 +7,11 @@ from patches.p1_hl2_assets import ASSET_MARKER, HL2_ASSET_ALLOWLIST, copy_select
 from patches.p2_search_paths import SearchPathsPatch
 from patches.p5_thread_fix import ARCHIVE_SHA256, DOWNLOAD_URL, FILES
 from patches.p6_launchers import LAUNCHER
+from patches.p7_hammer import PATCHED_TIER0_SHA256, game_config, hammer_launcher, hlmv_launcher
 
 
 def test_patch_registry_is_explicitly_numbered():
-    assert [patch.id for patch in PATCHES] == ["p1", "p2", "p3", "p4", "p5", "p6"]
+    assert [patch.id for patch in PATCHES] == ["p1", "p2", "p3", "p4", "p5", "p6", "p7"]
     assert all(patch.description for patch in PATCHES)
 
 
@@ -29,6 +30,19 @@ def test_launcher_uses_wrapper_with_normal_executable_fallback():
     assert b'"%ROOT%hl2.wrap.exe"' in LAUNCHER
     assert b'set "GAME=hl2.exe"' in LAUNCHER
     assert b'if exist "%ROOT%hl2.wrap.exe"' in LAUNCHER
+
+
+def test_hammer_and_hlmv_files_use_the_fixed_layout(tmp_path):
+    config = game_config(tmp_path).decode("utf-8")
+    hammer = hammer_launcher(tmp_path).decode("utf-8")
+    hlmv = hlmv_launcher(tmp_path).decode("utf-8")
+
+    assert f'"GameDir" "{tmp_path}\\game\\portal2"' in config
+    assert "-nop4 -threads 4" in hammer
+    assert "hammer.exe" in hammer
+    assert "hlmv.exe -nop4" in hlmv
+    assert f'VPROJECT={tmp_path}\\game\\portal2' in hlmv
+    assert len(PATCHED_TIER0_SHA256) == 64
 
 
 def test_hl2_assets_use_curated_compatibility_allowlist():

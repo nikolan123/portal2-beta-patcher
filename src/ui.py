@@ -19,7 +19,7 @@ except ImportError:
 from models import BuildCancelled, BuildInputs, ProgressEvent
 from patches import PATCHES, normalize_patch_ids
 from pipeline import BuildPipeline
-from steam import detect_half_life_2
+from steam import detect_half_life_2, detect_portal_2
 
 
 BG = "#090909"
@@ -47,9 +47,12 @@ class PatcherUI(TkBase):
         self.output_path: Path | None = None
         self.blob_var = tk.StringVar()
         self.dat_var = tk.StringVar()
+        self.portal2_var = tk.StringVar()
         self.hl2_var = tk.StringVar()
         self.hl2_warning_var = tk.StringVar()
+        self.portal2_warning_var = tk.StringVar()
         self.hl2_var.trace_add("write", self.update_hl2_warning)
+        self.portal2_var.trace_add("write", self.update_portal2_warning)
         self.message_var = tk.StringVar()
         self.percent_var = tk.StringVar(value="0%")
         self.progress_fraction = 0.0
@@ -60,6 +63,7 @@ class PatcherUI(TkBase):
         self.container.pack(fill="both", expand=True, padx=28, pady=24)
         self.show_files()
         self.after(100, self.poll_events)
+        threading.Thread(target=self.detect_portal2, daemon=True).start()
         threading.Thread(target=self.detect_hl2, daemon=True).start()
 
     def clear(self) -> None:
@@ -90,30 +94,41 @@ class PatcherUI(TkBase):
     def show_files(self) -> None:
         self.clear()
         self.heading("Portal 2 July 2009 Patcher", "Select your 852_0 files.")
+        bottom = tk.Frame(self.container, bg=BG)
+        bottom.pack(side="bottom", fill="x")
+        self.button(bottom, "Next", self.show_patch_chooser, width=13).pack(side="right")
         form = tk.Frame(self.container, bg=BG)
-        form.pack(fill="x", pady=(25, 0))
+        form.pack(fill="x", pady=(20, 0))
         self.file_row(form, "BLOB file", self.blob_var, ".blob", False)
         self.file_row(form, "DAT file", self.dat_var, ".dat", False)
+        self.file_row(form, "Portal 2 folder", self.portal2_var, "", True)
         self.file_row(form, "Half-Life 2 folder", self.hl2_var, "", True)
 
-        tk.Label(
-            self.container,
+        warning_frame = tk.Frame(self.container, bg=BG)
+        warning_frame.pack(fill="x")
+        self.portal2_warning_label = tk.Label(
+            warning_frame,
+            textvariable=self.portal2_warning_var,
+            bg=BG,
+            fg="#d6aa62",
+            font=("Segoe UI", 9),
+        )
+        self.hl2_warning_label = tk.Label(
+            warning_frame,
             textvariable=self.hl2_warning_var,
             bg=BG,
             fg="#d6aa62",
             font=("Segoe UI", 9),
-        ).pack(anchor="w", pady=(0, 4))
+        )
+        self.update_portal2_warning()
         self.update_hl2_warning()
 
         self.error_label = tk.Label(self.container, textvariable=self.message_var, bg=BG, fg="#e58b8b", font=("Segoe UI", 9))
         self.error_label.pack(anchor="w", pady=(0, 4))
-        bottom = tk.Frame(self.container, bg=BG)
-        bottom.pack(side="bottom", fill="x")
-        self.button(bottom, "Next", self.show_patch_chooser, width=13).pack(side="right")
 
     def file_row(self, parent, label, variable, extension, folder):
         row = tk.Frame(parent, bg=BG)
-        row.pack(fill="x", pady=(0, 15))
+        row.pack(fill="x", pady=(0, 10))
         tk.Label(row, text=label, width=18, anchor="w", bg=BG, fg=TEXT, font=("Segoe UI", 10)).pack(side="left")
         entry = tk.Entry(
             row,
@@ -152,11 +167,33 @@ class PatcherUI(TkBase):
         if detected:
             self.events.put(("hl2", detected))
 
+    def detect_portal2(self):
+        detected = detect_portal_2()
+        if detected:
+            self.events.put(("portal2", detected))
+
     def update_hl2_warning(self, *_args) -> None:
         if self.hl2_var.get().strip():
             self.hl2_warning_var.set("")
+            if hasattr(self, "hl2_warning_label"):
+                self.hl2_warning_label.pack_forget()
         else:
             self.hl2_warning_var.set("No Half-Life 2 folder: HL2 content support will be unavailable.")
+            if hasattr(self, "hl2_warning_label"):
+                self.hl2_warning_label.pack(anchor="w", pady=(0, 4))
+
+    def update_portal2_warning(self, *_args) -> None:
+        if self.portal2_var.get().strip():
+            self.portal2_warning_var.set("")
+            if hasattr(self, "portal2_warning_label"):
+                self.portal2_warning_label.pack_forget()
+        else:
+            self.portal2_warning_var.set("No Portal 2 folder: the Hammer and HLMV fix will be unavailable. Please do not pirate Portal 2!")
+            if hasattr(self, "portal2_warning_label"):
+                options = {"anchor": "w", "pady": (0, 4)}
+                if self.hl2_warning_label.winfo_manager():
+                    options["before"] = self.hl2_warning_label
+                self.portal2_warning_label.pack(**options)
 
     def selected_patch_ids(self) -> tuple[str, ...]:
         return normalize_patch_ids(patch_id for patch_id, variable in self.patch_vars.items() if variable.get())
@@ -173,6 +210,9 @@ class PatcherUI(TkBase):
         hl2_value = self.hl2_var.get().strip()
         if hl2_value and not Path(hl2_value).is_dir():
             raise ValueError("The selected Half-Life 2 folder does not exist.")
+        portal2_value = self.portal2_var.get().strip()
+        if portal2_value and not Path(portal2_value).is_dir():
+            raise ValueError("The selected Portal 2 folder does not exist.")
 
     def show_patch_chooser(self):
         try:
@@ -216,8 +256,11 @@ class PatcherUI(TkBase):
         canvas.bind("<Configure>", lambda event: canvas.itemconfigure(choices_window, width=event.width))
         patch_by_id = {patch.id: patch for patch in PATCHES}
         has_hl2 = bool(self.hl2_var.get().strip())
+        has_portal2 = bool(self.portal2_var.get().strip())
         if not has_hl2:
             self.set_patch_choice(("p1", "p3"), False)
+        if not has_portal2:
+            self.set_patch_choice(("p7",), False)
         choices_to_show = (
             (
                 ("p1", "p3"),
@@ -226,6 +269,7 @@ class PatcherUI(TkBase):
             ),
             (("p4",), patch_by_id["p4"].display_name, patch_by_id["p4"].description),
             (("p5",), patch_by_id["p5"].display_name, patch_by_id["p5"].description),
+            (("p7",), patch_by_id["p7"].display_name, patch_by_id["p7"].description),
         )
         for patch_ids, name, detail in choices_to_show:
             primary_id = patch_ids[0]
@@ -247,9 +291,13 @@ class PatcherUI(TkBase):
             )
             checkbox.pack(anchor="w", padx=14, pady=(7, 0))
             unavailable = not has_hl2 and "p1" in patch_ids
+            unavailable_reason = "Unavailable because no Half-Life 2 folder was selected."
+            if "p7" in patch_ids and not has_portal2:
+                unavailable = True
+                unavailable_reason = "Unavailable because no retail Portal 2 folder was selected."
             if unavailable:
                 checkbox.configure(state="disabled", disabledforeground=MUTED)
-                detail += "  Unavailable because no Half-Life 2 folder was selected."
+                detail += f"  {unavailable_reason}"
             tk.Label(
                 panel,
                 text=detail,
@@ -278,9 +326,11 @@ class PatcherUI(TkBase):
             dat = Path(self.dat_var.get())
             hl2_value = self.hl2_var.get().strip()
             hl2 = Path(hl2_value) if hl2_value else None
+            portal2_value = self.portal2_var.get().strip()
+            portal2 = Path(portal2_value) if portal2_value else None
             selected_patch_ids = self.selected_patch_ids()
             output = dat.resolve().parent / "852_0_fixed"
-            inputs = BuildInputs(blob, dat, hl2, output, selected_patch_ids)
+            inputs = BuildInputs(blob, dat, hl2, output, selected_patch_ids, portal2)
         except Exception as error:
             self.message_var.set(str(error))
             return
@@ -362,9 +412,20 @@ class PatcherUI(TkBase):
         tk.Label(inner, text=str(output), bg=PANEL, fg=TEXT, font=("Cascadia Mono", 9)).pack(anchor="w", pady=(6, 0))
         summary = tk.Frame(self.container, bg=BG)
         summary.pack(fill="x", pady=(18, 0))
-        for patch in PATCHES:
-            if patch.id in self.last_selected_patch_ids:
-                tk.Label(summary, text=f"✓  {patch.id}  {patch.display_name}", bg=BG, fg=MUTED, font=("Segoe UI", 9)).pack(anchor="w", pady=1)
+        selected_patches = [patch for patch in PATCHES if patch.id in self.last_selected_patch_ids]
+        for index, patch in enumerate(selected_patches):
+            row = index % 4
+            column = index // 4
+            tk.Label(
+                summary,
+                text=f"✓  {patch.id}  {patch.display_name}",
+                bg=BG,
+                fg=MUTED,
+                anchor="w",
+                font=("Segoe UI", 9),
+            ).grid(row=row, column=column, sticky="w", padx=(0, 28), pady=1)
+        summary.grid_columnconfigure(0, weight=1)
+        summary.grid_columnconfigure(1, weight=1)
         bottom = tk.Frame(self.container, bg=BG)
         bottom.pack(side="bottom", fill="x")
         self.button(bottom, "Open folder", lambda: os.startfile(output), secondary=True, width=12).pack(side="left")
@@ -380,6 +441,8 @@ class PatcherUI(TkBase):
                 kind, payload = self.events.get_nowait()
                 if kind == "hl2" and not self.hl2_var.get():
                     self.hl2_var.set(str(payload))
+                elif kind == "portal2" and not self.portal2_var.get():
+                    self.portal2_var.set(str(payload))
                 elif kind == "progress":
                     self.update_progress(payload)
                 elif kind == "complete":
