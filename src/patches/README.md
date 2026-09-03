@@ -43,3 +43,9 @@ This patch copies the `platform/materials/Editor` folder from the user's retail 
 It also patches this build's `bin/tier0.dll` thread table from 32 slots to 128. The original DLL is preserved as `tier0.original.bak`, and the patch is accepted only when both the original and resulting SHA-256 hashes match the known files.
 
 Hammer's configuration and the `game` junctions contain the installation path. If the completed build is moved later, the patcher's **Fix moved build** action rewrites those paths without extracting or copying the build again.
+
+## p8 - Additional prerelease assets
+
+This build of Portal uses a few files that are neither included in the beta nor available in Half-Life 2.
+
+This patch installs only those five runtime assets and adds `particles/achievement.pcf` to the existing particle manifest. The assets are stored together in a small ZIP.
