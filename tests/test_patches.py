@@ -5,6 +5,7 @@ from models import BuildReport, PatchContext
 from patches import PATCHES, normalize_patch_ids
 from patches.p1_hl2_assets import ASSET_MARKER, HL2_ASSET_ALLOWLIST, copy_selected_loose_assets
 from patches.p2_search_paths import SearchPathsPatch
+from patches.p3_sound_manifest import HL2_SOUND_SCRIPTS
 from patches.p5_thread_fix import ARCHIVE_SHA256 as THREAD_FIX_ARCHIVE_SHA256, DOWNLOAD_URL, FILES
 from patches.p6_launchers import LAUNCHER
 from patches.p7_hammer import PATCHED_TIER0_SHA256, game_config, hammer_launcher, hlmv_launcher
@@ -57,6 +58,16 @@ def test_hl2_assets_use_curated_compatibility_allowlist():
     assert "sound/weapons/physcannon/physcannon_pickup.wav" in HL2_ASSET_ALLOWLIST
     assert "sound/vo/novaprospekt/al_pickherup.wav" not in HL2_ASSET_ALLOWLIST
     assert not any(path.startswith("media/") for path in HL2_ASSET_ALLOWLIST)
+
+
+def test_sound_manifest_registers_only_copied_hl2_scripts():
+    copied_scripts = {
+        path.removeprefix("scripts/")
+        for path in HL2_ASSET_ALLOWLIST
+        if path.startswith("scripts/")
+    }
+    assert set(HL2_SOUND_SCRIPTS) == copied_scripts
+    assert "npc_sounds_alyx.txt" not in HL2_SOUND_SCRIPTS
 
 
 def test_selected_loose_hl2_assets_are_copied_without_overwriting(tmp_path):
