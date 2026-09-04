@@ -43,19 +43,23 @@ jobs:
         shell: pwsh
         run: |
           $version = uv run python -c "import importlib.metadata; print(importlib.metadata.version('pyinstaller'))"
-          uv pip uninstall --python ".venv\Scripts\python.exe" pyinstaller
-          $env:PYINSTALLER_COMPILE_BOOTLOADER = "1"
-          uv pip install `
-              --python ".venv\Scripts\python.exe" `
-              --no-cache `
-              --no-binary pyinstaller `
-              "pyinstaller==$version"
+          $source = "C:\pyinstaller-source"
+          git clone `
+              --branch "v$version" `
+              --depth 1 `
+              https://github.com/pyinstaller/pyinstaller.git `
+              $source
+          uv run python "$source\bootloader\waf" all
+          "PYTHONPATH=$source" | Out-File `
+              -FilePath $env:GITHUB_ENV `
+              -Encoding utf8 `
+              -Append
 
       - name: Run tests
         run: uv run pytest -q
 
       - name: Build executable
-        run: uv run pyinstaller --noconfirm build.spec
+        run: uv run python -m PyInstaller --noconfirm build.spec
 
       - name: Write checksum
         shell: pwsh
