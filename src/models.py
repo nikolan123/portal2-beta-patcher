@@ -14,6 +14,23 @@ class BuildInputs:
     output_path: Path
     selected_patch_ids: tuple[str, ...] | None = None
     portal2_path: Path | None = None
+    mode: str = "852_0"
+    depot_id: int | None = None
+    depot_version: int | None = None
+    depot_crc: int | None = None
+    revision_chain: tuple["RevisionInput", ...] = ()
+    custom_depot_key: bytes | None = None
+
+
+@dataclass(frozen=True)
+class RevisionInput:
+    depot_id: int
+    version: int
+    crc: int
+    blob_path: Path
+    dat_path: Path
+    blob_sha256: str | None = None
+    dat_sha256: str | None = None
 
 
 @dataclass(frozen=True)

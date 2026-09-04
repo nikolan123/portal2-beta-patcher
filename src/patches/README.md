@@ -49,3 +49,9 @@ Hammer's configuration and the `game` junctions contain the installation path. I
 This build of Portal uses a few files that are neither included in the beta nor available in Half-Life 2.
 
 This patch installs only those five runtime assets and adds `particles/achievement.pcf` to the existing particle manifest. The assets are stored together in a small ZIP.
+
+## p9 - Disable multicore rendering
+
+Some Portal 2 prerelease builds render reflections incorrectly when queued material rendering is active.
+
+This patch creates `portal2/cfg/patcher_multicore.cfg` containing `mat_queue_mode 0`. The generated launcher runs that separate file when it exists.

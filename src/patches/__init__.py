@@ -8,6 +8,7 @@ from patches.p5_thread_fix import ThreadFixPatch
 from patches.p6_launchers import LaunchersPatch
 from patches.p7_hammer import HammerPatch
 from patches.p8_prerelease_assets import PrereleaseAssetsPatch
+from patches.p9_multicore import MulticorePatch
 
 
 PATCHES = [
@@ -19,18 +20,36 @@ PATCHES = [
     LaunchersPatch(),
     HammerPatch(),
     PrereleaseAssetsPatch(),
+    MulticorePatch(),
 ]
 
 PATCH_DEPENDENCIES = {
     "p3": {"p1"},
 }
 
-REQUIRED_PATCH_IDS = {"p2", "p6"}
+PATCH_MODES = {
+    "p1": frozenset({"852_0"}),
+    "p2": frozenset({"852_0"}),
+    "p3": frozenset({"852_0"}),
+    "p4": frozenset({"852_0"}),
+    "p5": frozenset({"852_0", "generic"}),
+    "p6": frozenset({"852_0", "generic"}),
+    "p7": frozenset({"852_0"}),
+    "p8": frozenset({"852_0"}),
+    "p9": frozenset({"generic"}),
+}
 
 
-def normalize_patch_ids(selected_ids) -> tuple[str, ...]:
+def normalize_patch_ids(selected_ids, mode: str = "852_0", runnable: bool = True) -> tuple[str, ...]:
     """Add required patches and return IDs in execution order."""
-    selected = set(selected_ids) | REQUIRED_PATCH_IDS
+    if mode not in {"852_0", "generic"}:
+        raise ValueError(f"Unknown build mode: {mode}")
+    compatible = {patch_id for patch_id, modes in PATCH_MODES.items() if mode in modes}
+    selected = set(selected_ids) & compatible
+    if mode == "852_0":
+        selected.update({"p2", "p6"})
+    elif runnable:
+        selected.add("p6")
     changed = True
     while changed:
         changed = False

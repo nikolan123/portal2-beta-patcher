@@ -7,7 +7,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms
 from cryptography.hazmat.decrepit.ciphers.modes import CFB
 import pytest
 
-from extractor import Blob, DEPOT_852_KEY, ExtractionError, decode_chunk, parse_file_table, parse_manifest, safe_output_path
+from extractor import Blob, PORTAL2_DEPOT_KEYS, ExtractionError, decode_chunk, parse_file_table, parse_manifest, safe_output_path
 
 
 def make_blob(values: dict[int, bytes]) -> bytes:
@@ -33,12 +33,12 @@ def test_chunk_modes():
     assert decode_chunk(original, 0) == original
     assert decode_chunk(compressed, 1) == original
 
-    encryptor = Cipher(algorithms.AES(DEPOT_852_KEY), CFB(bytes(16))).encryptor()
+    encryptor = Cipher(algorithms.AES(PORTAL2_DEPOT_KEYS[852]), CFB(bytes(16))).encryptor()
     encrypted_compressed = encryptor.update(compressed)
     wrapped = struct.pack("<II", len(encrypted_compressed), len(original)) + encrypted_compressed
     assert decode_chunk(wrapped, 2) == original
 
-    encryptor = Cipher(algorithms.AES(DEPOT_852_KEY), CFB(bytes(16))).encryptor()
+    encryptor = Cipher(algorithms.AES(PORTAL2_DEPOT_KEYS[852]), CFB(bytes(16))).encryptor()
     encrypted = encryptor.update(original)
     assert decode_chunk(encrypted, 3) == original
 

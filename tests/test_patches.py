@@ -15,16 +15,20 @@ from patches.p8_prerelease_assets import (
     PrereleaseAssetsPatch,
     archive_path,
 )
+from patches.p9_multicore import MULTICORE_CONFIG, MulticorePatch
 
 
 def test_patch_registry_is_explicitly_numbered():
-    assert [patch.id for patch in PATCHES] == ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8"]
+    assert [patch.id for patch in PATCHES] == ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9"]
     assert all(patch.description for patch in PATCHES)
 
 
 def test_patch_dependencies_and_required_launcher():
     assert normalize_patch_ids(()) == ("p2", "p6")
     assert normalize_patch_ids(("p3",)) == ("p1", "p2", "p3", "p6")
+    assert "p9" not in normalize_patch_ids(("p9",), "852_0")
+    assert normalize_patch_ids(("p1", "p4", "p5", "p9"), "generic") == ("p5", "p6", "p9")
+    assert normalize_patch_ids(("p5",), "generic", runnable=False) == ("p5",)
 
 
 def test_source_thread_fix_release_is_pinned():
@@ -37,6 +41,22 @@ def test_launcher_uses_wrapper_with_normal_executable_fallback():
     assert b'"%ROOT%hl2.wrap.exe"' in LAUNCHER
     assert b'set "GAME=hl2.exe"' in LAUNCHER
     assert b'if exist "%ROOT%hl2.wrap.exe"' in LAUNCHER
+    assert b'if exist "%ROOT%portal2\\cfg\\patcher_multicore.cfg"' in LAUNCHER
+
+
+def test_multicore_compatibility_patch_does_not_touch_autoexec(tmp_path):
+    cfg = tmp_path / "portal2" / "cfg"
+    cfg.mkdir(parents=True)
+    autoexec = cfg / "autoexec.cfg"
+    autoexec.write_text("echo mine\n", encoding="utf-8")
+    context = PatchContext(tmp_path, None, BuildReport(), Event())
+    patch = MulticorePatch()
+
+    patch.apply(context, lambda *_args: None)
+    patch.verify(context)
+
+    assert (cfg / "patcher_multicore.cfg").read_bytes() == MULTICORE_CONFIG
+    assert autoexec.read_text(encoding="utf-8") == "echo mine\n"
 
 
 def test_hammer_and_hlmv_files_use_the_fixed_layout(tmp_path):

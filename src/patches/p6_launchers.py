@@ -8,16 +8,17 @@ from models import PatchContext, ProgressCallback
 from patches.base import atomic_write
 
 
-LAUNCHER = '''\
-@echo off
+LAUNCHER = r'''@echo off
 setlocal
 set "ROOT=%~dp0"
 set "VGame=%ROOT%"
 set "VContent=%ROOT%"
 set "GAME=hl2.exe"
 if exist "%ROOT%hl2.wrap.exe" set "GAME=hl2.wrap.exe"
+set "MULTICORE="
+if exist "%ROOT%portal2\cfg\patcher_multicore.cfg" set "MULTICORE=+exec patcher_multicore.cfg"
 
-start "" /D "%ROOT%" "%ROOT%%GAME%" -game portal2 -windowed -w 1366 -h 768 -console %*
+start "" /D "%ROOT%" "%ROOT%%GAME%" -game portal2 -windowed -w 1366 -h 768 -console %MULTICORE% %*
 endlocal
 '''.replace("\n", "\r\n").encode("ascii")
 

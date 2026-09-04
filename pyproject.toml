@@ -1,7 +1,7 @@
 [project]
 name = "portal2-beta-patcher"
 version = "0.1.0"
-description = "Reconstruct and repair Portal 2 prerelease build 852_0"
+description = "Reconstruct and repair Portal 2 Steam 2 builds"
 requires-python = ">=3.11"
 dependencies = [
     "cryptography>=45.0.0",
@@ -17,4 +17,3 @@ dev = [
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
-
