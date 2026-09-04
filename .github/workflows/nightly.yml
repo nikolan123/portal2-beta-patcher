@@ -36,6 +36,21 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked --all-groups
 
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Build PyInstaller bootloader locally
+        shell: pwsh
+        run: |
+          $version = uv run python -c "import importlib.metadata; print(importlib.metadata.version('pyinstaller'))"
+          uv pip uninstall --python ".venv\Scripts\python.exe" pyinstaller
+          $env:PYINSTALLER_COMPILE_BOOTLOADER = "1"
+          uv pip install `
+              --python ".venv\Scripts\python.exe" `
+              --no-cache `
+              --no-binary pyinstaller `
+              "pyinstaller==$version"
+
       - name: Run tests
         run: uv run pytest -q
 
