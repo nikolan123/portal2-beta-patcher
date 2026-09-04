@@ -49,7 +49,17 @@ jobs:
               --depth 1 `
               https://github.com/pyinstaller/pyinstaller.git `
               $source
-          uv run python "$source\bootloader\waf" all
+          $python = Join-Path $env:GITHUB_WORKSPACE ".venv\Scripts\python.exe"
+          Push-Location "$source\bootloader"
+          try {
+              & $python ".\waf" all
+              if ($LASTEXITCODE -ne 0) {
+                  exit $LASTEXITCODE
+              }
+          }
+          finally {
+              Pop-Location
+          }
           "PYTHONPATH=$source" | Out-File `
               -FilePath $env:GITHUB_ENV `
               -Encoding utf8 `
