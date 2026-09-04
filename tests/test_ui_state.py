@@ -19,9 +19,10 @@ def target(ready=True):
 
 
 def test_mode_specific_patch_lists():
-    assert patch_ids_for_mode("generic") == ("p5", "p9")
+    assert patch_ids_for_mode("generic") == ("p5", "p9", "p10")
     assert "p4" in patch_ids_for_mode("852_0")
     assert "p9" not in patch_ids_for_mode("852_0")
+    assert patch_ids_for_mode("852_0")[-1] == "p10"
 
 
 def test_default_output(tmp_path):

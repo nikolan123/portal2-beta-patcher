@@ -56,6 +56,14 @@ class BuildPipeline:
         if unknown_ids:
             raise ValueError(f"Unknown patch IDs: {', '.join(sorted(unknown_ids))}")
         selected_ids = set(normalize_patch_ids(requested_ids, inputs.mode, runnable=inputs.mode == "852_0"))
+        if "p10" in selected_ids:
+            if inputs.goldberg_archive_path is None:
+                raise ValueError("Select the Goldberg ZIP to use")
+            goldberg_archive = inputs.goldberg_archive_path.expanduser().resolve()
+            if not goldberg_archive.is_file():
+                raise FileNotFoundError(f"Goldberg ZIP does not exist: {goldberg_archive}")
+        else:
+            goldberg_archive = None
         needs_hl2 = bool(selected_ids & {"p1", "p3"})
         if needs_hl2 and inputs.hl2_path is None:
             raise ValueError("Half-Life 2 is required for the HL2 content support fix")
@@ -124,7 +132,7 @@ class BuildPipeline:
                 else:
                     selected_ids.clear()
                     report.warnings.append("This depot is content-only and is not independently runnable")
-            context = PatchContext(staging, hl2, report, self.cancel_event, portal2, output)
+            context = PatchContext(staging, hl2, report, self.cancel_event, portal2, output, goldberg_archive)
             selected_patches = [patch for patch in PATCHES if patch.id in selected_ids]
             for index, patch in enumerate(selected_patches, start=1):
                 if self.cancel_event.is_set():

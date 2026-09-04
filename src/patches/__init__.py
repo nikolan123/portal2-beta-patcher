@@ -9,6 +9,7 @@ from patches.p6_launchers import LaunchersPatch
 from patches.p7_hammer import HammerPatch
 from patches.p8_prerelease_assets import PrereleaseAssetsPatch
 from patches.p9_multicore import MulticorePatch
+from patches.p10_goldberg import GoldbergPatch
 
 
 PATCHES = [
@@ -21,6 +22,7 @@ PATCHES = [
     HammerPatch(),
     PrereleaseAssetsPatch(),
     MulticorePatch(),
+    GoldbergPatch(),
 ]
 
 PATCH_DEPENDENCIES = {
@@ -37,6 +39,7 @@ PATCH_MODES = {
     "p7": frozenset({"852_0"}),
     "p8": frozenset({"852_0"}),
     "p9": frozenset({"generic"}),
+    "p10": frozenset({"852_0", "generic"}),
 }
 
 

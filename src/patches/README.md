@@ -55,3 +55,9 @@ This patch installs only those five runtime assets and adds `particles/achieveme
 Some Portal 2 prerelease builds render reflections incorrectly when queued material rendering is active.
 
 This patch creates `portal2/cfg/patcher_multicore.cfg` containing `mat_queue_mode 0`. The generated launcher runs that separate file when it exists.
+
+## p10 - Goldberg emulator
+
+This patch uses a Goldberg ZIP selected by the user. The ZIP must match the pinned SHA-256 before anything is installed.
+
+It backs up every original 32-bit `steam_api.dll` as `steam_api.original.bak`, generates `steam_interfaces.txt` from the original library, and installs the replacement from the verified ZIP.

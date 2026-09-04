@@ -20,6 +20,7 @@ class BuildInputs:
     depot_crc: int | None = None
     revision_chain: tuple["RevisionInput", ...] = ()
     custom_depot_key: bytes | None = None
+    goldberg_archive_path: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -63,6 +64,7 @@ class PatchContext:
     cancel_event: Event
     portal2_source: Path | None = None
     final_root: Path | None = None
+    goldberg_archive: Path | None = None
 
 
 class Patch(Protocol):

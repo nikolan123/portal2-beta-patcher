@@ -35,7 +35,7 @@ BUTTON_TEXT = "#111111"
 
 
 def patch_ids_for_mode(mode: str) -> tuple[str, ...]:
-    return ("p5", "p9") if mode == "generic" else ("p1", "p3", "p4", "p5", "p7", "p8")
+    return ("p5", "p9", "p10") if mode == "generic" else ("p1", "p3", "p4", "p5", "p7", "p8", "p10")
 
 
 def default_generic_output(archive_folder: Path, target: CatalogTarget) -> Path:
@@ -73,10 +73,12 @@ class PatcherUI(TkBase):
         self.archive_folder_var = tk.StringVar()
         self.generic_output_var = tk.StringVar()
         self.custom_key_var = tk.StringVar()
+        self.goldberg_zip_var = tk.StringVar()
         self.catalog_targets: list[CatalogTarget] = []
         self.selected_target: CatalogTarget | None = None
         self.progress_fraction = 0.0
         self.patch_vars = {patch.id: tk.BooleanVar(value=True) for patch in PATCHES}
+        self.patch_vars["p10"].set(False)
         self.last_selected_patch_ids = tuple(patch.id for patch in PATCHES)
 
         self.container = tk.Frame(self, bg=BG)
@@ -349,6 +351,35 @@ class PatcherUI(TkBase):
         if selected:
             variable.set(selected)
 
+    def browse_goldberg_zip(self) -> None:
+        selected = filedialog.askopenfilename(
+            title="Select the Goldberg ZIP",
+            filetypes=[("ZIP files", "*.zip"), ("All files", "*.*")],
+        )
+        if selected:
+            self.goldberg_zip_var.set(selected)
+
+    def add_goldberg_zip_field(self, panel) -> None:
+        zip_row = tk.Frame(panel, bg=PANEL)
+        zip_row.pack(fill="x", padx=36, pady=(0, 8))
+        tk.Entry(
+            zip_row,
+            textvariable=self.goldberg_zip_var,
+            bg=FIELD,
+            fg=TEXT,
+            insertbackground=TEXT,
+            relief="solid",
+            borderwidth=1,
+            font=("Cascadia Mono", 8),
+        ).pack(side="left", fill="x", expand=True, ipady=5)
+        self.button(
+            zip_row,
+            "Browse",
+            self.browse_goldberg_zip,
+            secondary=True,
+            width=8,
+        ).pack(side="right", padx=(8, 0))
+
     def browse_folder(self, variable):
         selected = filedialog.askdirectory()
         if selected:
@@ -486,6 +517,7 @@ class PatcherUI(TkBase):
             (("p5",), patch_by_id["p5"].display_name, patch_by_id["p5"].description),
             (("p7",), patch_by_id["p7"].display_name, patch_by_id["p7"].description),
             (("p8",), patch_by_id["p8"].display_name, patch_by_id["p8"].description),
+            (("p10",), patch_by_id["p10"].display_name, patch_by_id["p10"].description),
         )
         for patch_ids, name, detail in choices_to_show:
             primary_id = patch_ids[0]
@@ -524,6 +556,8 @@ class PatcherUI(TkBase):
                 wraplength=610,
                 font=("Segoe UI", 8),
             ).pack(fill="x", padx=36, pady=(1, 7))
+            if primary_id == "p10":
+                self.add_goldberg_zip_field(panel)
 
         def scroll(event):
             canvas.yview_scroll(-1 if event.delta > 0 else 1, "units")
@@ -560,7 +594,8 @@ class PatcherUI(TkBase):
         if not target.runnable:
             self.patch_vars["p5"].set(False)
             self.patch_vars["p9"].set(False)
-        for patch_id in ("p5", "p9"):
+            self.patch_vars["p10"].set(False)
+        for patch_id in ("p5", "p9", "p10"):
             patch = patch_by_id[patch_id]
             panel = tk.Frame(choices, bg=PANEL, highlightbackground=BORDER, highlightthickness=1)
             panel.pack(fill="x", pady=(0, 8))
@@ -584,6 +619,8 @@ class PatcherUI(TkBase):
                 detail += "  Unavailable because this is a content-only depot."
             tk.Label(panel, text=detail, bg=PANEL, fg=MUTED, anchor="w", justify="left",
                      wraplength=610, font=("Segoe UI", 8)).pack(fill="x", padx=36, pady=(1, 7))
+            if patch_id == "p10":
+                self.add_goldberg_zip_field(panel)
 
         if target.needs_custom_key:
             key_row = tk.Frame(self.container, bg=BG)
@@ -617,8 +654,14 @@ class PatcherUI(TkBase):
                 except ValueError as error:
                     raise ValueError("The depot key must contain only hexadecimal characters.") from error
             selected_patch_ids = tuple(
-                patch_id for patch_id in ("p5", "p9") if self.patch_vars[patch_id].get()
+                patch_id for patch_id in ("p5", "p9", "p10") if self.patch_vars[patch_id].get()
             )
+            goldberg_archive = None
+            if "p10" in selected_patch_ids:
+                zip_text = self.goldberg_zip_var.get().strip()
+                if not zip_text:
+                    raise ValueError("Select the Goldberg ZIP to use")
+                goldberg_archive = Path(zip_text)
             final = target.chain[-1]
             inputs = BuildInputs(
                 final.blob_path,
@@ -633,6 +676,7 @@ class PatcherUI(TkBase):
                 target.crc,
                 target.chain,
                 custom_key,
+                goldberg_archive,
             )
         except Exception as error:
             self.message_var.set(str(error))
@@ -655,8 +699,22 @@ class PatcherUI(TkBase):
             portal2_value = self.portal2_var.get().strip()
             portal2 = Path(portal2_value) if portal2_value else None
             selected_patch_ids = self.selected_patch_ids()
+            goldberg_archive = None
+            if "p10" in selected_patch_ids:
+                zip_text = self.goldberg_zip_var.get().strip()
+                if not zip_text:
+                    raise ValueError("Select the Goldberg ZIP to use")
+                goldberg_archive = Path(zip_text)
             output = dat.resolve().parent / "852_0_fixed"
-            inputs = BuildInputs(blob, dat, hl2, output, selected_patch_ids, portal2)
+            inputs = BuildInputs(
+                blob,
+                dat,
+                hl2,
+                output,
+                selected_patch_ids,
+                portal2,
+                goldberg_archive_path=goldberg_archive,
+            )
         except Exception as error:
             self.message_var.set(str(error))
             return

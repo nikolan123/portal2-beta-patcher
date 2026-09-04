@@ -16,10 +16,11 @@ from patches.p8_prerelease_assets import (
     archive_path,
 )
 from patches.p9_multicore import MULTICORE_CONFIG, MulticorePatch
+from patches.p10_goldberg import ARCHIVE_SHA256 as GOLDBERG_ARCHIVE_SHA256, GoldbergPatch
 
 
 def test_patch_registry_is_explicitly_numbered():
-    assert [patch.id for patch in PATCHES] == ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9"]
+    assert [patch.id for patch in PATCHES] == ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10"]
     assert all(patch.description for patch in PATCHES)
 
 
@@ -28,6 +29,8 @@ def test_patch_dependencies_and_required_launcher():
     assert normalize_patch_ids(("p3",)) == ("p1", "p2", "p3", "p6")
     assert "p9" not in normalize_patch_ids(("p9",), "852_0")
     assert normalize_patch_ids(("p1", "p4", "p5", "p9"), "generic") == ("p5", "p6", "p9")
+    assert normalize_patch_ids(("p10",), "generic") == ("p6", "p10")
+    assert normalize_patch_ids(("p10",), "852_0") == ("p2", "p6", "p10")
     assert normalize_patch_ids(("p5",), "generic", runnable=False) == ("p5",)
 
 
@@ -57,6 +60,37 @@ def test_multicore_compatibility_patch_does_not_touch_autoexec(tmp_path):
 
     assert (cfg / "patcher_multicore.cfg").read_bytes() == MULTICORE_CONFIG
     assert autoexec.read_text(encoding="utf-8") == "echo mine\n"
+
+
+def test_goldberg_patch_is_reversible_and_uses_user_zip(tmp_path, monkeypatch):
+    root = tmp_path / "build"
+    api = root / "bin" / "steam_api.dll"
+    api.parent.mkdir(parents=True)
+    api.write_bytes(b"original steam api")
+    interface = api.parent / "steam_interfaces.txt"
+    interface.write_bytes(b"original interfaces\n")
+    archive = tmp_path / "goldberg.zip"
+    archive.write_bytes(b"selected by user")
+    payloads = {
+        "steam_api.dll": b"goldberg steam api",
+        "tools/generate_interfaces_file.exe": b"generator",
+    }
+    monkeypatch.setattr("patches.p10_goldberg.read_goldberg_archive", lambda path: payloads)
+    monkeypatch.setattr("patches.p10_goldberg.generate_interfaces", lambda generator, original: b"generated interfaces\n")
+    context = PatchContext(root, None, BuildReport(), Event(), goldberg_archive=archive)
+    patch = GoldbergPatch()
+
+    patch.apply(context, lambda *_args: None)
+    patch.verify(context)
+
+    assert api.read_bytes() == payloads["steam_api.dll"]
+    assert api.with_name("steam_api.original.bak").read_bytes() == b"original steam api"
+    assert interface.read_bytes() == b"generated interfaces\n"
+    assert interface.with_name("steam_interfaces.original.bak").read_bytes() == b"original interfaces\n"
+    assert not (root / "Restore original Steam API.cmd").exists()
+    assert not (root / "goldberg-patch.json").exists()
+    assert not (root / "Goldberg Readme.txt").exists()
+    assert len(GOLDBERG_ARCHIVE_SHA256) == 64
 
 
 def test_hammer_and_hlmv_files_use_the_fixed_layout(tmp_path):
