@@ -15,6 +15,7 @@ from patches.p10_goldberg import GoldbergPatch
 from patches.p11_legacy_paint import LegacyPaintPatch
 from patches.p12_july_2010_assets import July2010AssetsPatch
 from patches.p13_july_2009_assets import July2009AssetsPatch
+from patches.p14_march_assets import MarchAssetsPatch
 
 
 PATCHES = [
@@ -31,6 +32,7 @@ PATCHES = [
     LegacyPaintPatch(),
     July2010AssetsPatch(),
     July2009AssetsPatch(),
+    MarchAssetsPatch(),
 ]
 
 PATCH_DEPENDENCIES = {
@@ -57,7 +59,7 @@ PATCH_COMPATIBILITY = {
         required=frozenset({"p2", "p6"}), # search paths, launcher
     ),
     (852, 1): BuildPatchSet(
-        optional=frozenset({"p5", "p10", "p11", "p12", "p13"}), # thread fix, goldberg, paint fix, jul 2010 assets, jul 2009 assets
+        optional=frozenset({"p5", "p10", "p11", "p12", "p13", "p14"}), # thread fix, goldberg, paint fix, jul 2010 assets, jul 2009 assets, extra assets
         required=frozenset({"p6"}), # launcher
     ),
 }

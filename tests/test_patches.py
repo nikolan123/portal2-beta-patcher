@@ -28,10 +28,11 @@ from patches.p10_goldberg import ARCHIVE_SHA256 as GOLDBERG_ARCHIVE_SHA256, Gold
 from patches.p11_legacy_paint import ORIGINAL_BYTES, PATCHED_BYTES, PATCH_OFFSET, patch_engine
 from patches.p12_july_2010_assets import July2010AssetsPatch
 from patches.p13_july_2009_assets import July2009AssetsPatch, overlay_tree
+from patches.p14_march_assets import ARCHIVE_SHA256 as MARCH_ASSET_ARCHIVE_SHA256, MarchAssetsPatch, read_bundle
 
 
 def test_patch_registry_is_explicitly_numbered():
-    assert [patch.id for patch in PATCHES] == ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10", "p11", "p12", "p13"]
+    assert [patch.id for patch in PATCHES] == ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10", "p11", "p12", "p13", "p14"]
     assert all(patch.description for patch in PATCHES)
     assert set(PATCH_COMPATIBILITY) == {"generic", (852, 0), (852, 1)}
     assert PATCH_COMPATIBILITY["generic"].required == {"p6"}
@@ -39,6 +40,7 @@ def test_patch_registry_is_explicitly_numbered():
     assert PATCH_COMPATIBILITY[(852, 1)].required == {"p6"}
     assert "p12" in PATCH_COMPATIBILITY[(852, 1)].optional
     assert "p13" in PATCH_COMPATIBILITY[(852, 1)].optional
+    assert "p14" in PATCH_COMPATIBILITY[(852, 1)].optional
 
 
 def test_patch_dependencies_and_required_launcher():
@@ -56,8 +58,10 @@ def test_patch_dependencies_and_required_launcher():
     assert normalize_patch_ids(("p12",), "generic", depot_id=852, depot_version=2) == ("p6",)
     assert normalize_patch_ids(("p13",), "generic", depot_id=852, depot_version=1) == ("p6", "p13")
     assert normalize_patch_ids(("p13",), "generic", depot_id=852, depot_version=2) == ("p6",)
+    assert normalize_patch_ids(("p14",), "generic", depot_id=852, depot_version=1) == ("p6", "p14")
+    assert normalize_patch_ids(("p14",), "generic", depot_id=852, depot_version=2) == ("p6",)
     assert compatible_patch_ids("852_0") == ("p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p10")
-    assert compatible_patch_ids("generic", 852, 1) == ("p5", "p6", "p10", "p11", "p12", "p13")
+    assert compatible_patch_ids("generic", 852, 1) == ("p5", "p6", "p10", "p11", "p12", "p13", "p14")
     assert compatible_patch_ids("generic", 852, 2) == ("p5", "p6", "p9", "p10")
 
 
@@ -95,6 +99,22 @@ def test_july_2010_asset_merge_overlays_852_0_last(tmp_path):
     assert (destination / "shared.txt").read_bytes() == b"852_0"
     assert (destination / "only-852_2.txt").read_bytes() == b"new"
     assert (destination / "only-852_0.txt").read_bytes() == b"old"
+
+
+def test_march_asset_bundle_is_pinned_and_uses_only_game_roots():
+    assets = read_bundle()
+    assert len(MARCH_ASSET_ARCHIVE_SHA256) == 64
+    assert assets
+    assert {path.split("/", 1)[0] for path in assets} == {"portal", "portal2", "portal2_tempcontent"}
+
+
+def test_march_asset_patch_installs_the_bundle(tmp_path):
+    context = PatchContext(tmp_path, None, BuildReport(), Event())
+    patch = MarchAssetsPatch()
+
+    assert patch.check(context)
+    patch.apply(context, lambda _event: None)
+    patch.verify(context)
 
 
 def test_source_thread_fix_release_is_pinned():

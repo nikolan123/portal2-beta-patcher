@@ -60,6 +60,10 @@ Copies tempcontent from July 2010 852_2.
 
 Copies tempcontent from July 2009 852_0. When both this patch and p12 are selected, the folders are merged, with the 852_0 files taking priority.
 
+### p14 - March build assets
+
+Installs some missing materials and models in the supplied March build patch. The assets are bundled in a ZIP.
+
 ## Generic
 
 This is the patch list for builds that do not have their own entry yet.
