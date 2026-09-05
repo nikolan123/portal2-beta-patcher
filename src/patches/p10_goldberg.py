@@ -56,7 +56,13 @@ def generate_interfaces(generator: bytes, original_api: bytes) -> bytes:
 
 
 def steam_api_targets(root: Path) -> tuple[Path, ...]:
-    return tuple(path for path in (root / "steam_api.dll", root / "bin" / "steam_api.dll") if path.is_file())
+    candidates = (
+        root / "steam_api.dll",
+        root / "bin" / "steam_api.dll",
+        root / "game" / "steam_api.dll",
+        root / "game" / "bin" / "steam_api.dll",
+    )
+    return tuple(path for path in candidates if path.is_file())
 
 
 class GoldbergPatch:

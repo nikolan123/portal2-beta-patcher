@@ -53,12 +53,16 @@ class PrereleaseAssetsPatch:
     display_name = "Additional prerelease assets"
     description = "Install the missing achievement particle, hunter tracer, and animated sign assets."
 
+    def _game_root(self, context: PatchContext) -> Path:
+        physical_game = context.root / "game"
+        return physical_game if (physical_game / "portal2").is_dir() else context.root
+
     def _manifest(self, context: PatchContext) -> Path:
-        return context.root / "portal2" / "particles" / "particles_manifest.txt"
+        return self._game_root(context) / "portal2" / "particles" / "particles_manifest.txt"
 
     def check(self, context: PatchContext) -> bool:
         for relative, expected_hash in ASSET_HASHES.items():
-            target = context.root.joinpath(*relative.split("/"))
+            target = self._game_root(context).joinpath(*relative.split("/"))
             if not target.is_file() or sha256_file(target) != expected_hash:
                 return True
         manifest = self._manifest(context)
@@ -79,7 +83,7 @@ class PrereleaseAssetsPatch:
                 if hashlib.sha256(payload).hexdigest() != expected_hash:
                     raise PatchError(f"Bundled prerelease asset failed verification: {relative}")
 
-                target = context.root.joinpath(*relative.split("/"))
+                target = self._game_root(context).joinpath(*relative.split("/"))
                 target.parent.mkdir(parents=True, exist_ok=True)
                 if target.exists() and target.read_bytes() != payload:
                     backup_file(target, target.name + ".original.bak", context)

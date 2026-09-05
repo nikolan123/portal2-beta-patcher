@@ -24,7 +24,14 @@ from patches.p5_thread_fix import (
     destination_path,
 )
 from patches.p6_launchers import LAUNCHER, LaunchersPatch
-from patches.p7_hammer import PATCHED_TIER0_SHA256, game_config, hammer_launcher, hlmv_launcher
+from patches.p7_hammer import (
+    PATCHED_TIER0_SHA256,
+    RUNTIME_DIRECTORIES,
+    game_config,
+    hammer_launcher,
+    hlmv_launcher,
+    move_runtime_into_game,
+)
 from patches.p8_prerelease_assets import (
     ASSET_HASHES,
     ARCHIVE_SHA256 as ASSET_ARCHIVE_SHA256,
@@ -202,10 +209,11 @@ def test_source_thread_fix_keeps_its_license_in_metadata_folder(tmp_path):
 
 
 def test_launcher_uses_wrapper_with_normal_executable_fallback():
-    assert b'"%ROOT%hl2.wrap.exe"' in LAUNCHER
+    assert b'if exist "%ROOT%game\\hl2.exe" set "GAMEROOT=%ROOT%game\\"' in LAUNCHER
+    assert b'"%GAMEROOT%hl2.wrap.exe"' in LAUNCHER
     assert b'set "GAME=hl2.exe"' in LAUNCHER
-    assert b'if exist "%ROOT%hl2.wrap.exe"' in LAUNCHER
-    assert b'if exist "%ROOT%portal2\\cfg\\patcher_multicore.cfg"' in LAUNCHER
+    assert b'if exist "%GAMEROOT%hl2.wrap.exe"' in LAUNCHER
+    assert b'if exist "%GAMEROOT%portal2\\cfg\\patcher_multicore.cfg"' in LAUNCHER
 
 
 def test_first_launch_audio_setup_retries_and_then_skips(tmp_path):
@@ -308,8 +316,27 @@ def test_hammer_and_hlmv_files_use_the_fixed_layout(tmp_path):
     assert "-nop4 -threads 4" in hammer
     assert "hammer.exe" in hammer
     assert "hlmv.exe -nop4" in hlmv
-    assert f'VPROJECT={tmp_path}\\game\\portal2' in hlmv
+    assert 'VPROJECT=%ROOT%game\\portal2' in hlmv
+    assert 'cd /d "%ROOT%game\\bin"' in hammer
+    assert f'"BSP" "{tmp_path}\\game\\bin\\vbsp.exe"' in config
     assert len(PATCHED_TIER0_SHA256) == 64
+
+
+def test_hammer_layout_physically_moves_runtime_without_duplicates(tmp_path):
+    for name in RUNTIME_DIRECTORIES:
+        folder = tmp_path / name
+        folder.mkdir()
+        (folder / "kept.txt").write_text(name, encoding="utf-8")
+    (tmp_path / "hl2.exe").write_bytes(b"launcher")
+    (tmp_path / "hl2.wrap.exe").write_bytes(b"wrapper")
+
+    move_runtime_into_game(tmp_path)
+
+    for name in RUNTIME_DIRECTORIES:
+        assert (tmp_path / "game" / name / "kept.txt").read_text(encoding="utf-8") == name
+        assert not (tmp_path / name).exists()
+    assert (tmp_path / "game" / "hl2.exe").read_bytes() == b"launcher"
+    assert (tmp_path / "game" / "hl2.wrap.exe").read_bytes() == b"wrapper"
 
 
 def test_hl2_assets_use_curated_compatibility_allowlist():

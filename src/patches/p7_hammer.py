@@ -2,11 +2,9 @@
 from __future__ import annotations
 
 import hashlib
-import os
 from pathlib import Path
 import shutil
 import struct
-import subprocess
 
 from models import BuildCancelled, PatchContext, ProgressCallback, ProgressEvent
 from patches.base import PatchError, atomic_write, backup_file
@@ -18,7 +16,8 @@ OLD_TABLE_ADDRESS = 0x10041AA0
 EXPECTED_REFERENCE_OFFSETS = [0xB0A2, 0xB0ED, 0xB153]
 ALLOCATOR_OLD = bytes.fromhex("83 FE 20 7C EE")
 ALLOCATOR_NEW = bytes.fromhex("83 FE 80 72 EE")
-JUNCTION_NAMES = ("bin", "hl2", "platform", "portal", "portal2", "portal2_tempcontent")
+RUNTIME_DIRECTORIES = ("bin", "hl2", "platform", "portal", "portal2", "portal2_tempcontent")
+RUNTIME_FILES = ("hl2.exe", "hl2.wrap.exe", "steam_appid.txt")
 EDITOR_FILE_COUNT = 205
 
 
@@ -127,13 +126,14 @@ def patch_tier0(
 
 def game_config(root: Path) -> bytes:
     base = str(root)
+    game = f"{base}\\game"
     text = f'''"Configs"
 {{
     "Games"
     {{
         "Portal 2"
         {{
-            "GameDir" "{base}\\game\\portal2"
+            "GameDir" "{game}\\portal2"
             "Hammer"
             {{
                 "TextureFormat" "5"
@@ -142,15 +142,15 @@ def game_config(root: Path) -> bytes:
                 "DefaultLightmapScale" "16"
                 "DefaultSolidEntity" "func_detail"
                 "DefaultPointEntity" "info_player_start"
-                "GameExeDir" "{base}"
+                "GameExeDir" "{game}"
                 "MapDir" "{base}\\content\\portal2\\mapsrc"
-                "GameExe" "{base}\\hl2.exe"
-                "BSP" "{base}\\bin\\vbsp.exe"
-                "Vis" "{base}\\bin\\vvis.exe"
-                "Light" "{base}\\bin\\vrad.exe"
-                "BSPDir" "{base}\\game\\portal2\\maps"
-                "PrefabDir" "{base}\\bin\\Prefabs"
-                "GameData0" "{base}\\bin\\portal2.fgd"
+                "GameExe" "{game}\\hl2.exe"
+                "BSP" "{game}\\bin\\vbsp.exe"
+                "Vis" "{game}\\bin\\vvis.exe"
+                "Light" "{game}\\bin\\vrad.exe"
+                "BSPDir" "{game}\\portal2\\maps"
+                "PrefabDir" "{game}\\bin\\Prefabs"
+                "GameData0" "{game}\\bin\\portal2.fgd"
                 "CordonTexture" "tools\\toolsskybox"
                 "MaterialExcludeCount" "0"
             }}
@@ -163,82 +163,66 @@ def game_config(root: Path) -> bytes:
 
 
 def hammer_launcher(root: Path) -> bytes:
-    base = str(root)
-    text = f'''@echo off
-setlocal
-set "VPROJECT={base}\\game\\portal2"
-set "VCONTENT={base}\\content\\portal2"
-set "GAMEROOT={base}\\game"
-set "CONTENTROOT={base}\\content"
+    text = '''@echo off
+set "ROOT=%~dp0"
+set "VPROJECT=%ROOT%game\\portal2"
+set "VCONTENT=%ROOT%content\\portal2"
+set "GAMEROOT=%ROOT%game"
+set "CONTENTROOT=%ROOT%content"
 
-cd /d "{base}\\bin"
+cd /d "%ROOT%game\\bin"
 start "Portal 2 Hammer" hammer.exe -nop4 -threads 4 -game "%VPROJECT%"
-endlocal
 '''
     return text.replace("\n", "\r\n").encode("utf-8")
 
 
 def hlmv_launcher(root: Path) -> bytes:
-    base = str(root)
-    text = f'''@echo off
-setlocal
-set "VPROJECT={base}\\game\\portal2"
+    text = '''@echo off
+set "ROOT=%~dp0"
+set "VPROJECT=%ROOT%game\\portal2"
 
-cd /d "{base}\\bin"
+cd /d "%ROOT%game\\bin"
 start "Half-Life Model Viewer" hlmv.exe -nop4 -game "%VPROJECT%" %*
-endlocal
 '''
     return text.replace("\n", "\r\n").encode("utf-8")
 
 
-def normalized_path(path: str | Path) -> str:
-    value = os.path.normpath(str(path))
-    for prefix in ("\\\\?\\", "\\??\\"):
-        if value.startswith(prefix):
-            value = value[len(prefix) :]
-    return os.path.normcase(value)
-
-
-def ensure_junction(link: Path, target: Path) -> None:
-    if os.path.lexists(link):
-        if not link.is_junction():
-            raise PatchError(f"Refusing to replace non-junction path: {link}")
-        if normalized_path(os.readlink(link)) != normalized_path(target):
-            raise PatchError(f"Junction points to an unexpected target: {link}")
-        return
-    link.parent.mkdir(parents=True, exist_ok=True)
-    command = [os.environ.get("COMSPEC", "cmd.exe"), "/d", "/c", "mklink", "/J", str(link), str(target)]
-    result = subprocess.run(command, capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
-    if result.returncode != 0:
-        detail = (result.stderr or result.stdout).strip()
-        raise PatchError(f"Could not create junction {link.name}: {detail}")
+def move_runtime_into_game(root: Path) -> None:
+    game = root / "game"
+    game.mkdir(parents=True, exist_ok=True)
+    for name in RUNTIME_DIRECTORIES:
+        source = root / name
+        destination = game / name
+        if not source.is_dir():
+            raise PatchError(f"Cannot create the Hammer layout because {name} is missing")
+        if destination.exists():
+            raise PatchError(f"Cannot create the Hammer layout because game\\{name} already exists")
+        source.replace(destination)
+    for name in RUNTIME_FILES:
+        source = root / name
+        if not source.exists():
+            continue
+        destination = game / name
+        if destination.exists():
+            raise PatchError(f"Cannot create the Hammer layout because game\\{name} already exists")
+        source.replace(destination)
 
 
 def repair_moved_tools(root: Path) -> None:
     """Rewrite p7's location-dependent files after its output folder is moved."""
     root = root.expanduser().resolve()
     required_files = (
-        root / "bin" / "hammer.exe",
-        root / "bin" / "hlmv.exe",
-        root / "bin" / "tier0.dll",
-        root / "platform" / "materials" / "Editor" / "wireframe.vmt",
+        root / "game" / "bin" / "hammer.exe",
+        root / "game" / "bin" / "hlmv.exe",
+        root / "game" / "bin" / "tier0.dll",
+        root / "game" / "platform" / "materials" / "Editor" / "wireframe.vmt",
     )
     if any(not path.is_file() for path in required_files):
         raise PatchError("This folder does not contain an installed Hammer and HLMV fix")
-    if sha256((root / "bin" / "tier0.dll").read_bytes()) != PATCHED_TIER0_SHA256:
+    if sha256((root / "game" / "bin" / "tier0.dll").read_bytes()) != PATCHED_TIER0_SHA256:
         raise PatchError("This folder does not contain p7's patched tier0.dll")
 
-    links = [(root / "game" / name, root / name) for name in JUNCTION_NAMES]
-    for link, _target in links:
-        if os.path.lexists(link) and not link.is_junction():
-            raise PatchError(f"Refusing to replace non-junction path: {link}")
-
-    for link, target in links:
-        if link.is_junction() and normalized_path(os.readlink(link)) != normalized_path(target):
-            os.rmdir(link)
-        ensure_junction(link, target)
-
-    atomic_write(root / "bin" / "GameConfig.txt", game_config(root))
+    atomic_write(root / "game" / "bin" / "GameConfig.txt", game_config(root))
     atomic_write(root / "Launch Hammer.cmd", hammer_launcher(root))
     atomic_write(root / "Launch HLMV.cmd", hlmv_launcher(root))
 
@@ -267,20 +251,17 @@ class HammerPatch:
 
         mapsrc = context.root / "content" / "portal2" / "mapsrc"
         mapsrc.mkdir(parents=True, exist_ok=True)
-        (context.root / "game").mkdir(parents=True, exist_ok=True)
-        for name in JUNCTION_NAMES:
-            ensure_junction(context.root / "game" / name, final_root / name)
+        move_runtime_into_game(context.root)
 
-        config_path = context.root / "bin" / "GameConfig.txt"
+        config_path = context.root / "game" / "bin" / "GameConfig.txt"
         if config_path.exists():
             backup_file(config_path, "GameConfig.original.bak", context)
-        atomic_write(config_path, game_config(final_root))
 
         source = context.portal2_source / "platform" / "materials" / "Editor"
         files = sorted(path for path in source.rglob("*") if path.is_file())
         if len(files) != EDITOR_FILE_COUNT:
             raise PatchError(f"Expected {EDITOR_FILE_COUNT} Hammer editor materials in retail Portal 2, found {len(files)}")
-        destination = context.root / "platform" / "materials" / "Editor"
+        destination = context.root / "game" / "platform" / "materials" / "Editor"
         for index, path in enumerate(files, start=1):
             if context.cancel_event.is_set():
                 raise BuildCancelled("Build cancelled")
@@ -290,7 +271,7 @@ class HammerPatch:
             if index == 1 or index == len(files) or index % 25 == 0:
                 progress(ProgressEvent("p7", index, len(files), f"Hammer material: {path.name}"))
 
-        tier0 = context.root / "bin" / "tier0.dll"
+        tier0 = context.root / "game" / "bin" / "tier0.dll"
         current = tier0.read_bytes()
         current_hash = sha256(current)
         if current_hash == ORIGINAL_TIER0_SHA256:
@@ -307,24 +288,26 @@ class HammerPatch:
         elif current_hash != PATCHED_TIER0_SHA256:
             raise PatchError(f"Refusing to patch unknown tier0.dll ({current_hash})")
 
+        atomic_write(config_path, game_config(final_root))
         atomic_write(context.root / "Launch Hammer.cmd", hammer_launcher(final_root))
         atomic_write(context.root / "Launch HLMV.cmd", hlmv_launcher(final_root))
 
     def verify(self, context: PatchContext) -> None:
         final_root = self._final_root(context)
-        if (context.root / "bin" / "GameConfig.txt").read_bytes() != game_config(final_root):
+        if (context.root / "game" / "bin" / "GameConfig.txt").read_bytes() != game_config(final_root):
             raise PatchError("Hammer GameConfig.txt is not configured")
-        editor = context.root / "platform" / "materials" / "Editor"
+        editor = context.root / "game" / "platform" / "materials" / "Editor"
         if len([path for path in editor.rglob("*") if path.is_file()]) != EDITOR_FILE_COUNT:
             raise PatchError("Hammer editor materials are incomplete")
-        tier0 = context.root / "bin" / "tier0.dll"
+        tier0 = context.root / "game" / "bin" / "tier0.dll"
         if sha256(tier0.read_bytes()) != PATCHED_TIER0_SHA256:
             raise PatchError("tier0.dll does not contain the Hammer thread fix")
         if (context.root / "Launch Hammer.cmd").read_bytes() != hammer_launcher(final_root):
             raise PatchError("Hammer launcher is missing or incorrect")
         if (context.root / "Launch HLMV.cmd").read_bytes() != hlmv_launcher(final_root):
             raise PatchError("HLMV launcher is missing or incorrect")
-        for name in JUNCTION_NAMES:
-            link = context.root / "game" / name
-            if not link.is_junction() or normalized_path(os.readlink(link)) != normalized_path(final_root / name):
-                raise PatchError(f"Hammer junction is missing or incorrect: game\\{name}")
+        for name in RUNTIME_DIRECTORIES:
+            if not (context.root / "game" / name).is_dir():
+                raise PatchError(f"Hammer runtime folder is missing: game\\{name}")
+            if (context.root / name).exists():
+                raise PatchError(f"Hammer runtime folder was left duplicated: {name}")

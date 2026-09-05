@@ -30,11 +30,11 @@ If a different `mapspawn.nut` already exists, it is preserved as `mapspawn.origi
 
 The Hammer and Half-Life Model Viewer programs are present in `852_0`, but the extracted depot is missing the layout and editor materials they expect.
 
-This patch copies the `platform/materials/Editor` folder from the user's retail Portal 2 installation, creates the `game` and `content` folders, writes the Portal 2 Hammer configuration, and creates separate launchers for Hammer and HLMV.
+This patch copies the `platform/materials/Editor` folder from the user's retail Portal 2 installation, moves the runtime into a normal `game` folder, writes the Portal 2 Hammer configuration, and creates separate launchers for Hammer and HLMV. The files are physically moved, no junctions anymore!
 
-It also patches this build's `bin/tier0.dll` thread table from 32 slots to 128. The original DLL is preserved as `tier0.original.bak`, and the patch is accepted only when both the original and resulting SHA-256 hashes match the known files.
+It also patches this build's `game/bin/tier0.dll` thread table from 32 slots to 128. The original DLL is preserved as `tier0.original.bak`, and the patch is accepted only when both the original and resulting SHA-256 hashes match the known files.
 
-Hammer's configuration and the `game` junctions contain the installation path. If the completed build is moved later, the patcher's **Fix moved build** action rewrites those paths without extracting or copying the build again.
+Hammer's configuration contains the installation path. If the completed build is moved later, the patcher's **Fix moved build** action rewrites it without extracting or copying the build again.
 
 ### p8 - Additional prerelease assets
 

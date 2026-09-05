@@ -11,14 +11,16 @@ from patches.base import atomic_write
 LAUNCHER = r'''@echo off
 setlocal
 set "ROOT=%~dp0"
-set "VGame=%ROOT%"
-set "VContent=%ROOT%"
+set "GAMEROOT=%ROOT%"
+if exist "%ROOT%game\hl2.exe" set "GAMEROOT=%ROOT%game\"
+set "VGame=%GAMEROOT%"
+set "VContent=%ROOT%content\"
 set "GAME=hl2.exe"
-if exist "%ROOT%hl2.wrap.exe" set "GAME=hl2.wrap.exe"
+if exist "%GAMEROOT%hl2.wrap.exe" set "GAME=hl2.wrap.exe"
 set "MULTICORE="
-if exist "%ROOT%portal2\cfg\patcher_multicore.cfg" set "MULTICORE=+exec patcher_multicore.cfg"
+if exist "%GAMEROOT%portal2\cfg\patcher_multicore.cfg" set "MULTICORE=+exec patcher_multicore.cfg"
 
-start "" /D "%ROOT%" "%ROOT%%GAME%" -game portal2 -windowed -w 1366 -h 768 -console %MULTICORE% %*
+start "" /D "%GAMEROOT%" "%GAMEROOT%%GAME%" -game portal2 -windowed -w 1366 -h 768 -console %MULTICORE% %*
 endlocal
 '''.replace("\n", "\r\n").encode("ascii")
 
@@ -26,7 +28,7 @@ endlocal
 FIRST_RUN_AUDIO = r'''if exist "%ROOT%.p2patcher\patcher-audiocache.done" goto launch
 if not exist "%ROOT%.p2patcher" mkdir "%ROOT%.p2patcher"
 echo Rebuilding the audio cache for the first launch. The game will restart in a bit.
-start "" /wait /D "%ROOT%" "%ROOT%%GAME%" -game portal2 -windowed -w 1366 -h 768 -console +snd_rebuildaudiocache +quit
+start "" /wait /D "%GAMEROOT%" "%GAMEROOT%%GAME%" -game portal2 -windowed -w 1366 -h 768 -console +snd_rebuildaudiocache +quit
 if errorlevel 1 (
     echo Audio cache setup failed. Launch again to retry.
     pause
