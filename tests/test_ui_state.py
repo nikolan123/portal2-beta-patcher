@@ -2,7 +2,7 @@ from pathlib import Path
 
 from extractor import CatalogTarget
 from models import RevisionInput
-from ui import back_screen_for_mode, default_generic_output, patch_ids_for_mode
+from ui import back_screen_for_mode, default_generic_output, is_core_hub_target, patch_ids_for_mode
 
 
 def target(ready=True):
@@ -31,6 +31,17 @@ def test_mode_specific_patch_lists():
 def test_default_output(tmp_path):
     selected = target()
     assert default_generic_output(tmp_path / "archives", selected) == tmp_path / "852_2_fixed"
+
+
+def test_852_0_catalog_target_uses_core_hub_workflow():
+    selected = target()
+    assert not is_core_hub_target(selected)
+    assert is_core_hub_target(
+        CatalogTarget(852, 0, 0x90B0FE8E, Path("852_0.blob"), True, "Ready")
+    )
+    assert not is_core_hub_target(
+        CatalogTarget(841, 0, 0x83CED978, Path("841_0.blob"), True, "Ready")
+    )
 
 
 def test_back_navigation_is_mode_specific():

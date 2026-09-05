@@ -48,6 +48,10 @@ def default_generic_output(archive_folder: Path, target: CatalogTarget) -> Path:
     return archive_folder.resolve().parent / f"{target.depot_id}_{target.version}_fixed"
 
 
+def is_core_hub_target(target: CatalogTarget) -> bool:
+    return target.depot_id == 852 and target.version == 0
+
+
 def back_screen_for_mode(mode: str) -> str:
     return "generic_files" if mode == "generic" else "852_files"
 
@@ -579,6 +583,12 @@ class PatcherUI(TkBase):
         target = self.selected_target
         if target is None or not target.ready:
             self.message_var.set("Select a ready revision first.")
+            return
+        if is_core_hub_target(target):
+            revision = target.chain[-1]
+            self.blob_var.set(str(revision.blob_path))
+            self.dat_var.set(str(revision.dat_path))
+            self.show_files()
             return
         self.current_mode = "generic"
         self.message_var.set("")
