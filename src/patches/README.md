@@ -1,22 +1,24 @@
 # Patches
 
-List of patches applied
+## 852_0
 
-## p1 - Half-Life 2 assets
+These patches are specific to the July 2009 `852_0` build.
+
+### p1 - Half-Life 2 assets
 
 The beta expects the shared Half-Life 2 files that Steam used to mount for it, but those files are not part of the `852_0` depot itself. Modern Steam keeps them inside VPK archives that this extracts and takes the needed stuff from.
 
-## p2 - Search paths
+### p2 - Search paths
 
 This patch adds the missing `portal2_tempcontent` and `platform` search paths. When Half-Life 2 content support is selected, it mounts `hl2` too. It saves the original as `GameInfo.original.bak` before making a change.
 
-## p3 - Sound manifest
+### p3 - Sound manifest
 
 Source does not discover every sound script automatically. The files must be listed in `portal2/scripts/game_sounds_manifest.txt` before the engine will load their sound definitions.
 
 This patch adds the missing HL2 sound-script entries to that manifest. And of course backs up the original first.
 
-## p4 - GLaDOS dialogue
+### p4 - GLaDOS dialogue
 
 Some maps expect an actor named `@glados` to exist when dialogue is played. In this build it is missing, which stops those lines from working correctly.
 
@@ -24,17 +26,7 @@ This patch creates `portal2/scripts/vscripts/mapspawn.nut`. One second after the
 
 If a different `mapspawn.nut` already exists, it is preserved as `mapspawn.original.bak` before the replacement is written, though that is redunant so it might be removed.
 
-## p5 - Source Thread Fix
-
-Old Source builds can fail on modern systems that expose more processor threads than the engine expects.
-
-This patch downloads [Mike's Source Thread Fix](https://mikes.software/threadfix/) directly from his site. The hash is checked to make sure the files are as expected.
-
-## p6 - Launcher
-
-This patch creates a launcher for portal as `Launch Portal 2.cmd` so the game can be launched without using a command line.
-
-## p7 - Hammer and HLMV tools
+### p7 - Hammer and HLMV tools
 
 The Hammer and Half-Life Model Viewer programs are present in `852_0`, but the extracted depot is missing the layout and editor materials they expect.
 
@@ -44,19 +36,33 @@ It also patches this build's `bin/tier0.dll` thread table from 32 slots to 128. 
 
 Hammer's configuration and the `game` junctions contain the installation path. If the completed build is moved later, the patcher's **Fix moved build** action rewrites those paths without extracting or copying the build again.
 
-## p8 - Additional prerelease assets
+### p8 - Additional prerelease assets
 
 This build of Portal uses a few files that are neither included in the beta nor available in Half-Life 2.
 
 This patch installs only those five runtime assets and adds `particles/achievement.pcf` to the existing particle manifest. The assets are stored together in a small ZIP.
 
-## p9 - Disable multicore rendering
+## Generic
+
+These patches are suggested for any Portal 2 builds.
+
+### p5 - Source Thread Fix
+
+Old Source builds can fail on modern systems that expose more processor threads than the engine expects.
+
+This patch downloads [Mike's Source Thread Fix](https://mikes.software/threadfix/) directly from his site. The hash is checked to make sure the files are as expected.
+
+### p6 - Launcher
+
+This patch creates a launcher for portal as `Launch Portal 2.cmd` so the game can be launched without using a command line.
+
+### p9 - Disable multicore rendering
 
 Some Portal 2 prerelease builds render reflections incorrectly when queued material rendering is active.
 
 This patch creates `portal2/cfg/patcher_multicore.cfg` containing `mat_queue_mode 0`. The generated launcher runs that separate file when it exists.
 
-## p10 - Goldberg emulator
+### p10 - Goldberg emulator
 
 This patch uses a Goldberg ZIP selected by the user. The ZIP must match the pinned SHA-256 before anything is installed.
 
