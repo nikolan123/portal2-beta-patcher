@@ -11,7 +11,7 @@ import shutil
 from threading import Event
 import uuid
 
-from extractor import extract_depot, extract_revision_chain
+from extractor import extract_depot, extract_revision_chain, has_runnable_layout
 from models import BuildCancelled, BuildInputs, BuildReport, PatchContext, ProgressEvent, ProgressCallback
 from patches import PATCHES, normalize_patch_ids
 from steam import validate_hl2, validate_portal_2
@@ -133,7 +133,7 @@ class BuildPipeline:
                     self.cancel_event,
                     inputs.custom_depot_key,
                 )
-                runnable = (staging / "hl2.exe").is_file() and (staging / "portal2" / "GameInfo.txt").is_file()
+                runnable = has_runnable_layout(staging)
                 # usually builds have a hl2.exe. 841_0 doesn't, so p16 makes one. 841_0 should not be considered a content-only depot becuase of that. if changing this make sure to also change in the 2 places in ui.py
                 can_fix_missing_hl2 = "p16" in selected_ids
                 if runnable or can_fix_missing_hl2:

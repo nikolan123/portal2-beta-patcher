@@ -210,9 +210,11 @@ def test_source_thread_fix_keeps_its_license_in_metadata_folder(tmp_path):
 
 def test_launcher_uses_wrapper_with_normal_executable_fallback():
     assert b'if exist "%ROOT%game\\hl2.exe" set "GAMEROOT=%ROOT%game\\"' in LAUNCHER
+    assert b'if exist "%ROOT%game\\portal2.exe" set "GAMEROOT=%ROOT%game\\"' in LAUNCHER
     assert b'"%GAMEROOT%hl2.wrap.exe"' in LAUNCHER
     assert b'set "GAME=hl2.exe"' in LAUNCHER
-    assert b'if exist "%GAMEROOT%hl2.wrap.exe"' in LAUNCHER
+    assert b'if not exist "%GAMEROOT%hl2.exe" if exist "%GAMEROOT%portal2.exe" set "GAME=portal2.exe"' in LAUNCHER
+    assert b'if exist "%GAMEROOT%hl2.exe" if exist "%GAMEROOT%hl2.wrap.exe"' in LAUNCHER
     assert b'if exist "%GAMEROOT%portal2\\cfg\\patcher_multicore.cfg"' in LAUNCHER
 
 

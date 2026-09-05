@@ -16,7 +16,7 @@ except ImportError:
     DND_FILES = None
     TkBase = tk.Tk
 
-from extractor import CatalogTarget, scan_archive_catalog
+from extractor import CatalogTarget, has_runnable_layout, scan_archive_catalog
 from models import BuildCancelled, BuildInputs, ProgressEvent
 from patches import PATCHES, normalize_patch_ids, selectable_patch_ids
 from patches.p12_july_2010_assets import SOURCE_BLOB_SHA256, SOURCE_DAT_SHA256
@@ -874,7 +874,7 @@ class PatcherUI(TkBase):
     def show_complete(self, output: Path):
         self.output_path = output
         self.clear()
-        runnable = (output / "hl2.exe").is_file() and (output / "portal2" / "GameInfo.txt").is_file()
+        runnable = has_runnable_layout(output)
         if self.current_mode == "generic" and self.selected_target is not None:
             detail = f"Portal 2 depot {self.selected_target.depot_id} version {self.selected_target.version} is ready."
             if not runnable:

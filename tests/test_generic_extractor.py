@@ -121,6 +121,20 @@ def test_strict_archive_names_ignore_unrelated_dat(tmp_path):
     assert scan_archive_catalog(tmp_path) == []
 
 
+def test_portal2_executable_build_is_runnable(tmp_path):
+    write_revision(
+        tmp_path,
+        843,
+        0,
+        0x84300000,
+        0,
+        {1: "portal2.exe", 2: "portal2/GameInfo.txt"},
+        {1: b"launcher", 2: b'"GameInfo" {}'},
+    )
+
+    assert ready_target(tmp_path, 0, 0x84300000).runnable
+
+
 def test_complete_chain_inherits_and_replaces_mappings_and_uses_final_manifest(tmp_path):
     write_revision(tmp_path, 852, 0, 0x10, 0, {1: "kept.txt", 2: "removed.txt"}, {1: b"old", 2: b"gone"})
     write_revision(tmp_path, 852, 1, 0x11, 0x10, {1: "kept.txt", 3: "inherited.txt"}, {1: b"new", 3: b"parent"})

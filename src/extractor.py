@@ -183,6 +183,17 @@ def format_byte_size(size: int) -> str:
     raise AssertionError("Unreachable")
 
 
+def has_runnable_manifest(paths: set[str]) -> bool:
+    normalized = {path.replace("\\", "/").lower() for path in paths}
+    has_executable = "hl2.exe" in normalized or "portal2.exe" in normalized
+    return has_executable and "portal2/gameinfo.txt" in normalized
+
+
+def has_runnable_layout(root: Path) -> bool:
+    has_executable = (root / "hl2.exe").is_file() or (root / "portal2.exe").is_file()
+    return has_executable and (root / "portal2" / "GameInfo.txt").is_file()
+
+
 def parse_archive_name(path: Path) -> ArchiveName | None:
     match = ARCHIVE_NAME.fullmatch(path.name)
     if not match:
@@ -224,7 +235,7 @@ def inspect_blob(path: Path, name: ArchiveName | None = None) -> BlobMetadata:
         expected_dat_size,
         sum(item.size for item in files),
         encrypted,
-        {item.path.replace("\\", "/").lower() for item in files}.issuperset({"hl2.exe", "portal2/gameinfo.txt"}),
+        has_runnable_manifest({item.path for item in files}),
     )
 
 

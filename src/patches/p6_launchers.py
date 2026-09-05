@@ -13,10 +13,12 @@ setlocal
 set "ROOT=%~dp0"
 set "GAMEROOT=%ROOT%"
 if exist "%ROOT%game\hl2.exe" set "GAMEROOT=%ROOT%game\"
+if exist "%ROOT%game\portal2.exe" set "GAMEROOT=%ROOT%game\"
 set "VGame=%GAMEROOT%"
 set "VContent=%ROOT%content\"
 set "GAME=hl2.exe"
-if exist "%GAMEROOT%hl2.wrap.exe" set "GAME=hl2.wrap.exe"
+if not exist "%GAMEROOT%hl2.exe" if exist "%GAMEROOT%portal2.exe" set "GAME=portal2.exe"
+if exist "%GAMEROOT%hl2.exe" if exist "%GAMEROOT%hl2.wrap.exe" set "GAME=hl2.wrap.exe"
 set "MULTICORE="
 if exist "%GAMEROOT%portal2\cfg\patcher_multicore.cfg" set "MULTICORE=+exec patcher_multicore.cfg"
 
