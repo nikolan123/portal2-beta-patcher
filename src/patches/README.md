@@ -50,6 +50,12 @@ This patch installs only those five runtime assets and adds `particles/achieveme
 
 This installs a small prebuilt executable produced from `src/launcher_src/hl2.cpp` as `hl2.exe`.
 
+### p17 - Tier0 Thread Limit
+
+This build's `tier0.dll` has a table with only 32 thread id slots, which can fail on modern CPUs that expose more threads.
+
+This patch expands that table to 128 slots.
+
 ## 852_1
 
 These patches are specific to depot 852 version 1.

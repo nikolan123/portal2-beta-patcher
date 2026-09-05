@@ -16,8 +16,9 @@ from patches.p11_legacy_paint import LegacyPaintPatch
 from patches.p12_july_2010_assets import July2010AssetsPatch
 from patches.p13_july_2009_assets import July2009AssetsPatch
 from patches.p14_march_assets import MarchAssetsPatch
-from patches.p15_tier0_thread_limit import Tier0ThreadLimitPatch
+from patches.p15_tier0_thread_limit_852_1 import Tier0ThreadLimit8521Patch
 from patches.p16_hl2_launcher import Hl2LauncherPatch
+from patches.p17_tier0_thread_limit_841_0 import Tier0ThreadLimit8410Patch
 
 
 PATCHES = [
@@ -35,8 +36,9 @@ PATCHES = [
     July2010AssetsPatch(),
     July2009AssetsPatch(),
     MarchAssetsPatch(),
-    Tier0ThreadLimitPatch(),
+    Tier0ThreadLimit8521Patch(),
     Hl2LauncherPatch(),
+    Tier0ThreadLimit8410Patch(),
 ]
 
 PATCH_DEPENDENCIES = {
@@ -67,7 +69,7 @@ PATCH_COMPATIBILITY = {
         required=frozenset({"p6"}), # launcher
     ),
     (841, 0, 0x83CED978): BuildPatchSet(
-        optional=frozenset({"p5", "p9", "p10", "p16"}), # thread fix, multicore rendering, goldberg, missing hl2.exe fix
+        optional=frozenset({"p5", "p9", "p10", "p16", "p17"}), # thread fix, multicore rendering, goldberg, missing hl2.exe fix, tier0 thread limit
         required=frozenset({"p6"}), # launch script
     ),
 }

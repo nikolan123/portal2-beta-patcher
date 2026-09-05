@@ -37,10 +37,11 @@ from patches.p11_legacy_paint import ORIGINAL_BYTES, PATCHED_BYTES, PATCH_OFFSET
 from patches.p12_july_2010_assets import July2010AssetsPatch
 from patches.p13_july_2009_assets import July2009AssetsPatch, overlay_tree
 from patches.p14_march_assets import ARCHIVE_SHA256 as MARCH_ASSET_ARCHIVE_SHA256, MarchAssetsPatch, read_bundle
-from patches.p15_tier0_thread_limit import (
+from patches.p15_tier0_thread_limit_852_1 import (
+    EXPECTED_REFERENCE_OFFSETS as REFERENCE_OFFSETS_852_1,
     ORIGINAL_TIER0_SHA256 as ORIGINAL_852_1_TIER0_SHA256,
     PATCHED_TIER0_SHA256 as PATCHED_852_1_TIER0_SHA256,
-    Tier0ThreadLimitPatch,
+    Tier0ThreadLimit8521Patch,
     patch_852_1_tier0,
 )
 from patches.p16_hl2_launcher import (
@@ -48,10 +49,17 @@ from patches.p16_hl2_launcher import (
     Hl2LauncherPatch,
     launcher_path,
 )
+from patches.p17_tier0_thread_limit_841_0 import (
+    EXPECTED_REFERENCE_OFFSETS as REFERENCE_OFFSETS_841_0,
+    ORIGINAL_TIER0_SHA256 as ORIGINAL_841_0_TIER0_SHA256,
+    PATCHED_TIER0_SHA256 as PATCHED_841_0_TIER0_SHA256,
+    Tier0ThreadLimit8410Patch,
+    patch_841_0_tier0,
+)
 
 
 def test_patch_registry_is_explicitly_numbered():
-    assert [patch.id for patch in PATCHES] == ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10", "p11", "p12", "p13", "p14", "p15", "p16"]
+    assert [patch.id for patch in PATCHES] == ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10", "p11", "p12", "p13", "p14", "p15", "p16", "p17"]
     assert all(patch.description for patch in PATCHES)
     assert set(PATCH_COMPATIBILITY) == {"generic", (841, 0, 0x83CED978), (852, 0), (852, 1)}
     assert PATCH_COMPATIBILITY["generic"].required == {"p6"}
@@ -63,6 +71,7 @@ def test_patch_registry_is_explicitly_numbered():
     assert "p15" in PATCH_COMPATIBILITY[(852, 1)].optional
     assert PATCH_COMPATIBILITY[(841, 0, 0x83CED978)].required == {"p6"}
     assert "p16" in PATCH_COMPATIBILITY[(841, 0, 0x83CED978)].optional
+    assert "p17" in PATCH_COMPATIBILITY[(841, 0, 0x83CED978)].optional
 
 
 def test_patch_dependencies_and_required_launcher():
@@ -90,6 +99,8 @@ def test_patch_dependencies_and_required_launcher():
     assert normalize_patch_ids((), "generic", runnable=True, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("p6",)
     assert normalize_patch_ids(("p16",), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("p16",)
     assert normalize_patch_ids(("p16",), "generic", runnable=True, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("p6", "p16")
+    assert normalize_patch_ids(("p17",), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("p17",)
+    assert normalize_patch_ids(("p17",), "generic", runnable=True, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("p6", "p17")
 
 
 def test_841_0_pre_reset_launcher_patch_installs_the_binary(tmp_path):
@@ -100,6 +111,21 @@ def test_841_0_pre_reset_launcher_patch_installs_the_binary(tmp_path):
     patch.apply(context, lambda _event: None)
     patch.verify(context)
     assert sha256_file(tmp_path / "hl2.exe") == LAUNCHER_SHA256
+
+
+def test_build_specific_tier0_patches_use_distinct_binaries_and_offsets():
+    assert ORIGINAL_841_0_TIER0_SHA256 != ORIGINAL_852_1_TIER0_SHA256
+    assert PATCHED_841_0_TIER0_SHA256 != PATCHED_852_1_TIER0_SHA256
+    assert REFERENCE_OFFSETS_841_0 != REFERENCE_OFFSETS_852_1
+
+
+def test_841_0_pre_reset_tier0_patch_matches_the_known_dll_when_available():
+    source = Path(r"C:\Users\Niko\Downloads\841_0_extracted\bin\tier0.dll")
+    if not source.is_file() or sha256_file(source) != ORIGINAL_841_0_TIER0_SHA256:
+        return
+    patched = patch_841_0_tier0(source.read_bytes())
+    assert sha256(patched).hexdigest() == PATCHED_841_0_TIER0_SHA256
+    assert Tier0ThreadLimit8410Patch.id == "p17"
 
 
 def test_legacy_paint_patch_changes_only_the_missing_key_default():
@@ -116,7 +142,7 @@ def test_852_1_tier0_patch_matches_the_known_dll_when_available():
         return
     patched = patch_852_1_tier0(source.read_bytes())
     assert sha256(patched).hexdigest() == PATCHED_852_1_TIER0_SHA256
-    assert Tier0ThreadLimitPatch.id == "p15"
+    assert Tier0ThreadLimit8521Patch.id == "p15"
 
 
 def test_july_2010_asset_patch_uses_requested_description():
