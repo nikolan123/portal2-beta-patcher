@@ -7,6 +7,7 @@ import queue
 import threading
 import tkinter as tk
 from tkinter import filedialog, messagebox
+import webbrowser
 
 try:
     from tkinterdnd2 import DND_FILES, TkinterDnD
@@ -33,6 +34,8 @@ TEXT = "#f1f1f1"
 MUTED = "#999999"
 BUTTON = "#e5e5e5"
 BUTTON_TEXT = "#111111"
+LINK = "#72a7ff"
+GITHUB_ISSUES_URL = "https://github.com/nikolan123/portal2-beta-patcher/issues"
 
 
 def patch_ids_for_mode(
@@ -109,6 +112,34 @@ class PatcherUI(TkBase):
     def show_mode_selection(self) -> None:
         self.clear()
         self.heading("Portal 2 Beta Patcher", "What do you want to extract and patch?")
+
+        footer = tk.Frame(self.container, bg=BG)
+        footer.pack(side="bottom", fill="x")
+        tk.Label(
+            footer,
+            text="Found an issue or have a fix?",
+            bg=BG,
+            fg=MUTED,
+            font=("Segoe UI", 9),
+        ).pack(side="left")
+        issues_link = tk.Label(
+            footer,
+            text="Report it on GitHub Issues",
+            bg=BG,
+            fg=LINK,
+            activeforeground="#a9c8ff",
+            cursor="hand2",
+            font=("Segoe UI Semibold", 9, "underline"),
+        )
+        issues_link.pack(side="left", padx=(5, 0))
+        issues_link.bind("<Button-1>", lambda _event: webbrowser.open_new_tab(GITHUB_ISSUES_URL))
+        tk.Label(
+            footer,
+            text=" or contact me on Discord.",
+            bg=BG,
+            fg=MUTED,
+            font=("Segoe UI", 9),
+        ).pack(side="left")
 
         choices = tk.Frame(self.container, bg=BG)
         choices.pack(fill="x", pady=(28, 0))

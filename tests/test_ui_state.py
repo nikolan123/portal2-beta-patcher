@@ -2,7 +2,7 @@ from pathlib import Path
 
 from extractor import CatalogTarget
 from models import RevisionInput
-from ui import back_screen_for_mode, default_generic_output, is_core_hub_target, patch_ids_for_mode
+from ui import GITHUB_ISSUES_URL, back_screen_for_mode, default_generic_output, is_core_hub_target, patch_ids_for_mode
 
 
 def target(ready=True):
@@ -26,6 +26,10 @@ def test_mode_specific_patch_lists():
     assert "p4" in patch_ids_for_mode("852_0")
     assert "p9" not in patch_ids_for_mode("852_0")
     assert patch_ids_for_mode("852_0")[-1] == "p10"
+
+
+def test_support_link_uses_the_project_issue_tracker():
+    assert GITHUB_ISSUES_URL == "https://github.com/nikolan123/portal2-beta-patcher/issues"
 
 
 def test_default_output(tmp_path):
