@@ -61,6 +61,7 @@ class BuildPipeline:
             runnable=inputs.mode == "852_0",
             depot_id=inputs.depot_id,
             depot_version=inputs.depot_version,
+            depot_crc=inputs.depot_crc,
         ))
         if "p10" in selected_ids:
             if inputs.goldberg_archive_path is None:
@@ -133,13 +134,16 @@ class BuildPipeline:
                     inputs.custom_depot_key,
                 )
                 runnable = (staging / "hl2.exe").is_file() and (staging / "portal2" / "GameInfo.txt").is_file()
-                if runnable:
+                # usually builds have a hl2.exe. 841_0 doesn't, so p16 makes one. 841_0 should not be considered a content-only depot becuase of that. if changing this make sure to also change in the 2 places in ui.py
+                can_fix_missing_hl2 = "p16" in selected_ids
+                if runnable or can_fix_missing_hl2:
                     selected_ids = set(normalize_patch_ids(
                         requested_ids,
                         "generic",
                         runnable=True,
                         depot_id=final_revision.depot_id,
                         depot_version=final_revision.version,
+                        depot_crc=final_revision.crc,
                     ))
                 else:
                     selected_ids.clear()

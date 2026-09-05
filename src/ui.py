@@ -39,8 +39,9 @@ def patch_ids_for_mode(
     mode: str,
     depot_id: int | None = None,
     depot_version: int | None = None,
+    depot_crc: int | None = None,
 ) -> tuple[str, ...]:
-    return selectable_patch_ids(mode, depot_id, depot_version)
+    return selectable_patch_ids(mode, depot_id, depot_version, depot_crc)
 
 
 def default_generic_output(archive_folder: Path, target: CatalogTarget) -> Path:
@@ -582,9 +583,11 @@ class PatcherUI(TkBase):
         self.current_mode = "generic"
         self.message_var.set("")
         self.clear()
+        patch_ids = patch_ids_for_mode("generic", target.depot_id, target.version, target.crc)
+        effectively_runnable = target.runnable or "p16" in patch_ids
         detail = (
             "Choose the patches you want to apply."
-            if target.runnable
+            if effectively_runnable
             else "This content-only depot can be extracted, but it is not independently runnable."
         )
         self.heading("Choose fixes", detail)
@@ -627,8 +630,7 @@ class PatcherUI(TkBase):
         choices.bind("<Configure>", lambda _event: canvas.configure(scrollregion=canvas.bbox("all")))
         canvas.bind("<Configure>", lambda event: canvas.itemconfigure(choices_window, width=event.width))
         patch_by_id = {patch.id: patch for patch in PATCHES}
-        patch_ids = patch_ids_for_mode("generic", target.depot_id, target.version)
-        if not target.runnable:
+        if not effectively_runnable:
             for patch_id in patch_ids:
                 self.patch_vars[patch_id].set(False)
         for patch_id in patch_ids:
@@ -650,7 +652,7 @@ class PatcherUI(TkBase):
             )
             checkbox.pack(anchor="w", padx=14, pady=(7, 0))
             detail = patch.description
-            if not target.runnable:
+            if not effectively_runnable:
                 checkbox.configure(state="disabled", disabledforeground=MUTED)
                 detail += "  Unavailable because this is a content-only depot."
             tk.Label(panel, text=detail, bg=PANEL, fg=MUTED, anchor="w", justify="left",
@@ -696,10 +698,11 @@ class PatcherUI(TkBase):
                     custom_key = bytes.fromhex(text)
                 except ValueError as error:
                     raise ValueError("The depot key must contain only hexadecimal characters.") from error
-            available_patch_ids = patch_ids_for_mode("generic", target.depot_id, target.version)
+            available_patch_ids = patch_ids_for_mode("generic", target.depot_id, target.version, target.crc)
             selected_patch_ids = tuple(
                 patch_id for patch_id in available_patch_ids if self.patch_vars[patch_id].get()
             )
+            effectively_runnable = target.runnable or "p16" in selected_patch_ids
             goldberg_archive = None
             if "p10" in selected_patch_ids:
                 zip_text = self.goldberg_zip_var.get().strip()
@@ -746,9 +749,10 @@ class PatcherUI(TkBase):
         self.last_selected_patch_ids = normalize_patch_ids(
             selected_patch_ids,
             "generic",
-            runnable=target.runnable,
+            runnable=effectively_runnable,
             depot_id=target.depot_id,
             depot_version=target.version,
+            depot_crc=target.crc,
         )
         self.active_inputs = inputs
         self.message_var.set("")

@@ -7,7 +7,12 @@ import subprocess
 from threading import Event
 
 from models import BuildReport, PatchContext
-from patches import PATCHES, PATCH_COMPATIBILITY, compatible_patch_ids, normalize_patch_ids
+from patches import (
+    PATCHES,
+    PATCH_COMPATIBILITY,
+    compatible_patch_ids,
+    normalize_patch_ids,
+)
 from patches.base import sha256_file
 from patches.p1_hl2_assets import ASSET_MARKER, HL2_ASSET_ALLOWLIST, copy_selected_loose_assets
 from patches.p2_search_paths import SearchPathsPatch
@@ -38,12 +43,17 @@ from patches.p15_tier0_thread_limit import (
     Tier0ThreadLimitPatch,
     patch_852_1_tier0,
 )
+from patches.p16_hl2_launcher import (
+    LAUNCHER_SHA256,
+    Hl2LauncherPatch,
+    launcher_path,
+)
 
 
 def test_patch_registry_is_explicitly_numbered():
-    assert [patch.id for patch in PATCHES] == ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10", "p11", "p12", "p13", "p14", "p15"]
+    assert [patch.id for patch in PATCHES] == ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10", "p11", "p12", "p13", "p14", "p15", "p16"]
     assert all(patch.description for patch in PATCHES)
-    assert set(PATCH_COMPATIBILITY) == {"generic", (852, 0), (852, 1)}
+    assert set(PATCH_COMPATIBILITY) == {"generic", (841, 0, 0x83CED978), (852, 0), (852, 1)}
     assert PATCH_COMPATIBILITY["generic"].required == {"p6"}
     assert PATCH_COMPATIBILITY[(852, 0)].required == {"p2", "p6"}
     assert PATCH_COMPATIBILITY[(852, 1)].required == {"p6"}
@@ -51,6 +61,8 @@ def test_patch_registry_is_explicitly_numbered():
     assert "p13" in PATCH_COMPATIBILITY[(852, 1)].optional
     assert "p14" in PATCH_COMPATIBILITY[(852, 1)].optional
     assert "p15" in PATCH_COMPATIBILITY[(852, 1)].optional
+    assert PATCH_COMPATIBILITY[(841, 0, 0x83CED978)].required == {"p6"}
+    assert "p16" in PATCH_COMPATIBILITY[(841, 0, 0x83CED978)].optional
 
 
 def test_patch_dependencies_and_required_launcher():
@@ -58,7 +70,6 @@ def test_patch_dependencies_and_required_launcher():
     assert normalize_patch_ids(("p3",)) == ("p1", "p2", "p3", "p6")
     assert "p9" not in normalize_patch_ids(("p9",), "852_0")
     assert normalize_patch_ids(("p1", "p4", "p5", "p9"), "generic", depot_id=852, depot_version=2) == ("p5", "p6", "p9")
-    assert normalize_patch_ids(("p10",), "generic", depot_id=841, depot_version=0) == ("p6", "p10")
     assert normalize_patch_ids(("p10",), "852_0") == ("p2", "p6", "p10")
     assert normalize_patch_ids(("p5",), "generic", runnable=False, depot_id=843, depot_version=1) == ("p5",)
     assert normalize_patch_ids(("p11",), "generic", depot_id=852, depot_version=1) == ("p6", "p11")
@@ -75,6 +86,20 @@ def test_patch_dependencies_and_required_launcher():
     assert compatible_patch_ids("852_0") == ("p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p10")
     assert compatible_patch_ids("generic", 852, 1) == ("p5", "p6", "p10", "p11", "p12", "p13", "p14", "p15")
     assert compatible_patch_ids("generic", 852, 2) == ("p5", "p6", "p9", "p10")
+    assert normalize_patch_ids((), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ()
+    assert normalize_patch_ids((), "generic", runnable=True, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("p6",)
+    assert normalize_patch_ids(("p16",), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("p16",)
+    assert normalize_patch_ids(("p16",), "generic", runnable=True, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("p6", "p16")
+
+
+def test_841_0_pre_reset_launcher_patch_installs_the_binary(tmp_path):
+    assert sha256_file(launcher_path()) == LAUNCHER_SHA256
+    patch = Hl2LauncherPatch()
+    context = PatchContext(tmp_path, None, BuildReport(), Event(), mode="generic")
+    assert patch.check(context)
+    patch.apply(context, lambda _event: None)
+    patch.verify(context)
+    assert sha256_file(tmp_path / "hl2.exe") == LAUNCHER_SHA256
 
 
 def test_legacy_paint_patch_changes_only_the_missing_key_default():

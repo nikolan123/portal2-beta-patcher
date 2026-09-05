@@ -42,6 +42,14 @@ This build of Portal uses a few files that are neither included in the beta nor 
 
 This patch installs only those five runtime assets and adds `particles/achievement.pcf` to the existing particle manifest. The assets are stored together in a small ZIP.
 
+## 841_0 Pre-reset
+
+`83ced978` manifest
+
+### p16 - Missing hl2.exe fix
+
+This installs a small prebuilt executable produced from `src/launcher_src/hl2.cpp` as `hl2.exe`.
+
 ## 852_1
 
 These patches are specific to depot 852 version 1.

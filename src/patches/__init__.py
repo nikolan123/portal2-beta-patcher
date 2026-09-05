@@ -17,6 +17,7 @@ from patches.p12_july_2010_assets import July2010AssetsPatch
 from patches.p13_july_2009_assets import July2009AssetsPatch
 from patches.p14_march_assets import MarchAssetsPatch
 from patches.p15_tier0_thread_limit import Tier0ThreadLimitPatch
+from patches.p16_hl2_launcher import Hl2LauncherPatch
 
 
 PATCHES = [
@@ -35,6 +36,7 @@ PATCHES = [
     July2009AssetsPatch(),
     MarchAssetsPatch(),
     Tier0ThreadLimitPatch(),
+    Hl2LauncherPatch(),
 ]
 
 PATCH_DEPENDENCIES = {
@@ -64,26 +66,51 @@ PATCH_COMPATIBILITY = {
         optional=frozenset({"p5", "p10", "p11", "p12", "p13", "p14", "p15"}), # thread fix, goldberg, paint fix, jul 2010 assets, jul 2009 assets, extra assets, tier0 thread limit
         required=frozenset({"p6"}), # launcher
     ),
+    (841, 0, 0x83CED978): BuildPatchSet(
+        optional=frozenset({"p5", "p9", "p10", "p16"}), # thread fix, multicore rendering, goldberg, missing hl2.exe fix
+        required=frozenset({"p6"}), # launch script
+    ),
 }
 
 
-def build_target(mode: str, depot_id: int | None, depot_version: int | None) -> tuple[int, int]:
+def build_target(
+    mode: str,
+    depot_id: int | None,
+    depot_version: int | None,
+    depot_crc: int | None = None,
+) -> tuple[int, int] | tuple[int, int, int]:
     if mode == "852_0":
         return (852, 0)
     if mode != "generic":
         raise ValueError(f"Unknown build mode: {mode}")
     if depot_id is None or depot_version is None:
         raise ValueError("Generic patch selection requires a depot ID and version")
+    if depot_crc is not None:
+        return (depot_id, depot_version, depot_crc)
     return (depot_id, depot_version)
+
+
+def patch_set_for_target(
+    mode: str,
+    depot_id: int | None,
+    depot_version: int | None,
+    depot_crc: int | None,
+) -> BuildPatchSet:
+    target = build_target(mode, depot_id, depot_version, depot_crc)
+    if target in PATCH_COMPATIBILITY:
+        return PATCH_COMPATIBILITY[target]
+    if len(target) == 3:
+        target = target[:2]
+    return PATCH_COMPATIBILITY.get(target, PATCH_COMPATIBILITY["generic"])
 
 
 def compatible_patch_ids(
     mode: str,
     depot_id: int | None = None,
     depot_version: int | None = None,
+    depot_crc: int | None = None,
 ) -> tuple[str, ...]:
-    target = build_target(mode, depot_id, depot_version)
-    patch_set = PATCH_COMPATIBILITY.get(target, PATCH_COMPATIBILITY["generic"])
+    patch_set = patch_set_for_target(mode, depot_id, depot_version, depot_crc)
     return tuple(
         patch.id for patch in PATCHES
         if patch.id in patch_set.all
@@ -94,9 +121,9 @@ def selectable_patch_ids(
     mode: str,
     depot_id: int | None = None,
     depot_version: int | None = None,
+    depot_crc: int | None = None,
 ) -> tuple[str, ...]:
-    target = build_target(mode, depot_id, depot_version)
-    optional = PATCH_COMPATIBILITY.get(target, PATCH_COMPATIBILITY["generic"]).optional
+    optional = patch_set_for_target(mode, depot_id, depot_version, depot_crc).optional
     return tuple(patch.id for patch in PATCHES if patch.id in optional)
 
 
@@ -106,10 +133,10 @@ def normalize_patch_ids(
     runnable: bool = True,
     depot_id: int | None = None,
     depot_version: int | None = None,
+    depot_crc: int | None = None,
 ) -> tuple[str, ...]:
     """Add required patches and return IDs in execution order."""
-    target = build_target(mode, depot_id, depot_version)
-    patch_set = PATCH_COMPATIBILITY.get(target, PATCH_COMPATIBILITY["generic"])
+    patch_set = patch_set_for_target(mode, depot_id, depot_version, depot_crc)
     selected = set(selected_ids) & patch_set.all
     if runnable:
         selected.update(patch_set.required)
