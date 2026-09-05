@@ -2,7 +2,7 @@
 name = "portal2-beta-patcher"
 version = "0.1.0"
 description = "Reconstruct and repair Portal 2 Steam 2 builds"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
     "cryptography>=45.0.0",
     "tkinterdnd2>=0.4.3",
