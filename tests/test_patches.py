@@ -18,9 +18,9 @@ from patches.p1_hl2_assets import ASSET_MARKER, HL2_ASSET_ALLOWLIST, copy_select
 from patches.p2_search_paths import SearchPathsPatch
 from patches.p3_sound_manifest import HL2_SOUND_SCRIPTS
 from patches.p5_thread_fix import (
-    ARCHIVE_SHA256 as THREAD_FIX_ARCHIVE_SHA256,
-    DOWNLOAD_URL,
     FILES,
+    ThreadFixPatch,
+    bundled_path,
     destination_path,
 )
 from patches.p6_launchers import LAUNCHER, LaunchersPatch
@@ -196,16 +196,27 @@ def test_march_asset_patch_installs_the_bundle(tmp_path):
     patch.verify(context)
 
 
-def test_source_thread_fix_release_is_pinned():
-    assert DOWNLOAD_URL == "https://dl.mikes.software/sourcethreadfix/threadfix-v1.3-win32.zip"
-    assert len(THREAD_FIX_ARCHIVE_SHA256) == 64
+def test_source_thread_fix_bundled_files_are_pinned():
     assert set(FILES) == {"hl2.wrap.exe", "LICENCE-threadfix"}
+    for name, expected_hash in FILES.items():
+        assert sha256_file(bundled_path(name)) == expected_hash
 
 
 def test_source_thread_fix_keeps_its_license_in_metadata_folder(tmp_path):
     context = PatchContext(tmp_path, None, BuildReport(), Event())
     assert destination_path(context, "hl2.wrap.exe") == tmp_path / "hl2.wrap.exe"
     assert destination_path(context, "LICENCE-threadfix") == tmp_path / ".p2patcher" / "LICENCE-threadfix"
+
+
+def test_source_thread_fix_installs_bundled_wrapper_and_license(tmp_path):
+    context = PatchContext(tmp_path, None, BuildReport(), Event())
+    patch = ThreadFixPatch()
+
+    patch.apply(context, lambda _event: None)
+    patch.verify(context)
+
+    assert (tmp_path / "hl2.wrap.exe").read_bytes() == bundled_path("hl2.wrap.exe").read_bytes()
+    assert (tmp_path / ".p2patcher" / "LICENCE-threadfix").read_bytes() == bundled_path("LICENCE-threadfix").read_bytes()
 
 
 def test_launcher_uses_wrapper_with_normal_executable_fallback():

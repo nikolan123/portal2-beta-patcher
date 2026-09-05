@@ -92,7 +92,7 @@ This is the patch list for builds that do not have their own entry yet.
 
 Old Source builds can fail on modern systems that expose more processor threads than the engine expects.
 
-This patch downloads [Mike's Source Thread Fix](https://mikes.software/threadfix/) directly from his site. The hash is checked to make sure the files are as expected.
+This patch installs the bundled [Source Thread Fix](https://mikes.software/threadfix/) wrapper and keeps its required license in the patcher folder.
 
 ### p6 - Launcher
 
