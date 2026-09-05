@@ -18,7 +18,7 @@ except ImportError:
 
 from extractor import CatalogTarget, scan_archive_catalog
 from models import BuildCancelled, BuildInputs, ProgressEvent
-from patches import PATCHES, normalize_patch_ids
+from patches import PATCHES, normalize_patch_ids, selectable_patch_ids
 from patches.p7_hammer import repair_moved_tools
 from pipeline import BuildPipeline
 from steam import detect_half_life_2, detect_portal_2
@@ -39,12 +39,7 @@ def patch_ids_for_mode(
     depot_id: int | None = None,
     depot_version: int | None = None,
 ) -> tuple[str, ...]:
-    if mode != "generic":
-        return ("p1", "p3", "p4", "p5", "p7", "p8", "p10")
-    patch_ids = ["p5", "p9", "p10"]
-    if (depot_id, depot_version) == (852, 1):
-        patch_ids.append("p11")
-    return tuple(patch_ids)
+    return selectable_patch_ids(mode, depot_id, depot_version)
 
 
 def default_generic_output(archive_folder: Path, target: CatalogTarget) -> Path:

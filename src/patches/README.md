@@ -50,11 +50,11 @@ These patches are specific to depot 852 version 1.
 
 Some older paint maps do not contain the `paintinmap` setting expected by this version of the engine, so their speed and bounce paint does not work.
 
-This patch changes the missing-setting default in `bin/engine.dll` from disabled to enabled. Maps that explicitly contain the setting still use their own value. The original DLL is preserved as `engine.original.bak`, and both the original and patched SHA-256 hashes are verified.
+This patch changes the default in `bin/engine.dll` from disabled to enabled. Maps that explicitly contain the setting still use their own value. The original DLL is preserved as `engine.original.bak`.
 
 ## Generic
 
-These patches are suggested for any Portal 2 builds.
+This is the patch list for builds that do not have their own entry yet.
 
 ### p5 - Source Thread Fix
 
