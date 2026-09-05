@@ -22,6 +22,12 @@ FILES = {
 }
 
 
+def destination_path(context: PatchContext, name: str):
+    if name == "LICENCE-threadfix":
+        return context.root / ".p2patcher" / name
+    return context.root / name
+
+
 def download_thread_fix() -> bytes:
     request = Request(DOWNLOAD_URL, headers={"User-Agent": "Portal2BetaPatcher/0.1"})
     with urlopen(request, timeout=30) as response:
@@ -56,8 +62,8 @@ class ThreadFixPatch:
 
     def check(self, context: PatchContext) -> bool:
         return any(
-            not (context.root / name).is_file()
-            or sha256_file(context.root / name) != expected_hash
+            not destination_path(context, name).is_file()
+            or sha256_file(destination_path(context, name)) != expected_hash
             for name, expected_hash in FILES.items()
         )
 
@@ -75,7 +81,8 @@ class ThreadFixPatch:
         progress(ProgressEvent(self.id, 1, 2, "Verifying Source Thread Fix"))
         extracted = read_thread_fix_files(archive)
         for name, payload in extracted.items():
-            destination = context.root / name
+            destination = destination_path(context, name)
+            destination.parent.mkdir(parents=True, exist_ok=True)
             if destination.exists() and destination.read_bytes() != payload:
                 backup_file(destination, destination.name + ".original.bak", context)
             atomic_write(destination, payload)

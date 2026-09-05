@@ -1,4 +1,6 @@
 import re
+import os
+import subprocess
 from threading import Event
 
 from models import BuildReport, PatchContext
@@ -6,8 +8,13 @@ from patches import PATCHES, normalize_patch_ids
 from patches.p1_hl2_assets import ASSET_MARKER, HL2_ASSET_ALLOWLIST, copy_selected_loose_assets
 from patches.p2_search_paths import SearchPathsPatch
 from patches.p3_sound_manifest import HL2_SOUND_SCRIPTS
-from patches.p5_thread_fix import ARCHIVE_SHA256 as THREAD_FIX_ARCHIVE_SHA256, DOWNLOAD_URL, FILES
-from patches.p6_launchers import LAUNCHER
+from patches.p5_thread_fix import (
+    ARCHIVE_SHA256 as THREAD_FIX_ARCHIVE_SHA256,
+    DOWNLOAD_URL,
+    FILES,
+    destination_path,
+)
+from patches.p6_launchers import LAUNCHER, LaunchersPatch
 from patches.p7_hammer import PATCHED_TIER0_SHA256, game_config, hammer_launcher, hlmv_launcher
 from patches.p8_prerelease_assets import (
     ASSET_HASHES,
@@ -40,11 +47,62 @@ def test_source_thread_fix_release_is_pinned():
     assert set(FILES) == {"hl2.wrap.exe", "LICENCE-threadfix"}
 
 
+def test_source_thread_fix_keeps_its_license_in_metadata_folder(tmp_path):
+    context = PatchContext(tmp_path, None, BuildReport(), Event())
+    assert destination_path(context, "hl2.wrap.exe") == tmp_path / "hl2.wrap.exe"
+    assert destination_path(context, "LICENCE-threadfix") == tmp_path / ".p2patcher" / "LICENCE-threadfix"
+
+
 def test_launcher_uses_wrapper_with_normal_executable_fallback():
     assert b'"%ROOT%hl2.wrap.exe"' in LAUNCHER
     assert b'set "GAME=hl2.exe"' in LAUNCHER
     assert b'if exist "%ROOT%hl2.wrap.exe"' in LAUNCHER
     assert b'if exist "%ROOT%portal2\\cfg\\patcher_multicore.cfg"' in LAUNCHER
+
+
+def test_first_launch_audio_setup_retries_and_then_skips(tmp_path):
+    if os.name != "nt":
+        import pytest
+        pytest.skip("Exercises the Windows launcher")
+    root = tmp_path / "game folder"
+    root.mkdir()
+    context = PatchContext(root, None, BuildReport(), Event())
+    patch = LaunchersPatch()
+    patch.apply(context, lambda *_args: None)
+    patch.verify(context)
+    script = root / "Launch Portal 2.cmd"
+    # Replace process creation with a controllable stand-in; run the real batch control flow.
+    content = script.read_text()
+    lines = []
+    for line in content.splitlines():
+        if line.startswith('start "" /wait'):
+            line = 'call "%ROOT%setup.cmd"'
+        elif line.startswith('start "" /D'):
+            line = 'echo launch>>"%ROOT%calls.txt"'
+        elif line.strip() == "pause":
+            line = "rem pause"
+        lines.append(line)
+    script.write_text("\n".join(lines))
+    setup = root / "setup.cmd"
+    setup.write_text('@echo setup>>"%ROOT%calls.txt"\n@exit /b 1\n')
+    def run():
+        return subprocess.run(["cmd.exe", "/d", "/c", str(script)], capture_output=True, timeout=10)
+    assert run().returncode == 1
+    marker = root / ".p2patcher" / "patcher-audiocache.done"
+    assert not marker.exists()
+    setup.write_text('@echo setup>>"%ROOT%calls.txt"\n@exit /b 0\n')
+    assert run().returncode == 0
+    assert marker.is_file()
+    assert run().returncode == 0
+    assert (root / "calls.txt").read_text().splitlines() == ["setup", "setup", "launch", "launch"]
+
+
+def test_generic_launcher_has_no_audio_setup(tmp_path):
+    context = PatchContext(tmp_path, None, BuildReport(), Event(), mode="generic")
+    patch = LaunchersPatch()
+    patch.apply(context, lambda *_args: None)
+    patch.verify(context)
+    assert (tmp_path / "Launch Portal 2.cmd").read_bytes() == LAUNCHER
 
 
 def test_multicore_compatibility_patch_does_not_touch_autoexec(tmp_path):

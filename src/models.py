@@ -65,6 +65,7 @@ class PatchContext:
     portal2_source: Path | None = None
     final_root: Path | None = None
     goldberg_archive: Path | None = None
+    mode: str = "852_0"
 
 
 class Patch(Protocol):

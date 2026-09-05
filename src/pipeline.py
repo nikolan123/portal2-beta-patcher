@@ -132,7 +132,7 @@ class BuildPipeline:
                 else:
                     selected_ids.clear()
                     report.warnings.append("This depot is content-only and is not independently runnable")
-            context = PatchContext(staging, hl2, report, self.cancel_event, portal2, output, goldberg_archive)
+            context = PatchContext(staging, hl2, report, self.cancel_event, portal2, output, goldberg_archive, mode=inputs.mode)
             selected_patches = [patch for patch in PATCHES if patch.id in selected_ids]
             for index, patch in enumerate(selected_patches, start=1):
                 if self.cancel_event.is_set():
@@ -150,7 +150,9 @@ class BuildPipeline:
             report_data = asdict(report)
             report_data["completed_at"] = datetime.now(timezone.utc).isoformat()
             report_data["output"] = str(output)
-            (staging / "patcher-report.json").write_text(
+            metadata = staging / ".p2patcher"
+            metadata.mkdir(parents=True, exist_ok=True)
+            (metadata / "patcher-report.json").write_text(
                 json.dumps(report_data, indent=2, ensure_ascii=False), encoding="utf-8"
             )
             staging.replace(output)

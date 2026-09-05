@@ -23,6 +23,27 @@ endlocal
 '''.replace("\n", "\r\n").encode("ascii")
 
 
+FIRST_RUN_AUDIO = r'''if exist "%ROOT%.p2patcher\patcher-audiocache.done" goto launch
+if not exist "%ROOT%.p2patcher" mkdir "%ROOT%.p2patcher"
+echo Rebuilding the audio cache for the first launch. The game will restart in a bit.
+start "" /wait /D "%ROOT%" "%ROOT%%GAME%" -game portal2 -windowed -w 1366 -h 768 -console +snd_rebuildaudiocache +quit
+if errorlevel 1 (
+    echo Audio cache setup failed. Launch again to retry.
+    pause
+    exit /b 1
+)
+>"%ROOT%.p2patcher\patcher-audiocache.done" echo Audio cache setup exited successfully.
+
+:launch
+'''.replace("\n", "\r\n").encode("ascii")
+
+
+def launcher(mode: str) -> bytes:
+    if mode == "852_0":
+        return LAUNCHER.replace(b'start "" /D', FIRST_RUN_AUDIO + b'start "" /D', 1)
+    return LAUNCHER
+
+
 class LaunchersPatch:
     id = "p6"
     display_name = "Launch files"
@@ -33,10 +54,10 @@ class LaunchersPatch:
 
     def check(self, context: PatchContext) -> bool:
         path = self._path(context)
-        return not path.is_file() or path.read_bytes() != LAUNCHER
+        return not path.is_file() or path.read_bytes() != launcher(context.mode)
 
     def apply(self, context: PatchContext, progress: ProgressCallback) -> None:
-        atomic_write(self._path(context), LAUNCHER)
+        atomic_write(self._path(context), launcher(context.mode))
 
     def verify(self, context: PatchContext) -> None:
         if self.check(context):
