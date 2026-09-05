@@ -8,7 +8,7 @@ This program extracts and patches the July 2009 core hub beta of Portal 2. It ca
 
 - 852_0 - July 2009
 - 841_0 pre-reset - February 2010
-- 852_1 - March 2009
+- 852_1 - March 2010
 
 For 852_0, you need these 2 files:
 
