@@ -46,7 +46,13 @@ def align(value: int, alignment: int) -> int:
     return ((value + alignment - 1) // alignment) * alignment
 
 
-def patch_tier0(original: bytes) -> bytes:
+def patch_tier0(
+    original: bytes,
+    *,
+    old_table_address: int = OLD_TABLE_ADDRESS,
+    expected_reference_offsets: list[int] = EXPECTED_REFERENCE_OFFSETS,
+    expected_build: str = "852_0",
+) -> bytes:
     data = bytearray(original)
     pe = u32(data, 0x3C)
     if data[pe : pe + 4] != b"PE\0\0":
@@ -57,7 +63,7 @@ def patch_tier0(original: bytes) -> bytes:
     optional_size = u16(data, coff + 16)
     optional = coff + 20
     if u16(data, optional) != 0x10B or section_count != 5:
-        raise PatchError("tier0.dll is not the expected 32-bit 852_0 image")
+        raise PatchError(f"tier0.dll is not the expected 32-bit {expected_build} image")
 
     image_base = u32(data, optional + 28)
     section_alignment = u32(data, optional + 32)
@@ -86,13 +92,13 @@ def patch_tier0(original: bytes) -> bytes:
         raise PatchError("tier0.dll allocator signature was not found exactly once")
     data[allocator_offset : allocator_offset + len(ALLOCATOR_NEW)] = ALLOCATOR_NEW
 
-    old_address = struct.pack("<I", OLD_TABLE_ADDRESS)
+    old_address = struct.pack("<I", old_table_address)
     references = []
     offset = data.find(old_address)
     while offset >= 0:
         references.append(offset)
         offset = data.find(old_address, offset + 1)
-    if references != EXPECTED_REFERENCE_OFFSETS:
+    if references != expected_reference_offsets:
         raise PatchError("tier0.dll has unexpected thread-table references")
 
     table_size = 0x80

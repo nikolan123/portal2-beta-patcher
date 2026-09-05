@@ -1,11 +1,14 @@
+from hashlib import sha256
 import re
 import os
+from pathlib import Path
 import shutil
 import subprocess
 from threading import Event
 
 from models import BuildReport, PatchContext
 from patches import PATCHES, PATCH_COMPATIBILITY, compatible_patch_ids, normalize_patch_ids
+from patches.base import sha256_file
 from patches.p1_hl2_assets import ASSET_MARKER, HL2_ASSET_ALLOWLIST, copy_selected_loose_assets
 from patches.p2_search_paths import SearchPathsPatch
 from patches.p3_sound_manifest import HL2_SOUND_SCRIPTS
@@ -29,10 +32,16 @@ from patches.p11_legacy_paint import ORIGINAL_BYTES, PATCHED_BYTES, PATCH_OFFSET
 from patches.p12_july_2010_assets import July2010AssetsPatch
 from patches.p13_july_2009_assets import July2009AssetsPatch, overlay_tree
 from patches.p14_march_assets import ARCHIVE_SHA256 as MARCH_ASSET_ARCHIVE_SHA256, MarchAssetsPatch, read_bundle
+from patches.p15_tier0_thread_limit import (
+    ORIGINAL_TIER0_SHA256 as ORIGINAL_852_1_TIER0_SHA256,
+    PATCHED_TIER0_SHA256 as PATCHED_852_1_TIER0_SHA256,
+    Tier0ThreadLimitPatch,
+    patch_852_1_tier0,
+)
 
 
 def test_patch_registry_is_explicitly_numbered():
-    assert [patch.id for patch in PATCHES] == ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10", "p11", "p12", "p13", "p14"]
+    assert [patch.id for patch in PATCHES] == ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10", "p11", "p12", "p13", "p14", "p15"]
     assert all(patch.description for patch in PATCHES)
     assert set(PATCH_COMPATIBILITY) == {"generic", (852, 0), (852, 1)}
     assert PATCH_COMPATIBILITY["generic"].required == {"p6"}
@@ -41,6 +50,7 @@ def test_patch_registry_is_explicitly_numbered():
     assert "p12" in PATCH_COMPATIBILITY[(852, 1)].optional
     assert "p13" in PATCH_COMPATIBILITY[(852, 1)].optional
     assert "p14" in PATCH_COMPATIBILITY[(852, 1)].optional
+    assert "p15" in PATCH_COMPATIBILITY[(852, 1)].optional
 
 
 def test_patch_dependencies_and_required_launcher():
@@ -60,8 +70,10 @@ def test_patch_dependencies_and_required_launcher():
     assert normalize_patch_ids(("p13",), "generic", depot_id=852, depot_version=2) == ("p6",)
     assert normalize_patch_ids(("p14",), "generic", depot_id=852, depot_version=1) == ("p6", "p14")
     assert normalize_patch_ids(("p14",), "generic", depot_id=852, depot_version=2) == ("p6",)
+    assert normalize_patch_ids(("p15",), "generic", depot_id=852, depot_version=1) == ("p6", "p15")
+    assert normalize_patch_ids(("p15",), "generic", depot_id=852, depot_version=2) == ("p6",)
     assert compatible_patch_ids("852_0") == ("p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p10")
-    assert compatible_patch_ids("generic", 852, 1) == ("p5", "p6", "p10", "p11", "p12", "p13", "p14")
+    assert compatible_patch_ids("generic", 852, 1) == ("p5", "p6", "p10", "p11", "p12", "p13", "p14", "p15")
     assert compatible_patch_ids("generic", 852, 2) == ("p5", "p6", "p9", "p10")
 
 
@@ -71,6 +83,15 @@ def test_legacy_paint_patch_changes_only_the_missing_key_default():
     patched = patch_engine(bytes(original))
     assert patched[PATCH_OFFSET:] == PATCHED_BYTES
     assert patched[:PATCH_OFFSET] == original[:PATCH_OFFSET]
+
+
+def test_852_1_tier0_patch_matches_the_known_dll_when_available():
+    source = Path(r"C:\Users\Niko\Documents\p2betas\852_1\bin\tier0.dll")
+    if not source.is_file() or sha256_file(source) != ORIGINAL_852_1_TIER0_SHA256:
+        return
+    patched = patch_852_1_tier0(source.read_bytes())
+    assert sha256(patched).hexdigest() == PATCHED_852_1_TIER0_SHA256
+    assert Tier0ThreadLimitPatch.id == "p15"
 
 
 def test_july_2010_asset_patch_uses_requested_description():

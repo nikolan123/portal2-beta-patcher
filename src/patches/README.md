@@ -64,6 +64,12 @@ Copies tempcontent from July 2009 852_0. When both this patch and p12 are select
 
 Installs some missing materials and models in the supplied March build patch. The assets are bundled in a ZIP.
 
+### p15 - Tier0 Thread Limit
+
+This build's `tier0.dll` has a table with only 32 thread id slots, which can fail on modern CPUs that expose more threads.
+
+This patch expands that table to 128 slots.
+
 ## Generic
 
 This is the patch list for builds that do not have their own entry yet.
