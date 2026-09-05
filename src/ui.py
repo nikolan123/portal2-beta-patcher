@@ -34,8 +34,17 @@ BUTTON = "#e5e5e5"
 BUTTON_TEXT = "#111111"
 
 
-def patch_ids_for_mode(mode: str) -> tuple[str, ...]:
-    return ("p5", "p9", "p10") if mode == "generic" else ("p1", "p3", "p4", "p5", "p7", "p8", "p10")
+def patch_ids_for_mode(
+    mode: str,
+    depot_id: int | None = None,
+    depot_version: int | None = None,
+) -> tuple[str, ...]:
+    if mode != "generic":
+        return ("p1", "p3", "p4", "p5", "p7", "p8", "p10")
+    patch_ids = ["p5", "p9", "p10"]
+    if (depot_id, depot_version) == (852, 1):
+        patch_ids.append("p11")
+    return tuple(patch_ids)
 
 
 def default_generic_output(archive_folder: Path, target: CatalogTarget) -> Path:
@@ -591,11 +600,11 @@ class PatcherUI(TkBase):
         choices = tk.Frame(self.container, bg=BG)
         choices.pack(fill="x", pady=(18, 0))
         patch_by_id = {patch.id: patch for patch in PATCHES}
+        patch_ids = patch_ids_for_mode("generic", target.depot_id, target.version)
         if not target.runnable:
-            self.patch_vars["p5"].set(False)
-            self.patch_vars["p9"].set(False)
-            self.patch_vars["p10"].set(False)
-        for patch_id in ("p5", "p9", "p10"):
+            for patch_id in patch_ids:
+                self.patch_vars[patch_id].set(False)
+        for patch_id in patch_ids:
             patch = patch_by_id[patch_id]
             panel = tk.Frame(choices, bg=PANEL, highlightbackground=BORDER, highlightthickness=1)
             panel.pack(fill="x", pady=(0, 8))
@@ -653,8 +662,9 @@ class PatcherUI(TkBase):
                     custom_key = bytes.fromhex(text)
                 except ValueError as error:
                     raise ValueError("The depot key must contain only hexadecimal characters.") from error
+            available_patch_ids = patch_ids_for_mode("generic", target.depot_id, target.version)
             selected_patch_ids = tuple(
-                patch_id for patch_id in ("p5", "p9", "p10") if self.patch_vars[patch_id].get()
+                patch_id for patch_id in available_patch_ids if self.patch_vars[patch_id].get()
             )
             goldberg_archive = None
             if "p10" in selected_patch_ids:
@@ -681,7 +691,13 @@ class PatcherUI(TkBase):
         except Exception as error:
             self.message_var.set(str(error))
             return
-        self.last_selected_patch_ids = normalize_patch_ids(selected_patch_ids, "generic", runnable=target.runnable)
+        self.last_selected_patch_ids = normalize_patch_ids(
+            selected_patch_ids,
+            "generic",
+            runnable=target.runnable,
+            depot_id=target.depot_id,
+            depot_version=target.version,
+        )
         self.active_inputs = inputs
         self.message_var.set("")
         self.cancel_event.clear()

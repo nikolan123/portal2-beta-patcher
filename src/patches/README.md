@@ -42,6 +42,16 @@ This build of Portal uses a few files that are neither included in the beta nor 
 
 This patch installs only those five runtime assets and adds `particles/achievement.pcf` to the existing particle manifest. The assets are stored together in a small ZIP.
 
+## 852_1
+
+These patches are specific to depot 852 version 1.
+
+### p11 - Legacy Paint Maps
+
+Some older paint maps do not contain the `paintinmap` setting expected by this version of the engine, so their speed and bounce paint does not work.
+
+This patch changes the missing-setting default in `bin/engine.dll` from disabled to enabled. Maps that explicitly contain the setting still use their own value. The original DLL is preserved as `engine.original.bak`, and both the original and patched SHA-256 hashes are verified.
+
 ## Generic
 
 These patches are suggested for any Portal 2 builds.

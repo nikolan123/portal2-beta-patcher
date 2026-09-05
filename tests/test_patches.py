@@ -24,10 +24,11 @@ from patches.p8_prerelease_assets import (
 )
 from patches.p9_multicore import MULTICORE_CONFIG, MulticorePatch
 from patches.p10_goldberg import ARCHIVE_SHA256 as GOLDBERG_ARCHIVE_SHA256, GoldbergPatch
+from patches.p11_legacy_paint import ORIGINAL_BYTES, PATCHED_BYTES, PATCH_OFFSET, patch_engine
 
 
 def test_patch_registry_is_explicitly_numbered():
-    assert [patch.id for patch in PATCHES] == ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10"]
+    assert [patch.id for patch in PATCHES] == ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10", "p11"]
     assert all(patch.description for patch in PATCHES)
 
 
@@ -39,6 +40,17 @@ def test_patch_dependencies_and_required_launcher():
     assert normalize_patch_ids(("p10",), "generic") == ("p6", "p10")
     assert normalize_patch_ids(("p10",), "852_0") == ("p2", "p6", "p10")
     assert normalize_patch_ids(("p5",), "generic", runnable=False) == ("p5",)
+    assert normalize_patch_ids(("p11",), "generic", depot_id=852, depot_version=1) == ("p6", "p11")
+    assert normalize_patch_ids(("p11",), "generic", depot_id=852, depot_version=2) == ("p6",)
+    assert normalize_patch_ids(("p11",), "generic", depot_id=841, depot_version=1) == ("p6",)
+
+
+def test_legacy_paint_patch_changes_only_the_missing_key_default():
+    original = bytearray(PATCH_OFFSET + len(ORIGINAL_BYTES))
+    original[PATCH_OFFSET:] = ORIGINAL_BYTES
+    patched = patch_engine(bytes(original))
+    assert patched[PATCH_OFFSET:] == PATCHED_BYTES
+    assert patched[:PATCH_OFFSET] == original[:PATCH_OFFSET]
 
 
 def test_source_thread_fix_release_is_pinned():

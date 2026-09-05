@@ -10,6 +10,7 @@ from patches.p7_hammer import HammerPatch
 from patches.p8_prerelease_assets import PrereleaseAssetsPatch
 from patches.p9_multicore import MulticorePatch
 from patches.p10_goldberg import GoldbergPatch
+from patches.p11_legacy_paint import LegacyPaintPatch
 
 
 PATCHES = [
@@ -23,6 +24,7 @@ PATCHES = [
     PrereleaseAssetsPatch(),
     MulticorePatch(),
     GoldbergPatch(),
+    LegacyPaintPatch(),
 ]
 
 PATCH_DEPENDENCIES = {
@@ -40,14 +42,31 @@ PATCH_MODES = {
     "p8": frozenset({"852_0"}),
     "p9": frozenset({"generic"}),
     "p10": frozenset({"852_0", "generic"}),
+    "p11": frozenset({"generic"}),
+}
+
+PATCH_TARGETS = {
+    "p11": frozenset({(852, 1)}),
 }
 
 
-def normalize_patch_ids(selected_ids, mode: str = "852_0", runnable: bool = True) -> tuple[str, ...]:
+def normalize_patch_ids(
+    selected_ids,
+    mode: str = "852_0",
+    runnable: bool = True,
+    depot_id: int | None = None,
+    depot_version: int | None = None,
+) -> tuple[str, ...]:
     """Add required patches and return IDs in execution order."""
     if mode not in {"852_0", "generic"}:
         raise ValueError(f"Unknown build mode: {mode}")
     compatible = {patch_id for patch_id, modes in PATCH_MODES.items() if mode in modes}
+    target = (depot_id, depot_version)
+    compatible = {
+        patch_id
+        for patch_id in compatible
+        if patch_id not in PATCH_TARGETS or target in PATCH_TARGETS[patch_id]
+    }
     selected = set(selected_ids) & compatible
     if mode == "852_0":
         selected.update({"p2", "p6"})
