@@ -4,6 +4,7 @@ from PyInstaller.utils.hooks import collect_all
 datas, binaries, hiddenimports = collect_all("tkinterdnd2")
 datas.append(("src/patches/p1_hl2_assets.txt", "patches"))
 datas.append(("src/patches/p8_prerelease_assets.zip", "patches"))
+datas.append(("src/patches/p14_march_assets.zip", "patches"))
 
 a = Analysis(
     ["src/main.py"],
