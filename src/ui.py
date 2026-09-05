@@ -313,6 +313,17 @@ class PatcherUI(TkBase):
                 font=("Cascadia Mono", 8),
             )
             row.pack(fill="x", pady=(0, 2), ipady=3)
+
+        def scroll(event):
+            canvas.yview_scroll(-1 if event.delta > 0 else 1, "units")
+
+        def bind_wheel(widget):
+            widget.bind("<MouseWheel>", scroll)
+            for child in widget.winfo_children():
+                bind_wheel(child)
+
+        bind_wheel(self.catalog_frame)
+
     def select_catalog_target(self, target: CatalogTarget) -> None:
         self.selected_target = target
         archive_folder = Path(self.archive_folder_var.get()).resolve()
