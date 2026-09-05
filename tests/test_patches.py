@@ -1,5 +1,6 @@
 import re
 import os
+import shutil
 import subprocess
 from threading import Event
 
@@ -25,15 +26,19 @@ from patches.p8_prerelease_assets import (
 from patches.p9_multicore import MULTICORE_CONFIG, MulticorePatch
 from patches.p10_goldberg import ARCHIVE_SHA256 as GOLDBERG_ARCHIVE_SHA256, GoldbergPatch
 from patches.p11_legacy_paint import ORIGINAL_BYTES, PATCHED_BYTES, PATCH_OFFSET, patch_engine
+from patches.p12_july_2010_assets import July2010AssetsPatch
+from patches.p13_july_2009_assets import July2009AssetsPatch, overlay_tree
 
 
 def test_patch_registry_is_explicitly_numbered():
-    assert [patch.id for patch in PATCHES] == ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10", "p11"]
+    assert [patch.id for patch in PATCHES] == ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10", "p11", "p12", "p13"]
     assert all(patch.description for patch in PATCHES)
     assert set(PATCH_COMPATIBILITY) == {"generic", (852, 0), (852, 1)}
     assert PATCH_COMPATIBILITY["generic"].required == {"p6"}
     assert PATCH_COMPATIBILITY[(852, 0)].required == {"p2", "p6"}
     assert PATCH_COMPATIBILITY[(852, 1)].required == {"p6"}
+    assert "p12" in PATCH_COMPATIBILITY[(852, 1)].optional
+    assert "p13" in PATCH_COMPATIBILITY[(852, 1)].optional
 
 
 def test_patch_dependencies_and_required_launcher():
@@ -47,8 +52,12 @@ def test_patch_dependencies_and_required_launcher():
     assert normalize_patch_ids(("p11",), "generic", depot_id=852, depot_version=1) == ("p6", "p11")
     assert normalize_patch_ids(("p11",), "generic", depot_id=852, depot_version=2) == ("p6",)
     assert normalize_patch_ids(("p11",), "generic", depot_id=841, depot_version=1) == ("p6",)
+    assert normalize_patch_ids(("p12",), "generic", depot_id=852, depot_version=1) == ("p6", "p12")
+    assert normalize_patch_ids(("p12",), "generic", depot_id=852, depot_version=2) == ("p6",)
+    assert normalize_patch_ids(("p13",), "generic", depot_id=852, depot_version=1) == ("p6", "p13")
+    assert normalize_patch_ids(("p13",), "generic", depot_id=852, depot_version=2) == ("p6",)
     assert compatible_patch_ids("852_0") == ("p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p10")
-    assert compatible_patch_ids("generic", 852, 1) == ("p5", "p6", "p10", "p11")
+    assert compatible_patch_ids("generic", 852, 1) == ("p5", "p6", "p10", "p11", "p12", "p13")
     assert compatible_patch_ids("generic", 852, 2) == ("p5", "p6", "p9", "p10")
 
 
@@ -58,6 +67,34 @@ def test_legacy_paint_patch_changes_only_the_missing_key_default():
     patched = patch_engine(bytes(original))
     assert patched[PATCH_OFFSET:] == PATCHED_BYTES
     assert patched[:PATCH_OFFSET] == original[:PATCH_OFFSET]
+
+
+def test_july_2010_asset_patch_uses_requested_description():
+    assert July2010AssetsPatch.description == "Copy extra assets from July 2010 852_2, including some dialogue."
+    assert July2009AssetsPatch.description == (
+        "Copy required assets from July 2009 852_0. Game will not launch without this."
+    )
+
+
+def test_july_2010_asset_merge_overlays_852_0_last(tmp_path):
+    assets_8522 = tmp_path / "852_2"
+    assets_8520 = tmp_path / "852_0"
+    destination = tmp_path / "merged"
+    assets_8522.mkdir()
+    assets_8520.mkdir()
+    destination.mkdir()
+    (assets_8522 / "shared.txt").write_bytes(b"852_2")
+    (assets_8522 / "only-852_2.txt").write_bytes(b"new")
+    (assets_8520 / "shared.txt").write_bytes(b"852_0")
+    (assets_8520 / "only-852_0.txt").write_bytes(b"old")
+    shutil.copytree(assets_8522, destination, dirs_exist_ok=True)
+    context = PatchContext(tmp_path, None, BuildReport(), Event())
+
+    overlay_tree(assets_8520, destination, context, lambda _event: None)
+
+    assert (destination / "shared.txt").read_bytes() == b"852_0"
+    assert (destination / "only-852_2.txt").read_bytes() == b"new"
+    assert (destination / "only-852_0.txt").read_bytes() == b"old"
 
 
 def test_source_thread_fix_release_is_pinned():

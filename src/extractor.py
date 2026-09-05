@@ -574,6 +574,7 @@ def extract_revision_chain(
     emit: Callable[[ProgressEvent], None],
     cancel: Event,
     key: bytes | None = None,
+    include_prefixes: tuple[str, ...] | None = None,
 ) -> dict[str, int]:
     if not chain:
         raise ExtractionError("The selected revision has no resolved ancestry")
@@ -620,6 +621,18 @@ def extract_revision_chain(
         if index == len(chain) - 1:
             manifest_files = current_manifest
             metadata = current_metadata
+
+    if include_prefixes:
+        prefixes = tuple(
+            prefix.replace("\\", "/").strip("/").casefold() + "/"
+            for prefix in include_prefixes
+        )
+        manifest_files = [
+            item for item in manifest_files
+            if item.path.replace("\\", "/").lstrip("/").casefold().startswith(prefixes)
+        ]
+        if not manifest_files:
+            raise ExtractionError("The target manifest contains no files under the requested prefixes")
 
     missing = [item.file_id for item in manifest_files if item.file_id not in mappings]
     if missing:

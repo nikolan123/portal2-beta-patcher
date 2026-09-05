@@ -144,7 +144,17 @@ class BuildPipeline:
                 else:
                     selected_ids.clear()
                     report.warnings.append("This depot is content-only and is not independently runnable")
-            context = PatchContext(staging, hl2, report, self.cancel_event, portal2, output, goldberg_archive, mode=inputs.mode)
+            context = PatchContext(
+                staging,
+                hl2,
+                report,
+                self.cancel_event,
+                portal2,
+                output,
+                goldberg_archive,
+                mode=inputs.mode,
+                supplemental_revision_chains=inputs.supplemental_revision_chains,
+            )
             selected_patches = [patch for patch in PATCHES if patch.id in selected_ids]
             for index, patch in enumerate(selected_patches, start=1):
                 if self.cancel_event.is_set():

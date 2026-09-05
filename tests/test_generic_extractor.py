@@ -136,6 +136,35 @@ def test_complete_chain_inherits_and_replaces_mappings_and_uses_final_manifest(t
     assert not (output / "removed.txt").exists()
 
 
+def test_revision_chain_can_extract_only_one_manifest_folder(tmp_path):
+    write_revision(
+        tmp_path,
+        852,
+        0,
+        0x13,
+        0,
+        {
+            1: "portal2_tempcontent/materials/console/startup_loading.vtf",
+            2: "portal2/unrelated.txt",
+        },
+        {1: b"loading image", 2: b"unrelated"},
+    )
+    target = ready_target(tmp_path, 0, 0x13)
+    output = tmp_path / "filtered-out"
+
+    result = extract_revision_chain(
+        target.chain,
+        output,
+        lambda _event: None,
+        Event(),
+        include_prefixes=("portal2_tempcontent",),
+    )
+
+    assert result["written_files"] == 1
+    assert (output / "portal2_tempcontent" / "materials" / "console" / "startup_loading.vtf").read_bytes() == b"loading image"
+    assert not (output / "portal2").exists()
+
+
 def test_missing_parent_and_missing_or_wrong_sized_dat_are_visible(tmp_path):
     write_revision(tmp_path, 852, 2, 0x22, 0x21, {1: "file.txt"}, {1: b"x"})
     target = next(item for item in scan_archive_catalog(tmp_path) if item.version == 2)

@@ -19,6 +19,7 @@ except ImportError:
 from extractor import CatalogTarget, scan_archive_catalog
 from models import BuildCancelled, BuildInputs, ProgressEvent
 from patches import PATCHES, normalize_patch_ids, selectable_patch_ids
+from patches.p12_july_2010_assets import SOURCE_BLOB_SHA256, SOURCE_DAT_SHA256
 from patches.p7_hammer import repair_moved_tools
 from pipeline import BuildPipeline
 from steam import detect_half_life_2, detect_portal_2
@@ -591,9 +592,40 @@ class PatcherUI(TkBase):
         bottom.pack(side="bottom", fill="x")
         self.button(bottom, "Back", lambda: self.show_generic_files(False), secondary=True, width=10).pack(side="left")
         self.button(bottom, "Build", self.start_generic_build, width=13).pack(side="right")
+        self.error_label = tk.Label(
+            self.container,
+            textvariable=self.message_var,
+            bg=BG,
+            fg="#e58b8b",
+            anchor="w",
+            justify="left",
+            wraplength=620,
+            font=("Segoe UI", 9),
+        )
+        self.error_label.pack(side="bottom", fill="x", pady=(0, 5))
 
-        choices = tk.Frame(self.container, bg=BG)
-        choices.pack(fill="x", pady=(18, 0))
+        list_frame = tk.Frame(self.container, bg=BG)
+        list_frame.pack(fill="both", expand=True, pady=(18, 8))
+        canvas = tk.Canvas(list_frame, bg=BG, highlightthickness=0, borderwidth=0)
+        scrollbar = tk.Scrollbar(
+            list_frame,
+            orient="vertical",
+            command=canvas.yview,
+            bg=FIELD,
+            activebackground=BORDER,
+            troughcolor=BG,
+            relief="flat",
+            borderwidth=0,
+            highlightthickness=0,
+        )
+        canvas.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side="right", fill="y")
+        canvas.pack(side="left", fill="both", expand=True, padx=(0, 8))
+
+        choices = tk.Frame(canvas, bg=BG)
+        choices_window = canvas.create_window((0, 0), window=choices, anchor="nw")
+        choices.bind("<Configure>", lambda _event: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.bind("<Configure>", lambda event: canvas.itemconfigure(choices_window, width=event.width))
         patch_by_id = {patch.id: patch for patch in PATCHES}
         patch_ids = patch_ids_for_mode("generic", target.depot_id, target.version)
         if not target.runnable:
@@ -622,23 +654,30 @@ class PatcherUI(TkBase):
                 checkbox.configure(state="disabled", disabledforeground=MUTED)
                 detail += "  Unavailable because this is a content-only depot."
             tk.Label(panel, text=detail, bg=PANEL, fg=MUTED, anchor="w", justify="left",
-                     wraplength=610, font=("Segoe UI", 8)).pack(fill="x", padx=36, pady=(1, 7))
+                     wraplength=560, font=("Segoe UI", 8)).pack(fill="x", padx=36, pady=(1, 7))
             if patch_id == "p10":
                 self.add_goldberg_zip_field(panel)
 
         if target.needs_custom_key:
-            key_row = tk.Frame(self.container, bg=BG)
+            key_row = tk.Frame(choices, bg=BG)
             key_row.pack(fill="x", pady=(5, 0))
             tk.Label(key_row, text="Depot key", width=15, anchor="w", bg=BG, fg=TEXT,
                      font=("Segoe UI", 10)).pack(side="left")
             tk.Entry(key_row, textvariable=self.custom_key_var, bg=FIELD, fg=TEXT,
                      insertbackground=TEXT, relief="solid", borderwidth=1,
                      font=("Cascadia Mono", 9)).pack(side="left", fill="x", expand=True, ipady=7)
-            tk.Label(self.container, text="Enter the 32 hexadecimal characters supplied with the archive.",
+            tk.Label(choices, text="Enter the 32 hexadecimal characters supplied with the archive.",
                      bg=BG, fg=MUTED, anchor="w", font=("Segoe UI", 8)).pack(fill="x", padx=(105, 0), pady=(3, 0))
-        self.error_label = tk.Label(self.container, textvariable=self.message_var, bg=BG, fg="#e58b8b",
-                                    font=("Segoe UI", 9))
-        self.error_label.pack(side="bottom", anchor="w", pady=(0, 5))
+
+        def scroll(event):
+            canvas.yview_scroll(-1 if event.delta > 0 else 1, "units")
+
+        def bind_wheel(widget):
+            widget.bind("<MouseWheel>", scroll)
+            for child in widget.winfo_children():
+                bind_wheel(child)
+
+        bind_wheel(list_frame)
 
     def start_generic_build(self) -> None:
         try:
@@ -668,6 +707,23 @@ class PatcherUI(TkBase):
                     raise ValueError("Select the Goldberg ZIP to use")
                 goldberg_archive = Path(zip_text)
             final = target.chain[-1]
+            supplemental_chains = (target.chain,) if "p13" in selected_patch_ids else ()
+            if "p12" in selected_patch_ids:
+                july_2010_sources = [
+                    item for item in self.catalog_targets
+                    if (
+                        item.ready
+                        and item.depot_id == 852
+                        and item.version == 2
+                        and item.chain[-1].blob_sha256 == SOURCE_BLOB_SHA256
+                        and item.chain[-1].dat_sha256 == SOURCE_DAT_SHA256
+                    )
+                ]
+                if len(july_2010_sources) != 1:
+                    raise ValueError(
+                        "To copy the extra assets from July 2010, you need an 852_2 blob+dat in the same folder as the other ones. You can also disable this patch and continue without the extra assets."
+                    )
+                supplemental_chains += (july_2010_sources[0].chain,)
             inputs = BuildInputs(
                 final.blob_path,
                 final.dat_path,
@@ -682,6 +738,7 @@ class PatcherUI(TkBase):
                 target.chain,
                 custom_key,
                 goldberg_archive,
+                supplemental_chains,
             )
         except Exception as error:
             self.message_var.set(str(error))

@@ -19,7 +19,7 @@ def target(ready=True):
 
 
 def test_mode_specific_patch_lists():
-    assert patch_ids_for_mode("generic", 852, 1) == ("p5", "p10", "p11")
+    assert patch_ids_for_mode("generic", 852, 1) == ("p5", "p10", "p11", "p12", "p13")
     assert patch_ids_for_mode("generic", 852, 2) == ("p5", "p9", "p10")
     assert patch_ids_for_mode("generic", 841, 1) == ("p5", "p9", "p10")
     assert "p4" in patch_ids_for_mode("852_0")

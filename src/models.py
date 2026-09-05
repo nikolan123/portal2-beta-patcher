@@ -21,6 +21,7 @@ class BuildInputs:
     revision_chain: tuple["RevisionInput", ...] = ()
     custom_depot_key: bytes | None = None
     goldberg_archive_path: Path | None = None
+    supplemental_revision_chains: tuple[tuple["RevisionInput", ...], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -66,6 +67,7 @@ class PatchContext:
     final_root: Path | None = None
     goldberg_archive: Path | None = None
     mode: str = "852_0"
+    supplemental_revision_chains: tuple[tuple[RevisionInput, ...], ...] = ()
 
 
 class Patch(Protocol):

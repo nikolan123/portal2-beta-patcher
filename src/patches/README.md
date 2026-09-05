@@ -52,6 +52,14 @@ Some older paint maps do not contain the `paintinmap` setting expected by this v
 
 This patch changes the default in `bin/engine.dll` from disabled to enabled. Maps that explicitly contain the setting still use their own value. The original DLL is preserved as `engine.original.bak`.
 
+### p12 - July 2010 Assets
+
+Copies tempcontent from July 2010 852_2.
+
+### p13 - July 2009 Assets
+
+Copies tempcontent from July 2009 852_0. When both this patch and p12 are selected, the folders are merged, with the 852_0 files taking priority.
+
 ## Generic
 
 This is the patch list for builds that do not have their own entry yet.
