@@ -24,6 +24,8 @@ Some maps expect an actor named `@glados` to exist when dialogue is played. In t
 
 This patch creates `portal2/scripts/vscripts/mapspawn.nut`. One second after the map starts, the script checks for `@glados`, if none exists, it creates a hidden `generic_actor` with that name far outside the playable map. The delay matters because creating the actor immediately can crash this build.
 
+It also updates `portal2/scripts/vscripts/choreo/glados.nut`. Starting a new single-player dialogue block cancels every previously playing or queued GLaDOS scene, preventing lines from overlapping.
+
 If a different `mapspawn.nut` already exists, it is preserved as `mapspawn.original.bak` before the replacement is written, though that is redunant so it might be removed.
 
 ### p7 - Hammer and HLMV tools

@@ -17,6 +17,7 @@ from patches.base import sha256_file
 from patches.p1_hl2_assets import ASSET_MARKER, HL2_ASSET_ALLOWLIST, copy_selected_loose_assets
 from patches.p2_search_paths import SearchPathsPatch
 from patches.p3_sound_manifest import HL2_SOUND_SCRIPTS
+from patches.p4_dialogue_fix import ORIGINAL_SCENE_CANCEL, PATCHED_SCENE_CANCEL, patch_glados_script
 from patches.p5_thread_fix import (
     FILES,
     ThreadFixPatch,
@@ -146,6 +147,14 @@ def test_legacy_paint_patch_changes_only_the_missing_key_default():
     patched = patch_engine(bytes(original))
     assert patched[PATCH_OFFSET:] == PATCHED_BYTES
     assert patched[:PATCH_OFFSET] == original[:PATCH_OFFSET]
+
+
+def test_dialogue_patch_replaces_single_player_scene_cancellation():
+    original = b"before\n" + ORIGINAL_SCENE_CANCEL + b"after\n"
+    patched = patch_glados_script(original)
+    assert ORIGINAL_SCENE_CANCEL not in patched
+    assert PATCHED_SCENE_CANCEL in patched
+    assert patch_glados_script(patched) == patched
 
 
 def test_multiplayer_patch_bundles_32_bit_source_built_asi_and_pinned_loader():
