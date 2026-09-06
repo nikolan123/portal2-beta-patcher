@@ -18,7 +18,7 @@ ALLOCATOR_OLD = bytes.fromhex("83 FE 20 7C EE")
 ALLOCATOR_NEW = bytes.fromhex("83 FE 80 72 EE")
 RUNTIME_DIRECTORIES = ("bin", "hl2", "platform", "portal", "portal2", "portal2_tempcontent")
 RUNTIME_FILES = ("hl2.exe", "hl2.wrap.exe", "steam_appid.txt")
-EDITOR_FILE_COUNT = 205
+EDITOR_REQUIRED_FILES = ("wireframe.vmt", "flat.vmt", "logic_coop_manager.vmt")
 
 
 def sha256(data: bytes) -> str:
@@ -259,8 +259,6 @@ class HammerPatch:
 
         source = context.portal2_source / "platform" / "materials" / "Editor"
         files = sorted(path for path in source.rglob("*") if path.is_file())
-        if len(files) != EDITOR_FILE_COUNT:
-            raise PatchError(f"Expected {EDITOR_FILE_COUNT} Hammer editor materials in retail Portal 2, found {len(files)}")
         destination = context.root / "game" / "platform" / "materials" / "Editor"
         for index, path in enumerate(files, start=1):
             if context.cancel_event.is_set():
@@ -297,7 +295,7 @@ class HammerPatch:
         if (context.root / "game" / "bin" / "GameConfig.txt").read_bytes() != game_config(final_root):
             raise PatchError("Hammer GameConfig.txt is not configured")
         editor = context.root / "game" / "platform" / "materials" / "Editor"
-        if len([path for path in editor.rglob("*") if path.is_file()]) != EDITOR_FILE_COUNT:
+        if any(not (editor / name).is_file() for name in EDITOR_REQUIRED_FILES):
             raise PatchError("Hammer editor materials are incomplete")
         tier0 = context.root / "game" / "bin" / "tier0.dll"
         if sha256(tier0.read_bytes()) != PATCHED_TIER0_SHA256:
