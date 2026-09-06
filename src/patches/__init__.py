@@ -19,6 +19,7 @@ from patches.p14_march_assets import MarchAssetsPatch
 from patches.p15_tier0_thread_limit_852_1 import Tier0ThreadLimit8521Patch
 from patches.p16_hl2_launcher import Hl2LauncherPatch
 from patches.p17_tier0_thread_limit_841_0 import Tier0ThreadLimit8410Patch
+from patches.p18_multiplayer_852_0 import Multiplayer8520Patch
 
 
 PATCHES = [
@@ -39,6 +40,7 @@ PATCHES = [
     Tier0ThreadLimit8521Patch(),
     Hl2LauncherPatch(),
     Tier0ThreadLimit8410Patch(),
+    Multiplayer8520Patch(),
 ]
 
 PATCH_DEPENDENCIES = {
@@ -61,7 +63,7 @@ PATCH_COMPATIBILITY = {
         required=frozenset({"p6"}), # launcher
     ),
     (852, 0): BuildPatchSet(
-        optional=frozenset({"p1", "p3", "p4", "p5", "p7", "p8", "p10"}), # hl2 assets, sound manifest, dialogue, thread fix, hammer, extra assets, goldberg
+        optional=frozenset({"p1", "p3", "p4", "p5", "p7", "p8", "p10", "p18"}), # hl2 assets, sound manifest, dialogue, thread fix, hammer, extra assets, goldberg, multiplayer fixes
         required=frozenset({"p2", "p6"}), # search paths, launcher
     ),
     (852, 1): BuildPatchSet(

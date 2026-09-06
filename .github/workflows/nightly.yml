@@ -65,6 +65,10 @@ jobs:
               -Encoding utf8 `
               -Append
 
+      - name: Prepare native multiplayer patch
+        shell: pwsh
+        run: .\tools\prepare-native.ps1
+
       - name: Run tests
         run: uv run pytest -q
 

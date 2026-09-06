@@ -1,4 +1,5 @@
-# Run with: uv run pyinstaller build.spec
+# Run tools/prepare-native.ps1 first, then:
+# uv run pyinstaller build.spec
 from PyInstaller.utils.hooks import collect_all
 
 datas, binaries, hiddenimports = collect_all("tkinterdnd2")
@@ -8,6 +9,11 @@ datas.append(("src/patches/p5_LICENCE-threadfix", "patches"))
 datas.append(("src/patches/p8_prerelease_assets.zip", "patches"))
 datas.append(("src/patches/p14_march_assets.zip", "patches"))
 datas.append(("src/patches/p16_hl2_launcher.exe", "patches"))
+datas.append(("build/native/asi_d3d9.dll", "patches"))
+datas.append(("build/native/asi_dxwrapper.dll", "patches"))
+datas.append(("build/native/asi_dxwrapper.ini", "patches"))
+datas.append(("build/native/asi_LICENCE-dxwrapper.txt", "patches"))
+datas.append(("build/native/p18_multiplayer_852_0.asi", "patches"))
 
 a = Analysis(
     ["src/main.py"],

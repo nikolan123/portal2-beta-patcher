@@ -21,14 +21,16 @@ The goal was to have a way to easily fix the build without redistributing it or 
 
 ### Run from source
 
-You need Python 3.12 or newer.
+You need Python 3.12 or newer and Visual Studio 2022 with the C++ x86 build tools (for p18 multiplayer fixes).
 
 If you have uv (recommended):
 
-1. Run `uv run python .\src\main.py`
+1. Prepare the multiplayer patch with `.\tools\prepare-native.ps1`
+2. Run the app with `uv run python .\src\main.py`
 
 If you don't have uv:
 
-1. (optional) Do `python -m venv .venv` then `.venv\scripts\activate`
+1. (Optional) Run `python -m venv .venv` and then `.\.venv\Scripts\Activate.ps1`
 2. Install dependencies with `pip install .`
-3. Run with `python .\src\main.py`
+3. Prepare the multiplayer patch with `.\tools\prepare-native.ps1`
+4. Run the app with `python .\src\main.py`

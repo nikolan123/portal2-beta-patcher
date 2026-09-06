@@ -42,6 +42,12 @@ This build of Portal uses a few files that are neither included in the beta nor 
 
 This patch installs only those five runtime assets and adds `particles/achievement.pcf` to the existing particle manifest. The assets are stored together in a small ZIP.
 
+### p18 - Multiplayer fixes
+
+This installs a source-built ASI for the `852_0` engine and server. At runtime it guards a broken connection path, makes engine initialization open the network sockets, and gets player names from the engine instead of the empty server-side field.
+
+The DLLs remain stpck. The ASI loader comes from pinned official DxWrapper v1.8.8600.25 that is downloaded and SHA-256 verified while building the patcher, third-party binaries are not stored in this repository. License stored in `.p2patcher/LICENCE-dxwrapper.txt`.
+
 ## 841_0 Pre-reset
 
 `83ced978` manifest

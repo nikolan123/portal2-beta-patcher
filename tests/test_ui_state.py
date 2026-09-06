@@ -25,7 +25,7 @@ def test_mode_specific_patch_lists():
     assert patch_ids_for_mode("generic", 841, 0, 0x83CED978) == ("p5", "p9", "p10", "p16", "p17")
     assert "p4" in patch_ids_for_mode("852_0")
     assert "p9" not in patch_ids_for_mode("852_0")
-    assert patch_ids_for_mode("852_0")[-1] == "p10"
+    assert patch_ids_for_mode("852_0")[-1] == "p18"
 
 
 def test_support_link_uses_the_project_issue_tracker():

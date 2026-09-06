@@ -570,6 +570,7 @@ class PatcherUI(TkBase):
             (("p7",), patch_by_id["p7"].display_name, patch_by_id["p7"].description),
             (("p8",), patch_by_id["p8"].display_name, patch_by_id["p8"].description),
             (("p10",), patch_by_id["p10"].display_name, patch_by_id["p10"].description),
+            (("p18",), patch_by_id["p18"].display_name, patch_by_id["p18"].description),
         )
         for patch_ids, name, detail in choices_to_show:
             primary_id = patch_ids[0]

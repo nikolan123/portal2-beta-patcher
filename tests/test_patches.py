@@ -63,10 +63,15 @@ from patches.p17_tier0_thread_limit_841_0 import (
     Tier0ThreadLimit8410Patch,
     patch_841_0_tier0,
 )
+from patches.p18_multiplayer_852_0 import (
+    BUNDLED_FILES as MULTIPLAYER_BUNDLED_FILES,
+    Multiplayer8520Patch,
+    bundled_path as multiplayer_bundled_path,
+)
 
 
 def test_patch_registry_is_explicitly_numbered():
-    assert [patch.id for patch in PATCHES] == ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10", "p11", "p12", "p13", "p14", "p15", "p16", "p17"]
+    assert [patch.id for patch in PATCHES] == ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10", "p11", "p12", "p13", "p14", "p15", "p16", "p17", "p18"]
     assert all(patch.description for patch in PATCHES)
     assert set(PATCH_COMPATIBILITY) == {"generic", (841, 0, 0x83CED978), (852, 0), (852, 1)}
     assert PATCH_COMPATIBILITY["generic"].required == {"p6"}
@@ -99,7 +104,7 @@ def test_patch_dependencies_and_required_launcher():
     assert normalize_patch_ids(("p14",), "generic", depot_id=852, depot_version=2) == ("p6",)
     assert normalize_patch_ids(("p15",), "generic", depot_id=852, depot_version=1) == ("p6", "p15")
     assert normalize_patch_ids(("p15",), "generic", depot_id=852, depot_version=2) == ("p6",)
-    assert compatible_patch_ids("852_0") == ("p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p10")
+    assert compatible_patch_ids("852_0") == ("p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p10", "p18")
     assert compatible_patch_ids("generic", 852, 1) == ("p5", "p6", "p10", "p11", "p12", "p13", "p14", "p15")
     assert compatible_patch_ids("generic", 852, 2) == ("p5", "p6", "p9", "p10")
     assert normalize_patch_ids((), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ()
@@ -141,6 +146,46 @@ def test_legacy_paint_patch_changes_only_the_missing_key_default():
     patched = patch_engine(bytes(original))
     assert patched[PATCH_OFFSET:] == PATCHED_BYTES
     assert patched[:PATCH_OFFSET] == original[:PATCH_OFFSET]
+
+
+def test_multiplayer_patch_bundles_32_bit_source_built_asi_and_pinned_loader():
+    for destination, expected_hash in MULTIPLAYER_BUNDLED_FILES.items():
+        name = {
+            "d3d9.dll": "asi_d3d9.dll",
+            "dxwrapper.dll": "asi_dxwrapper.dll",
+            "dxwrapper.ini": "asi_dxwrapper.ini",
+            "scripts/p2beta_multiplayer_852_0.asi": "p18_multiplayer_852_0.asi",
+        }[destination]
+        source = multiplayer_bundled_path(name)
+        assert source.is_file()
+        if expected_hash is not None:
+            assert sha256_file(source) == expected_hash
+
+    asi = multiplayer_bundled_path("p18_multiplayer_852_0.asi").read_bytes()
+    pe_offset = int.from_bytes(asi[0x3C:0x40], "little")
+    assert asi[:2] == b"MZ"
+    assert asi[pe_offset:pe_offset + 4] == b"PE\0\0"
+    assert int.from_bytes(asi[pe_offset + 4:pe_offset + 6], "little") == 0x14C
+
+
+def test_multiplayer_patch_installs_runtime_files_without_changing_game_dlls(tmp_path, monkeypatch):
+    engine = tmp_path / "bin" / "engine.dll"
+    server = tmp_path / "portal2" / "bin" / "server.dll"
+    engine.parent.mkdir(parents=True)
+    server.parent.mkdir(parents=True)
+    engine.write_bytes(b"engine")
+    server.write_bytes(b"server")
+    context = PatchContext(tmp_path, None, BuildReport(), Event())
+    patch = Multiplayer8520Patch()
+    monkeypatch.setattr(Multiplayer8520Patch, "_validate_build", lambda self, context: None)
+
+    patch.apply(context, lambda _event: None)
+    patch.verify(context)
+
+    assert engine.read_bytes() == b"engine"
+    assert server.read_bytes() == b"server"
+    assert (tmp_path / "bin" / "scripts" / "p2beta_multiplayer_852_0.asi").is_file()
+    assert (tmp_path / ".p2patcher" / "LICENCE-dxwrapper.txt").is_file()
 
 
 def test_852_1_tier0_patch_matches_the_known_dll_when_available():
