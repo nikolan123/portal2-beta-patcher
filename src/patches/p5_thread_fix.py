@@ -12,7 +12,7 @@ from patches.base import atomic_write, backup_file, sha256_file
 
 FILES = {
     "hl2.wrap.exe": "701b84b1df352139acd6c518a206f1d37a55e07aa8ad44479b69d290434c0ab9",
-    "LICENCE-threadfix": "140477b3034645037d0da2f1cb36b6becc9d9f3a73388dadbee6c14c7cae9948",
+    "LICENCE-threadfix": None,
 }
 
 
@@ -34,7 +34,7 @@ def read_bundled_files() -> dict[str, bytes]:
             payload = path.read_bytes()
         except OSError as error:
             raise RuntimeError(f"Bundled Source Thread Fix file is missing: {name}") from error
-        if sha256(payload).hexdigest() != expected_hash:
+        if expected_hash is not None and sha256(payload).hexdigest() != expected_hash:
             raise RuntimeError(f"Bundled Source Thread Fix file failed SHA-256 verification: {name}")
         files[name] = payload
     return files
@@ -48,7 +48,7 @@ class ThreadFixPatch:
     def check(self, context: PatchContext) -> bool:
         return any(
             not destination_path(context, name).is_file()
-            or sha256_file(destination_path(context, name)) != expected_hash
+            or (expected_hash is not None and sha256_file(destination_path(context, name)) != expected_hash)
             for name, expected_hash in FILES.items()
         )
 

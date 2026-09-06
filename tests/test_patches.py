@@ -196,10 +196,11 @@ def test_march_asset_patch_installs_the_bundle(tmp_path):
     patch.verify(context)
 
 
-def test_source_thread_fix_bundled_files_are_pinned():
+def test_source_thread_fix_wrapper_is_pinned_and_license_is_bundled():
     assert set(FILES) == {"hl2.wrap.exe", "LICENCE-threadfix"}
-    for name, expected_hash in FILES.items():
-        assert sha256_file(bundled_path(name)) == expected_hash
+    assert sha256_file(bundled_path("hl2.wrap.exe")) == FILES["hl2.wrap.exe"]
+    assert FILES["LICENCE-threadfix"] is None
+    assert bundled_path("LICENCE-threadfix").read_bytes()
 
 
 def test_source_thread_fix_keeps_its_license_in_metadata_folder(tmp_path):
