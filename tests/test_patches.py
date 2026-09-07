@@ -78,6 +78,7 @@ def test_patch_registry_has_descriptive_ids_and_stable_order():
     assert PATCH_COMPATIBILITY["generic"].required == {"launchers"}
     assert PATCH_COMPATIBILITY[(852, 0)].required == {"852_0.search_paths", "launchers"}
     assert PATCH_COMPATIBILITY[(852, 1)].required == {"launchers"}
+    assert PATCH_COMPATIBILITY[(852, 1)].first_run_audio
     assert "852_1.extra_assets.from_july_2010" in PATCH_COMPATIBILITY[(852, 1)].optional
     assert "852_1.extra_assets.from_july_2009" in PATCH_COMPATIBILITY[(852, 1)].optional
     assert "852_1.extra_assets.bundled" in PATCH_COMPATIBILITY[(852, 1)].optional
