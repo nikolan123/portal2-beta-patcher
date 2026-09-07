@@ -3,7 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 from threading import Event
-from typing import Callable, Protocol
+from typing import Callable, Protocol, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from patches.definitions import BuildProfile
 
 
 @dataclass(frozen=True)
@@ -68,6 +71,7 @@ class PatchContext:
     goldberg_archive: Path | None = None
     mode: str = "852_0"
     supplemental_revision_chains: tuple[tuple[RevisionInput, ...], ...] = ()
+    profile: BuildProfile | None = None
 
 
 class Patch(Protocol):

@@ -14,18 +14,18 @@ from patches import (
     normalize_patch_ids,
 )
 from patches.base import sha256_file
-from patches.p1_hl2_assets import ASSET_MARKER, HL2_ASSET_ALLOWLIST, copy_selected_loose_assets
-from patches.p2_search_paths import SearchPathsPatch
-from patches.p3_sound_manifest import HL2_SOUND_SCRIPTS
-from patches.p4_dialogue_fix import ORIGINAL_SCENE_CANCEL, PATCHED_SCENE_CANCEL, patch_glados_script
-from patches.p5_thread_fix import (
+from patches.build_852_0.hl2_assets.patch import ASSET_MARKER, HL2_ASSET_ALLOWLIST, copy_selected_loose_assets
+from patches.build_852_0.search_paths import SearchPathsPatch
+from patches.build_852_0.sound_manifest import HL2_SOUND_SCRIPTS
+from patches.build_852_0.dialogue import ORIGINAL_SCENE_CANCEL, PATCHED_SCENE_CANCEL, patch_glados_script
+from patches.generic.thread_fix.patch import (
     FILES,
     ThreadFixPatch,
     bundled_path,
     destination_path,
 )
-from patches.p6_launchers import LAUNCHER, LaunchersPatch
-from patches.p7_hammer import (
+from patches.generic.launchers import LAUNCHER, LaunchersPatch
+from patches.build_852_0.hammer import (
     PATCHED_TIER0_SHA256,
     RUNTIME_DIRECTORIES,
     game_config,
@@ -33,87 +33,87 @@ from patches.p7_hammer import (
     hlmv_launcher,
     move_runtime_into_game,
 )
-from patches.p8_prerelease_assets import (
+from patches.build_852_0.extra_assets.patch import (
     ASSET_HASHES,
     ARCHIVE_SHA256 as ASSET_ARCHIVE_SHA256,
     PrereleaseAssetsPatch,
     archive_path,
 )
-from patches.p9_multicore import MULTICORE_CONFIG, MulticorePatch
-from patches.p10_goldberg import ARCHIVE_SHA256 as GOLDBERG_ARCHIVE_SHA256, GoldbergPatch
-from patches.p11_legacy_paint import ORIGINAL_BYTES, PATCHED_BYTES, PATCH_OFFSET, patch_engine
-from patches.p12_july_2010_assets import July2010AssetsPatch
-from patches.p13_july_2009_assets import July2009AssetsPatch, overlay_tree
-from patches.p14_march_assets import ARCHIVE_SHA256 as MARCH_ASSET_ARCHIVE_SHA256, MarchAssetsPatch, read_bundle
-from patches.p15_tier0_thread_limit_852_1 import (
+from patches.generic.multicore import MULTICORE_CONFIG, MulticorePatch
+from patches.generic.goldberg import ARCHIVE_SHA256 as GOLDBERG_ARCHIVE_SHA256, GoldbergPatch
+from patches.build_852_1.legacy_paint import ORIGINAL_BYTES, PATCHED_BYTES, PATCH_OFFSET, patch_engine
+from patches.build_852_1.extra_assets.from_july_2010 import July2010AssetsPatch
+from patches.build_852_1.extra_assets.from_july_2009 import July2009AssetsPatch, overlay_tree
+from patches.build_852_1.extra_assets.bundled import ARCHIVE_SHA256 as MARCH_ASSET_ARCHIVE_SHA256, MarchAssetsPatch, read_bundle
+from patches.build_852_1.tier0_thread_limit import (
     EXPECTED_REFERENCE_OFFSETS as REFERENCE_OFFSETS_852_1,
     ORIGINAL_TIER0_SHA256 as ORIGINAL_852_1_TIER0_SHA256,
     PATCHED_TIER0_SHA256 as PATCHED_852_1_TIER0_SHA256,
     Tier0ThreadLimit8521Patch,
     patch_852_1_tier0,
 )
-from patches.p16_hl2_launcher import (
+from patches.build_841_0_prereset.missing_launcher.patch import (
     LAUNCHER_SHA256,
     Hl2LauncherPatch,
     launcher_path,
 )
-from patches.p17_tier0_thread_limit_841_0 import (
+from patches.build_841_0_prereset.tier0_thread_limit import (
     EXPECTED_REFERENCE_OFFSETS as REFERENCE_OFFSETS_841_0,
     ORIGINAL_TIER0_SHA256 as ORIGINAL_841_0_TIER0_SHA256,
     PATCHED_TIER0_SHA256 as PATCHED_841_0_TIER0_SHA256,
     Tier0ThreadLimit8410Patch,
     patch_841_0_tier0,
 )
-from patches.p18_multiplayer_852_0 import (
+from patches.build_852_0.multiplayer.patch import (
     BUNDLED_FILES as MULTIPLAYER_BUNDLED_FILES,
     Multiplayer8520Patch,
     bundled_path as multiplayer_bundled_path,
 )
 
 
-def test_patch_registry_is_explicitly_numbered():
-    assert [patch.id for patch in PATCHES] == ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10", "p11", "p12", "p13", "p14", "p15", "p16", "p17", "p18"]
+def test_patch_registry_has_descriptive_ids_and_stable_order():
+    assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.tier0_thread_limit", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer"]
     assert all(patch.description for patch in PATCHES)
     assert set(PATCH_COMPATIBILITY) == {"generic", (841, 0, 0x83CED978), (852, 0), (852, 1)}
-    assert PATCH_COMPATIBILITY["generic"].required == {"p6"}
-    assert PATCH_COMPATIBILITY[(852, 0)].required == {"p2", "p6"}
-    assert PATCH_COMPATIBILITY[(852, 1)].required == {"p6"}
-    assert "p12" in PATCH_COMPATIBILITY[(852, 1)].optional
-    assert "p13" in PATCH_COMPATIBILITY[(852, 1)].optional
-    assert "p14" in PATCH_COMPATIBILITY[(852, 1)].optional
-    assert "p15" in PATCH_COMPATIBILITY[(852, 1)].optional
-    assert PATCH_COMPATIBILITY[(841, 0, 0x83CED978)].required == {"p6"}
-    assert "p16" in PATCH_COMPATIBILITY[(841, 0, 0x83CED978)].optional
-    assert "p17" in PATCH_COMPATIBILITY[(841, 0, 0x83CED978)].optional
+    assert PATCH_COMPATIBILITY["generic"].required == {"launchers"}
+    assert PATCH_COMPATIBILITY[(852, 0)].required == {"852_0.search_paths", "launchers"}
+    assert PATCH_COMPATIBILITY[(852, 1)].required == {"launchers"}
+    assert "852_1.extra_assets.from_july_2010" in PATCH_COMPATIBILITY[(852, 1)].optional
+    assert "852_1.extra_assets.from_july_2009" in PATCH_COMPATIBILITY[(852, 1)].optional
+    assert "852_1.extra_assets.bundled" in PATCH_COMPATIBILITY[(852, 1)].optional
+    assert "852_1.tier0_thread_limit" in PATCH_COMPATIBILITY[(852, 1)].optional
+    assert PATCH_COMPATIBILITY[(841, 0, 0x83CED978)].required == {"launchers"}
+    assert "841_0_prereset.missing_launcher" in PATCH_COMPATIBILITY[(841, 0, 0x83CED978)].optional
+    assert "841_0_prereset.tier0_thread_limit" in PATCH_COMPATIBILITY[(841, 0, 0x83CED978)].optional
 
 
 def test_patch_dependencies_and_required_launcher():
-    assert normalize_patch_ids(()) == ("p2", "p6")
-    assert normalize_patch_ids(("p3",)) == ("p1", "p2", "p3", "p6")
-    assert "p9" not in normalize_patch_ids(("p9",), "852_0")
-    assert normalize_patch_ids(("p1", "p4", "p5", "p9"), "generic", depot_id=852, depot_version=2) == ("p5", "p6", "p9")
-    assert normalize_patch_ids(("p10",), "852_0") == ("p2", "p6", "p10")
-    assert normalize_patch_ids(("p5",), "generic", runnable=False, depot_id=843, depot_version=1) == ("p5",)
-    assert normalize_patch_ids(("p11",), "generic", depot_id=852, depot_version=1) == ("p6", "p11")
-    assert normalize_patch_ids(("p11",), "generic", depot_id=852, depot_version=2) == ("p6",)
-    assert normalize_patch_ids(("p11",), "generic", depot_id=841, depot_version=1) == ("p6",)
-    assert normalize_patch_ids(("p12",), "generic", depot_id=852, depot_version=1) == ("p6", "p12")
-    assert normalize_patch_ids(("p12",), "generic", depot_id=852, depot_version=2) == ("p6",)
-    assert normalize_patch_ids(("p13",), "generic", depot_id=852, depot_version=1) == ("p6", "p13")
-    assert normalize_patch_ids(("p13",), "generic", depot_id=852, depot_version=2) == ("p6",)
-    assert normalize_patch_ids(("p14",), "generic", depot_id=852, depot_version=1) == ("p6", "p14")
-    assert normalize_patch_ids(("p14",), "generic", depot_id=852, depot_version=2) == ("p6",)
-    assert normalize_patch_ids(("p15",), "generic", depot_id=852, depot_version=1) == ("p6", "p15")
-    assert normalize_patch_ids(("p15",), "generic", depot_id=852, depot_version=2) == ("p6",)
-    assert compatible_patch_ids("852_0") == ("p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p10", "p18")
-    assert compatible_patch_ids("generic", 852, 1) == ("p5", "p6", "p10", "p11", "p12", "p13", "p14", "p15")
-    assert compatible_patch_ids("generic", 852, 2) == ("p5", "p6", "p9", "p10")
+    assert normalize_patch_ids(()) == ("852_0.search_paths", "launchers")
+    assert normalize_patch_ids(("852_0.sound_manifest",)) == ("852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "launchers")
+    assert "multicore" not in normalize_patch_ids(("multicore",), "852_0")
+    assert normalize_patch_ids(("852_0.hl2_assets", "852_0.dialogue", "thread_fix", "multicore"), "generic", depot_id=852, depot_version=2) == ("thread_fix", "launchers", "multicore")
+    assert normalize_patch_ids(("goldberg",), "852_0") == ("852_0.search_paths", "launchers", "goldberg")
+    assert normalize_patch_ids(("thread_fix",), "generic", runnable=False, depot_id=843, depot_version=1) == ("thread_fix",)
+    assert normalize_patch_ids(("852_1.legacy_paint",), "generic", depot_id=852, depot_version=1) == ("launchers", "852_1.legacy_paint")
+    assert normalize_patch_ids(("852_1.legacy_paint",), "generic", depot_id=852, depot_version=2) == ("launchers",)
+    assert normalize_patch_ids(("852_1.legacy_paint",), "generic", depot_id=841, depot_version=1) == ("launchers",)
+    assert normalize_patch_ids(("852_1.extra_assets.from_july_2010",), "generic", depot_id=852, depot_version=1) == ("launchers", "852_1.extra_assets.from_july_2010")
+    assert normalize_patch_ids(("852_1.extra_assets.from_july_2010",), "generic", depot_id=852, depot_version=2) == ("launchers",)
+    assert normalize_patch_ids(("852_1.extra_assets.from_july_2009",), "generic", depot_id=852, depot_version=1) == ("launchers", "852_1.extra_assets.from_july_2009")
+    assert normalize_patch_ids(("852_1.extra_assets.from_july_2009",), "generic", depot_id=852, depot_version=2) == ("launchers",)
+    assert normalize_patch_ids(("852_1.extra_assets.bundled",), "generic", depot_id=852, depot_version=1) == ("launchers", "852_1.extra_assets.bundled")
+    assert normalize_patch_ids(("852_1.extra_assets.bundled",), "generic", depot_id=852, depot_version=2) == ("launchers",)
+    assert normalize_patch_ids(("852_1.tier0_thread_limit",), "generic", depot_id=852, depot_version=1) == ("launchers", "852_1.tier0_thread_limit")
+    assert normalize_patch_ids(("852_1.tier0_thread_limit",), "generic", depot_id=852, depot_version=2) == ("launchers",)
+    assert compatible_patch_ids("852_0") == ("852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "goldberg", "852_0.multiplayer")
+    assert compatible_patch_ids("generic", 852, 1) == ("thread_fix", "launchers", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.tier0_thread_limit")
+    assert compatible_patch_ids("generic", 852, 2) == ("thread_fix", "launchers", "multicore", "goldberg")
     assert normalize_patch_ids((), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ()
-    assert normalize_patch_ids((), "generic", runnable=True, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("p6",)
-    assert normalize_patch_ids(("p16",), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("p16",)
-    assert normalize_patch_ids(("p16",), "generic", runnable=True, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("p6", "p16")
-    assert normalize_patch_ids(("p17",), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("p17",)
-    assert normalize_patch_ids(("p17",), "generic", runnable=True, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("p6", "p17")
+    assert normalize_patch_ids((), "generic", runnable=True, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("launchers",)
+    assert normalize_patch_ids(("841_0_prereset.missing_launcher",), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("841_0_prereset.missing_launcher",)
+    assert normalize_patch_ids(("841_0_prereset.missing_launcher",), "generic", runnable=True, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("launchers", "841_0_prereset.missing_launcher")
+    assert normalize_patch_ids(("841_0_prereset.tier0_thread_limit",), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("841_0_prereset.tier0_thread_limit",)
+    assert normalize_patch_ids(("841_0_prereset.tier0_thread_limit",), "generic", runnable=True, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("launchers", "841_0_prereset.tier0_thread_limit")
 
 
 def test_841_0_pre_reset_launcher_patch_installs_the_binary(tmp_path):
@@ -138,7 +138,7 @@ def test_841_0_pre_reset_tier0_patch_matches_the_known_dll_when_available():
         return
     patched = patch_841_0_tier0(source.read_bytes())
     assert sha256(patched).hexdigest() == PATCHED_841_0_TIER0_SHA256
-    assert Tier0ThreadLimit8410Patch.id == "p17"
+    assert Tier0ThreadLimit8410Patch.id == "841_0_prereset.tier0_thread_limit"
 
 
 def test_legacy_paint_patch_changes_only_the_missing_key_default():
@@ -163,14 +163,14 @@ def test_multiplayer_patch_bundles_32_bit_source_built_asi_and_pinned_loader():
             "d3d9.dll": "asi_d3d9.dll",
             "dxwrapper.dll": "asi_dxwrapper.dll",
             "dxwrapper.ini": "asi_dxwrapper.ini",
-            "scripts/p2beta_multiplayer_852_0.asi": "p18_multiplayer_852_0.asi",
+            "scripts/p2beta_multiplayer_852_0.asi": "multiplayer.asi",
         }[destination]
         source = multiplayer_bundled_path(name)
         assert source.is_file()
         if expected_hash is not None:
             assert sha256_file(source) == expected_hash
 
-    asi = multiplayer_bundled_path("p18_multiplayer_852_0.asi").read_bytes()
+    asi = multiplayer_bundled_path("multiplayer.asi").read_bytes()
     pe_offset = int.from_bytes(asi[0x3C:0x40], "little")
     assert asi[:2] == b"MZ"
     assert asi[pe_offset:pe_offset + 4] == b"PE\0\0"
@@ -203,7 +203,7 @@ def test_852_1_tier0_patch_matches_the_known_dll_when_available():
         return
     patched = patch_852_1_tier0(source.read_bytes())
     assert sha256(patched).hexdigest() == PATCHED_852_1_TIER0_SHA256
-    assert Tier0ThreadLimit8521Patch.id == "p15"
+    assert Tier0ThreadLimit8521Patch.id == "852_1.tier0_thread_limit"
 
 
 def test_july_2010_asset_patch_uses_requested_description():
@@ -290,7 +290,7 @@ def test_first_launch_audio_setup_retries_and_then_skips(tmp_path):
         pytest.skip("Exercises the Windows launcher")
     root = tmp_path / "game folder"
     root.mkdir()
-    context = PatchContext(root, None, BuildReport(), Event())
+    context = PatchContext(root, None, BuildReport(), Event(), profile=PATCH_COMPATIBILITY[(852, 0)])
     patch = LaunchersPatch()
     patch.apply(context, lambda *_args: None)
     patch.verify(context)
@@ -357,8 +357,8 @@ def test_goldberg_patch_is_reversible_and_uses_user_zip(tmp_path, monkeypatch):
         "steam_api.dll": b"goldberg steam api",
         "tools/generate_interfaces_file.exe": b"generator",
     }
-    monkeypatch.setattr("patches.p10_goldberg.read_goldberg_archive", lambda path: payloads)
-    monkeypatch.setattr("patches.p10_goldberg.generate_interfaces", lambda generator, original: b"generated interfaces\n")
+    monkeypatch.setattr("patches.generic.goldberg.read_goldberg_archive", lambda path: payloads)
+    monkeypatch.setattr("patches.generic.goldberg.generate_interfaces", lambda generator, original: b"generated interfaces\n")
     context = PatchContext(root, None, BuildReport(), Event(), goldberg_archive=archive)
     patch = GoldbergPatch()
 
@@ -408,7 +408,7 @@ def test_hammer_layout_physically_moves_runtime_without_duplicates(tmp_path):
 
 
 def test_hl2_assets_use_curated_compatibility_allowlist():
-    assert ASSET_MARKER == "p1-curated-v2\n"
+    assert ASSET_MARKER == "hl2-assets-curated-v2\n"
     assert len(HL2_ASSET_ALLOWLIST) == 312
     assert "sound/weapons/physcannon/physcannon_pickup.wav" in HL2_ASSET_ALLOWLIST
     assert "sound/vo/novaprospekt/al_pickherup.wav" not in HL2_ASSET_ALLOWLIST

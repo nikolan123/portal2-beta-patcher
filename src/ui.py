@@ -19,9 +19,9 @@ except ImportError:
 
 from extractor import CatalogTarget, has_runnable_layout, scan_archive_catalog
 from models import BuildCancelled, BuildInputs, ProgressEvent
-from patches import PATCHES, normalize_patch_ids, selectable_patch_ids
-from patches.p12_july_2010_assets import SOURCE_BLOB_SHA256, SOURCE_DAT_SHA256
-from patches.p7_hammer import repair_moved_tools
+from patches import PATCHES, DEFINITIONS, normalize_patch_ids, selectable_patch_ids, patch_set_for_target
+from patches.selection import choices_for, requirements_for, capabilities_for, unavailable_reason, resolve_source_chains
+from patches.build_852_0.hammer import repair_moved_tools
 from pipeline import BuildPipeline
 from steam import detect_half_life_2, detect_portal_2
 
@@ -90,8 +90,7 @@ class PatcherUI(TkBase):
         self.catalog_targets: list[CatalogTarget] = []
         self.selected_target: CatalogTarget | None = None
         self.progress_fraction = 0.0
-        self.patch_vars = {patch.id: tk.BooleanVar(value=True) for patch in PATCHES}
-        self.patch_vars["p10"].set(False)
+        self.patch_vars = {item.id: tk.BooleanVar(value=item.default_selected) for item in DEFINITIONS}
         self.last_selected_patch_ids = tuple(patch.id for patch in PATCHES)
 
         self.container = tk.Frame(self, bg=BG)
@@ -100,6 +99,9 @@ class PatcherUI(TkBase):
         self.after(100, self.poll_events)
         threading.Thread(target=self.detect_portal2, daemon=True).start()
         threading.Thread(target=self.detect_hl2, daemon=True).start()
+
+    def available_patch_inputs(self):
+        return {key for key, value in (("hl2", self.hl2_var.get()), ("portal2", self.portal2_var.get())) if value.strip()}
 
     def clear(self) -> None:
         for child in self.container.winfo_children():
@@ -552,28 +554,14 @@ class PatcherUI(TkBase):
         choices_window = canvas.create_window((0, 0), window=choices, anchor="nw")
         choices.bind("<Configure>", lambda _event: canvas.configure(scrollregion=canvas.bbox("all")))
         canvas.bind("<Configure>", lambda event: canvas.itemconfigure(choices_window, width=event.width))
-        patch_by_id = {patch.id: patch for patch in PATCHES}
-        has_hl2 = bool(self.hl2_var.get().strip())
-        has_portal2 = bool(self.portal2_var.get().strip())
-        if not has_hl2:
-            self.set_patch_choice(("p1", "p3"), False)
-        if not has_portal2:
-            self.set_patch_choice(("p7",), False)
-        choices_to_show = (
-            (
-                ("p1", "p3"),
-                "Half-Life 2 content support",
-                "Copy the required HL2 assets and register their sound scripts.",
-            ),
-            (("p4",), patch_by_id["p4"].display_name, patch_by_id["p4"].description),
-            (("p5",), patch_by_id["p5"].display_name, patch_by_id["p5"].description),
-            (("p7",), patch_by_id["p7"].display_name, patch_by_id["p7"].description),
-            (("p8",), patch_by_id["p8"].display_name, patch_by_id["p8"].description),
-            (("p10",), patch_by_id["p10"].display_name, patch_by_id["p10"].description),
-            (("p18",), patch_by_id["p18"].display_name, patch_by_id["p18"].description),
-        )
-        for patch_ids, name, detail in choices_to_show:
+        profile = patch_set_for_target("852_0", None, None, None)
+        available = self.available_patch_inputs()
+        for group in choices_for(profile):
+            patch_ids, name, detail = group.patch_ids, group.title, group.description
             primary_id = patch_ids[0]
+            reason = unavailable_reason(patch_ids, available)
+            if reason:
+                self.set_patch_choice(patch_ids, False)
             panel = tk.Frame(choices, bg=PANEL, highlightbackground=BORDER, highlightthickness=1)
             panel.pack(fill="x", pady=(0, 7))
             checkbox = tk.Checkbutton(
@@ -591,14 +579,9 @@ class PatcherUI(TkBase):
                 highlightthickness=0,
             )
             checkbox.pack(anchor="w", padx=14, pady=(7, 0))
-            unavailable = not has_hl2 and "p1" in patch_ids
-            unavailable_reason = "Unavailable because no Half-Life 2 folder was selected."
-            if "p7" in patch_ids and not has_portal2:
-                unavailable = True
-                unavailable_reason = "Unavailable because no retail Portal 2 folder was selected."
-            if unavailable:
+            if reason:
                 checkbox.configure(state="disabled", disabledforeground=MUTED)
-                detail += f"  {unavailable_reason}"
+                detail += f"  {reason}"
             tk.Label(
                 panel,
                 text=detail,
@@ -609,7 +592,7 @@ class PatcherUI(TkBase):
                 wraplength=610,
                 font=("Segoe UI", 8),
             ).pack(fill="x", padx=36, pady=(1, 7))
-            if primary_id == "p10":
+            if "goldberg_archive" in requirements_for(patch_ids):
                 self.add_goldberg_zip_field(panel)
 
         def scroll(event):
@@ -637,7 +620,7 @@ class PatcherUI(TkBase):
         self.message_var.set("")
         self.clear()
         patch_ids = patch_ids_for_mode("generic", target.depot_id, target.version, target.crc)
-        effectively_runnable = target.runnable or "p16" in patch_ids
+        effectively_runnable = target.runnable or "provides_hl2_exe" in capabilities_for(patch_ids)
         detail = (
             "Choose the patches you want to apply."
             if effectively_runnable
@@ -682,18 +665,32 @@ class PatcherUI(TkBase):
         choices_window = canvas.create_window((0, 0), window=choices, anchor="nw")
         choices.bind("<Configure>", lambda _event: canvas.configure(scrollregion=canvas.bbox("all")))
         canvas.bind("<Configure>", lambda event: canvas.itemconfigure(choices_window, width=event.width))
-        patch_by_id = {patch.id: patch for patch in PATCHES}
+        profile = patch_set_for_target("generic", target.depot_id, target.version, target.crc)
+        installation_inputs = {
+            "hl2": ("Half-Life 2 folder", self.hl2_var),
+            "portal2": ("Portal 2 folder", self.portal2_var),
+        }
+        for requirement in sorted(requirements_for(profile.all)):
+            if requirement in installation_inputs:
+                label, variable = installation_inputs[requirement]
+                self.file_row(choices, label, variable, "", True)
+        if requirements_for(profile.all) & installation_inputs.keys():
+            self.button(choices, "Refresh choices", self.show_generic_patch_chooser, secondary=True, width=18).pack(anchor="w", pady=(0, 8))
         if not effectively_runnable:
             for patch_id in patch_ids:
                 self.patch_vars[patch_id].set(False)
-        for patch_id in patch_ids:
-            patch = patch_by_id[patch_id]
+        for group in choices_for(profile):
+            patch_id = group.patch_ids[0]
+            reason = unavailable_reason(group.patch_ids, self.available_patch_inputs())
+            if reason:
+                self.set_patch_choice(group.patch_ids, False)
             panel = tk.Frame(choices, bg=PANEL, highlightbackground=BORDER, highlightthickness=1)
             panel.pack(fill="x", pady=(0, 8))
             checkbox = tk.Checkbutton(
                 panel,
-                text=patch.display_name,
+                text=group.title,
                 variable=self.patch_vars[patch_id],
+                command=lambda ids=group.patch_ids, variable=self.patch_vars[patch_id]: self.set_patch_choice(ids, variable.get()),
                 bg=PANEL,
                 fg=TEXT,
                 selectcolor=FIELD,
@@ -704,13 +701,16 @@ class PatcherUI(TkBase):
                 highlightthickness=0,
             )
             checkbox.pack(anchor="w", padx=14, pady=(7, 0))
-            detail = patch.description
+            detail = group.description
+            if reason:
+                checkbox.configure(state="disabled", disabledforeground=MUTED)
+                detail += f"  {reason}"
             if not effectively_runnable:
                 checkbox.configure(state="disabled", disabledforeground=MUTED)
                 detail += "  Unavailable because this is a content-only depot."
             tk.Label(panel, text=detail, bg=PANEL, fg=MUTED, anchor="w", justify="left",
                      wraplength=560, font=("Segoe UI", 8)).pack(fill="x", padx=36, pady=(1, 7))
-            if patch_id == "p10":
+            if "goldberg_archive" in requirements_for(group.patch_ids):
                 self.add_goldberg_zip_field(panel)
 
         if target.needs_custom_key:
@@ -755,38 +755,22 @@ class PatcherUI(TkBase):
             selected_patch_ids = tuple(
                 patch_id for patch_id in available_patch_ids if self.patch_vars[patch_id].get()
             )
-            effectively_runnable = target.runnable or "p16" in selected_patch_ids
+            effectively_runnable = target.runnable or "provides_hl2_exe" in capabilities_for(selected_patch_ids)
             goldberg_archive = None
-            if "p10" in selected_patch_ids:
+            if "goldberg_archive" in requirements_for(selected_patch_ids):
                 zip_text = self.goldberg_zip_var.get().strip()
                 if not zip_text:
                     raise ValueError("Select the Goldberg ZIP to use")
                 goldberg_archive = Path(zip_text)
             final = target.chain[-1]
-            supplemental_chains = (target.chain,) if "p13" in selected_patch_ids else ()
-            if "p12" in selected_patch_ids:
-                july_2010_sources = [
-                    item for item in self.catalog_targets
-                    if (
-                        item.ready
-                        and item.depot_id == 852
-                        and item.version == 2
-                        and item.chain[-1].blob_sha256 == SOURCE_BLOB_SHA256
-                        and item.chain[-1].dat_sha256 == SOURCE_DAT_SHA256
-                    )
-                ]
-                if len(july_2010_sources) != 1:
-                    raise ValueError(
-                        "To copy the extra assets from July 2010, you need an 852_2 blob+dat in the same folder as the other ones. You can also disable this patch and continue without the extra assets."
-                    )
-                supplemental_chains += (july_2010_sources[0].chain,)
+            supplemental_chains = resolve_source_chains(selected_patch_ids, target.chain, self.catalog_targets)
             inputs = BuildInputs(
                 final.blob_path,
                 final.dat_path,
-                None,
+                Path(self.hl2_var.get().strip()) if self.hl2_var.get().strip() else None,
                 output,
                 selected_patch_ids,
-                None,
+                Path(self.portal2_var.get().strip()) if self.portal2_var.get().strip() else None,
                 "generic",
                 target.depot_id,
                 target.version,
@@ -825,7 +809,7 @@ class PatcherUI(TkBase):
             portal2 = Path(portal2_value) if portal2_value else None
             selected_patch_ids = self.selected_patch_ids()
             goldberg_archive = None
-            if "p10" in selected_patch_ids:
+            if "goldberg_archive" in requirements_for(selected_patch_ids):
                 zip_text = self.goldberg_zip_var.get().strip()
                 if not zip_text:
                     raise ValueError("Select the Goldberg ZIP to use")
@@ -897,10 +881,10 @@ class PatcherUI(TkBase):
         phase_ranges = {
             "validate": (0.00, 0.10),
             "extract": (0.10, 0.58),
-            "p1": (0.58, 0.88),
             "patches": (0.88, 0.99),
             "complete": (1.00, 1.00),
         }
+        phase_ranges.update({item.id: item.progress_range for item in DEFINITIONS})
         start, end = phase_ranges.get(event.phase, (0.88, 0.99))
         local = min(max(event.completed / max(event.total, 1), 0.0), 1.0)
         self.progress_fraction = start + (end - start) * local

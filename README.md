@@ -21,7 +21,7 @@ The goal was to have a way to easily fix the build without redistributing it or 
 
 ### Run from source
 
-You need Python 3.12 or newer and Visual Studio 2022 with the C++ x86 build tools (for p18 multiplayer fixes).
+You need Python 3.12 or newer and Visual Studio 2022 with the C++ x86 build tools (for multiplayer fixes).
 
 If you have uv (recommended):
 

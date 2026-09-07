@@ -9,7 +9,7 @@ $dxWrapperFiles = @{
 }
 
 $repository = Split-Path -Parent $PSScriptRoot
-$output = Join-Path $repository "build\native"
+$output = Join-Path $repository "build\native\build_852_0\multiplayer"
 $vendor = Join-Path $repository "build\vendor\dxwrapper-$dxWrapperVersion"
 $archive = Join-Path $vendor "dxwrapper.zip"
 $extracted = Join-Path $vendor "extracted"
@@ -44,7 +44,12 @@ if ($needsDownload) {
 }
 
 if (Test-Path -LiteralPath $extracted) {
-    Remove-Item -LiteralPath $extracted -Recurse -Force
+    $resolvedExtracted = [IO.Path]::GetFullPath($extracted)
+    $resolvedVendor = [IO.Path]::GetFullPath($vendor) + [IO.Path]::DirectorySeparatorChar
+    if (-not $resolvedExtracted.StartsWith($resolvedVendor, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "Extraction cleanup target is outside the vendor directory"
+    }
+    Remove-Item -LiteralPath $resolvedExtracted -Recurse -Force
 }
 Expand-Archive -LiteralPath $archive -DestinationPath $extracted
 
@@ -59,10 +64,10 @@ foreach ($relative in $dxWrapperFiles.Keys) {
 Copy-Item -LiteralPath (Join-Path $extracted "Stub\d3d9.dll") -Destination (Join-Path $output "asi_d3d9.dll") -Force
 Copy-Item -LiteralPath (Join-Path $extracted "dxwrapper.dll") -Destination (Join-Path $output "asi_dxwrapper.dll") -Force
 Copy-Item -LiteralPath (Join-Path $extracted "License.txt") -Destination (Join-Path $output "asi_LICENCE-dxwrapper.txt") -Force
-Copy-Item -LiteralPath (Join-Path $repository "src\multiplayer_src\dxwrapper.ini") -Destination (Join-Path $output "asi_dxwrapper.ini") -Force
+Copy-Item -LiteralPath (Join-Path $repository "src\patches\build_852_0\multiplayer\native\dxwrapper.ini") -Destination (Join-Path $output "asi_dxwrapper.ini") -Force
 
-$built = Join-Path $output "p18_multiplayer_852_0.asi"
-& (Join-Path $repository "src\multiplayer_src\build.bat")
+$built = Join-Path $output "multiplayer.asi"
+& (Join-Path $repository "src\patches\build_852_0\multiplayer\native\build.bat")
 if ($LASTEXITCODE -ne 0) {
     throw "Native multiplayer patch build failed with exit code $LASTEXITCODE"
 }

@@ -13,7 +13,8 @@ import uuid
 
 from extractor import extract_depot, extract_revision_chain, has_runnable_layout
 from models import BuildCancelled, BuildInputs, BuildReport, PatchContext, ProgressEvent, ProgressCallback
-from patches import PATCHES, normalize_patch_ids
+from patches import PATCHES, normalize_patch_ids, patch_set_for_target, resolve_selection
+from patches.selection import requirements_for, capabilities_for, validate_source_chains
 from steam import validate_hl2, validate_portal_2
 
 
@@ -63,7 +64,10 @@ class BuildPipeline:
             depot_version=inputs.depot_version,
             depot_crc=inputs.depot_crc,
         ))
-        if "p10" in selected_ids:
+        profile = patch_set_for_target(inputs.mode, inputs.depot_id, inputs.depot_version, inputs.depot_crc)
+        requirements = requirements_for(selected_ids)
+        validate_source_chains(selected_ids, inputs.supplemental_revision_chains)
+        if "goldberg_archive" in requirements:
             if inputs.goldberg_archive_path is None:
                 raise ValueError("Select the Goldberg ZIP to use")
             goldberg_archive = inputs.goldberg_archive_path.expanduser().resolve()
@@ -71,11 +75,11 @@ class BuildPipeline:
                 raise FileNotFoundError(f"Goldberg ZIP does not exist: {goldberg_archive}")
         else:
             goldberg_archive = None
-        needs_hl2 = bool(selected_ids & {"p1", "p3"})
+        needs_hl2 = "hl2" in requirements
         if needs_hl2 and inputs.hl2_path is None:
             raise ValueError("Half-Life 2 is required for the HL2 content support fix")
         hl2 = validate_hl2(inputs.hl2_path) if needs_hl2 else None
-        needs_hammer = "p7" in selected_ids
+        needs_hammer = "portal2" in requirements
         if needs_hammer and inputs.portal2_path is None:
             raise ValueError("A retail Portal 2 installation is required for the Hammer and HLMV fix")
         portal2 = validate_portal_2(inputs.portal2_path) if needs_hammer else None
@@ -134,8 +138,8 @@ class BuildPipeline:
                     inputs.custom_depot_key,
                 )
                 runnable = has_runnable_layout(staging)
-                # usually builds have a hl2.exe. 841_0 doesn't, so p16 makes one. 841_0 should not be considered a content-only depot becuase of that. if changing this make sure to also change in the 2 places in ui.py
-                can_fix_missing_hl2 = "p16" in selected_ids
+                # A selected patch may provide the executable missing from the depot.
+                can_fix_missing_hl2 = "provides_hl2_exe" in capabilities_for(selected_ids)
                 if runnable or can_fix_missing_hl2:
                     selected_ids = set(normalize_patch_ids(
                         requested_ids,
@@ -157,9 +161,11 @@ class BuildPipeline:
                 output,
                 goldberg_archive,
                 mode=inputs.mode,
+                profile=profile,
                 supplemental_revision_chains=inputs.supplemental_revision_chains,
             )
-            selected_patches = [patch for patch in PATCHES if patch.id in selected_ids]
+            selection = resolve_selection(selected_ids, profile, runnable=False)
+            selected_patches = [item.implementation for item in selection.definitions]
             for index, patch in enumerate(selected_patches, start=1):
                 if self.cancel_event.is_set():
                     raise BuildCancelled("Build cancelled")

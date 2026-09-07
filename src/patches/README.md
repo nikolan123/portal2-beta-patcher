@@ -1,24 +1,53 @@
 # Patches
 
+## Structure and compatibility
+
+Patches for one specific build are in `build_852_0`, `build_852_1`, and `build_841_0_prereset`. General patches are in `generic`. Patches for several specific builds are in `shared`. Each build's `profile.py` sets optional and required IDs for that build. The generic profile is the fallback for unknown builds.
+
+<!-- compatibility:start -->
+
+| Patch ID | 841_0_prereset | 852_0 | 852_1 | generic |
+| --- | --- | --- | --- | --- |
+| `852_0.hl2_assets` | — | Optional | — | — |
+| `852_0.search_paths` | — | Required | — | — |
+| `852_0.sound_manifest` | — | Optional | — | — |
+| `852_0.dialogue` | — | Optional | — | — |
+| `thread_fix` | Optional | Optional | Optional | Optional |
+| `launchers` | Required | Required | Required | Required |
+| `852_0.hammer` | — | Optional | — | — |
+| `852_0.extra_assets` | — | Optional | — | — |
+| `multicore` | Optional | — | — | Optional |
+| `goldberg` | Optional | Optional | Optional | Optional |
+| `852_1.legacy_paint` | — | — | Optional | — |
+| `852_1.extra_assets.from_july_2010` | — | — | Optional | — |
+| `852_1.extra_assets.from_july_2009` | — | — | Optional | — |
+| `852_1.extra_assets.bundled` | — | — | Optional | — |
+| `852_1.tier0_thread_limit` | — | — | Optional | — |
+| `841_0_prereset.missing_launcher` | Optional | — | — | — |
+| `841_0_prereset.tier0_thread_limit` | Optional | — | — | — |
+| `852_0.multiplayer` | — | Optional | — | — |
+
+<!-- compatibility:end -->
+
 ## 852_0
 
 These patches are specific to the July 2009 `852_0` build.
 
-### p1 - Half-Life 2 assets
+### 852_0.hl2_assets - Half-Life 2 assets
 
 The beta expects the shared Half-Life 2 files that Steam used to mount for it, but those files are not part of the `852_0` depot itself. Modern Steam keeps them inside VPK archives that this extracts and takes the needed stuff from.
 
-### p2 - Search paths
+### 852_0.search_paths - Search paths
 
 This patch adds the missing `portal2_tempcontent` and `platform` search paths. When Half-Life 2 content support is selected, it mounts `hl2` too. It saves the original as `GameInfo.original.bak` before making a change.
 
-### p3 - Sound manifest
+### 852_0.sound_manifest - Sound manifest
 
 Source does not discover every sound script automatically. The files must be listed in `portal2/scripts/game_sounds_manifest.txt` before the engine will load their sound definitions.
 
 This patch adds the missing HL2 sound-script entries to that manifest. And of course backs up the original first.
 
-### p4 - GLaDOS dialogue
+### 852_0.dialogue - GLaDOS dialogue
 
 Some maps expect an actor named `@glados` to exist when dialogue is played. In this build it is missing, which stops those lines from working correctly.
 
@@ -28,7 +57,7 @@ It also updates `portal2/scripts/vscripts/choreo/glados.nut`. Starting a new sin
 
 If a different `mapspawn.nut` already exists, it is preserved as `mapspawn.original.bak` before the replacement is written, though that is redunant so it might be removed.
 
-### p7 - Hammer and HLMV tools
+### 852_0.hammer - Hammer and HLMV tools
 
 The Hammer and Half-Life Model Viewer programs are present in `852_0`, but the extracted depot is missing the layout and editor materials they expect.
 
@@ -38,27 +67,27 @@ It also patches this build's `game/bin/tier0.dll` thread table from 32 slots to 
 
 Hammer's configuration contains the installation path. If the completed build is moved later, the patcher's **Fix moved build** action rewrites it without extracting or copying the build again.
 
-### p8 - Additional prerelease assets
+### 852_0.extra_assets - Additional prerelease assets
 
 This build of Portal uses a few files that are neither included in the beta nor available in Half-Life 2.
 
 This patch installs only those five runtime assets and adds `particles/achievement.pcf` to the existing particle manifest. The assets are stored together in a small ZIP.
 
-### p18 - Multiplayer fixes
+### 852_0.multiplayer - Multiplayer fixes
 
 This installs a source-built ASI for the `852_0` engine and server. At runtime it guards a broken connection path, makes engine initialization open the network sockets, and gets player names from the engine instead of the empty server-side field.
 
-The DLLs remain stpck. The ASI loader comes from pinned official DxWrapper v1.8.8600.25 that is downloaded and SHA-256 verified while building the patcher, third-party binaries are not stored in this repository. License stored in `.p2patcher/LICENCE-dxwrapper.txt`.
+The game DLLs remain stock. The ASI loader comes from pinned official DxWrapper v1.8.8600.25 that is downloaded and SHA-256 verified while building the patcher, these loader binaries are not stored in this repository. License stored in `.p2patcher/LICENCE-dxwrapper.txt`.
 
 ## 841_0 Pre-reset
 
 `83ced978` manifest
 
-### p16 - Missing hl2.exe fix
+### 841_0_prereset.missing_launcher - Missing hl2.exe fix
 
-This installs a small prebuilt executable produced from `src/launcher_src/hl2.cpp` as `hl2.exe`.
+This installs a small prebuilt executable produced from `src/patches/build_841_0_prereset/missing_launcher/native/hl2.cpp` as `hl2.exe`.
 
-### p17 - Tier0 Thread Limit
+### 841_0_prereset.tier0_thread_limit - Tier0 Thread Limit
 
 This build's `tier0.dll` has a table with only 32 thread id slots, which can fail on modern CPUs that expose more threads.
 
@@ -68,25 +97,25 @@ This patch expands that table to 128 slots.
 
 These patches are specific to depot 852 version 1.
 
-### p11 - Legacy Paint Maps
+### 852_1.legacy_paint - Legacy Paint Maps
 
 Some older paint maps do not contain the `paintinmap` setting expected by this version of the engine, so their speed and bounce paint does not work.
 
 This patch changes the default in `bin/engine.dll` from disabled to enabled. Maps that explicitly contain the setting still use their own value. The original DLL is preserved as `engine.original.bak`.
 
-### p12 - July 2010 Assets
+### 852_1.extra_assets.from_july_2010 - July 2010 Assets
 
 Copies tempcontent from July 2010 852_2.
 
-### p13 - July 2009 Assets
+### 852_1.extra_assets.from_july_2009 - July 2009 Assets
 
-Copies tempcontent from July 2009 852_0. When both this patch and p12 are selected, the folders are merged, with the 852_0 files taking priority.
+Copies tempcontent from July 2009 852_0. When both this patch and 852_1.extra_assets.from_july_2010 are selected, the folders are merged, with the 852_0 files taking priority.
 
-### p14 - March build assets
+### 852_1.extra_assets.bundled - March build assets
 
 Installs some missing materials and models in the supplied March build patch. The assets are bundled in a ZIP.
 
-### p15 - Tier0 Thread Limit
+### 852_1.tier0_thread_limit - Tier0 Thread Limit
 
 This build's `tier0.dll` has a table with only 32 thread id slots, which can fail on modern CPUs that expose more threads.
 
@@ -96,24 +125,33 @@ This patch expands that table to 128 slots.
 
 This is the patch list for builds that do not have their own entry yet.
 
-### p5 - Source Thread Fix
+### thread_fix - Source Thread Fix
 
 Old Source builds can fail on modern systems that expose more processor threads than the engine expects.
 
 This patch installs the bundled [Source Thread Fix](https://mikes.software/threadfix/) wrapper and keeps its required license in the patcher folder.
 
-### p6 - Launcher
+### launchers - Launcher
 
 This patch creates a launcher for portal as `Launch Portal 2.cmd` so the game can be launched without using a command line.
 
-### p9 - Disable multicore rendering
+### multicore - Disable multicore rendering
 
 Some Portal 2 prerelease builds render reflections incorrectly when queued material rendering is active.
 
 This patch creates `portal2/cfg/patcher_multicore.cfg` containing `mat_queue_mode 0`. The generated launcher runs that separate file when it exists.
 
-### p10 - Goldberg emulator
+### goldberg - Goldberg emulator
 
 This patch uses a Goldberg ZIP selected by the user. The ZIP must match the pinned SHA-256 before anything is installed.
 
 It backs up every original 32-bit `steam_api.dll` as `steam_api.original.bak`, generates `steam_interfaces.txt` from the original library, and installs the replacement from the verified ZIP.
+
+## Adding patches and builds
+
+- Put build-specific patches in `build_x/`, general patches in `generic/`, and patches for several specific builds in `shared/`.
+- Follow an existing patch: implement `check`, `apply`, and `verify`, then export a `DEFINITION` with a descriptive ID. Keep assets and native sources beside the patch.
+- Import the definition in `registry.py`, add it to `DEFINITIONS`, and list its ID in each supported build profile. Use `dependencies` for required patches and `after` for execution order.
+- To add a build, create its `profile.py` with the depot/version (and CRC if needed), list its patches, and register it in `PROFILES`.
+
+Run `uv run pytest -q` after changes. If build support changes, run `uv run python tools/patch-docs.py` to update the compatibility table.

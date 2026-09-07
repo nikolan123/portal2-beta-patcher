@@ -3,17 +3,14 @@
 from PyInstaller.utils.hooks import collect_all
 
 datas, binaries, hiddenimports = collect_all("tkinterdnd2")
-datas.append(("src/patches/p1_hl2_assets.txt", "patches"))
-datas.append(("src/patches/p5_hl2.wrap.exe", "patches"))
-datas.append(("src/patches/p5_LICENCE-threadfix", "patches"))
-datas.append(("src/patches/p8_prerelease_assets.zip", "patches"))
-datas.append(("src/patches/p14_march_assets.zip", "patches"))
-datas.append(("src/patches/p16_hl2_launcher.exe", "patches"))
-datas.append(("build/native/asi_d3d9.dll", "patches"))
-datas.append(("build/native/asi_dxwrapper.dll", "patches"))
-datas.append(("build/native/asi_dxwrapper.ini", "patches"))
-datas.append(("build/native/asi_LICENCE-dxwrapper.txt", "patches"))
-datas.append(("build/native/p18_multiplayer_852_0.asi", "patches"))
+# Use exactly the same resource declarations as runtime patch loading.
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(SPECPATH) / "src"))
+from patches.registry import DEFINITIONS
+from patches.resources import packaging_data
+datas.extend(packaging_data(DEFINITIONS))
+
 
 a = Analysis(
     ["src/main.py"],
