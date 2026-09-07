@@ -31,7 +31,7 @@ endlocal
 FIRST_RUN_AUDIO = r'''if exist "%ROOT%.p2patcher\patcher-audiocache.done" goto launch
 if not exist "%ROOT%.p2patcher" mkdir "%ROOT%.p2patcher"
 echo Rebuilding the audio cache for the first launch. The game will restart in a bit.
-start "" /wait /D "%GAMEROOT%" "%GAMEROOT%%GAME%" -game portal2 -windowed -w 1366 -h 768 -console +snd_rebuildaudiocache +quit
+start "" /wait /D "%GAMEROOT%" "%GAMEROOT%%GAME%" -game portal2 -windowed -w 1366 -h 768 -console -novid +snd_rebuildaudiocache +quit
 if errorlevel 1 (
     echo Audio cache setup failed. Launch again to retry.
     pause
