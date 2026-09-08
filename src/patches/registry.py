@@ -3,6 +3,7 @@ from patches.build_852_0.search_paths import DEFINITION as SEARCHPATHSPATCH
 from patches.build_852_0.sound_manifest import DEFINITION as SOUNDMANIFESTPATCH
 from patches.build_852_0.dialogue import DEFINITION as DIALOGUEFIXPATCH
 from patches.build_852_0.subtitles.patch import DEFINITION as SUBTITLES8520PATCH
+from patches.build_852_0.continuous_campaign.patch import DEFINITION as CONTINUOUSCAMPAIGNPATCH
 from patches.generic.thread_fix.patch import DEFINITION as THREADFIXPATCH
 from patches.generic.launchers import DEFINITION as LAUNCHERSPATCH
 from patches.build_852_0.hammer import DEFINITION as HAMMERPATCH
@@ -28,6 +29,7 @@ DEFINITIONS = (
     SOUNDMANIFESTPATCH,
     DIALOGUEFIXPATCH,
     SUBTITLES8520PATCH,
+    CONTINUOUSCAMPAIGNPATCH,
     THREADFIXPATCH,
     LAUNCHERSPATCH,
     HAMMERPATCH,

@@ -24,6 +24,12 @@ from patches.build_852_0.subtitles.patch import (
     bundled_path as subtitle_bundled_path,
     mapspawn_has_subtitle_fixes,
 )
+from patches.build_852_0.continuous_campaign.patch import (
+    LMP_HASHES as CAMPAIGN_LMP_HASHES,
+    ContinuousCampaignPatch,
+    bundled_path as campaign_bundled_path,
+    validate_lmp,
+)
 from patches.generic.thread_fix.patch import (
     FILES,
     ThreadFixPatch,
@@ -78,7 +84,7 @@ from patches.build_852_0.multiplayer.patch import (
 
 
 def test_patch_registry_has_descriptive_ids_and_stable_order():
-    assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.tier0_thread_limit", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer"]
+    assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.tier0_thread_limit", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer"]
     assert all(patch.description for patch in PATCHES)
     assert set(PATCH_COMPATIBILITY) == {"generic", (841, 0, 0x83CED978), (852, 0), (852, 1)}
     assert PATCH_COMPATIBILITY["generic"].required == {"launchers"}
@@ -113,7 +119,7 @@ def test_patch_dependencies_and_required_launcher():
     assert normalize_patch_ids(("852_1.extra_assets.bundled",), "generic", depot_id=852, depot_version=2) == ("launchers",)
     assert normalize_patch_ids(("852_1.tier0_thread_limit",), "generic", depot_id=852, depot_version=1) == ("launchers", "852_1.tier0_thread_limit")
     assert normalize_patch_ids(("852_1.tier0_thread_limit",), "generic", depot_id=852, depot_version=2) == ("launchers",)
-    assert compatible_patch_ids("852_0") == ("852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "goldberg", "852_0.multiplayer")
+    assert compatible_patch_ids("852_0") == ("852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "goldberg", "852_0.multiplayer")
     assert compatible_patch_ids("generic", 852, 1) == ("thread_fix", "launchers", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.tier0_thread_limit")
     assert compatible_patch_ids("generic", 852, 2) == ("thread_fix", "launchers", "multicore", "goldberg")
     assert normalize_patch_ids((), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ()
@@ -183,6 +189,29 @@ def test_subtitle_patch_installs_dictionary_and_map_fixes(tmp_path):
     assert mapspawn_has_subtitle_fixes(mapspawn.read_bytes())
     assert b'GetMapName() == "p2_lab_hub_2"' in mapspawn.read_bytes()
     assert (tmp_path / "portal2" / "cfg" / "patcher_subtitles.cfg").read_bytes().splitlines() == [b"scene_maxcaptionradius 0"]
+
+
+def test_continuous_campaign_patch_installs_verified_lmps(tmp_path):
+    context = PatchContext(tmp_path, None, BuildReport(), Event())
+    patch = ContinuousCampaignPatch()
+
+    patch.apply(context, lambda _event: None)
+    patch.verify(context)
+
+    for name, expected_hash in CAMPAIGN_LMP_HASHES.items():
+        source = campaign_bundled_path(name)
+        destination = tmp_path / "portal2" / "maps" / name
+        assert sha256_file(source) == expected_hash
+        assert destination.read_bytes() == source.read_bytes()
+        validate_lmp(name, destination.read_bytes())
+
+    catapult = (tmp_path / "portal2" / "maps" / "p2_lab_catapult_l_0.lmp").read_bytes()
+    assert b'slowtime_enable_on_catapult\x1bTurnOff\x1b\x1b0\x1b1' in catapult
+    hub_1 = (tmp_path / "portal2" / "maps" / "p2_lab_hub_1_l_0.lmp").read_bytes()
+    assert b'changelevel p2_lab_slowfield_1' in hub_1
+    assert b'\x1bmap p2_lab_slowfield_1\x1b' not in hub_1
+    hub_6 = (tmp_path / "portal2" / "maps" / "p2_lab_hub_6_l_0.lmp").read_bytes()
+    assert b'campaign_incomplete_meow' in hub_6
 
 
 def test_subtitle_patch_does_not_touch_autoexec(tmp_path):
