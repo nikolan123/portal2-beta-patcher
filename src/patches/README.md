@@ -13,6 +13,7 @@ Patches for one specific build are in `build_852_0`, `build_852_1`, and `build_8
 | `852_0.sound_manifest` | — | Optional | — | — |
 | `852_0.dialogue` | — | Optional | — | — |
 | `852_0.subtitles` | — | Optional | — | — |
+| `852_0.continuous_campaign` | — | Optional | — | — |
 | `thread_fix` | Optional | Optional | Optional | Optional |
 | `launchers` | Required | Required | Required | Required |
 | `852_0.hammer` | — | Optional | — | — |
@@ -65,6 +66,10 @@ Installs the English subtitles in both raw and compiled Source formats. It inclu
 The Aquarium Core uses random sound groups that cannot select the caption for the WAV that actually played. A map script replaces those groups with individually named sounds. A smaller map script redirects three raw Curiosity Core WAVs through their existing Portal sound events so their captions display consistently.
 
 This patch depends on `852_0.dialogue`, so dialogue runs first and subtitles then append their setup to `mapspawn.nut`.
+
+### 852_0.continuous_campaign - Experimental speedrunning fixes
+
+This patch is intended to make speedrunning tools work easier with this build. It installs entity LMPs that replace the campaign's hub `map` commands with `changelevel`, adds an end-of-run marker to hub 6, and fixes the slowtime upgrade when the earlier gun is skipped.
 
 ### 852_0.hammer - Hammer and HLMV tools
 
