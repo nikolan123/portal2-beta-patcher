@@ -135,6 +135,12 @@ This build's `tier0.dll` has a table with only 32 thread id slots, which can fai
 
 This patch expands that table to 128 slots.
 
+## 852_2
+
+### 852_2.hammer - Hammer
+
+This patch configures Portal 2 Hammer, creates the mapsource folder, mounts the included editor materials, applies the build-specific tier0 thread fix, and creates a movable launcher.
+
 ## Generic
 
 This is the patch list for builds that do not have their own entry yet.

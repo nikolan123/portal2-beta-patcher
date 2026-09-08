@@ -81,16 +81,16 @@ from patches.build_852_0.multiplayer.patch import (
     Multiplayer8520Patch,
     bundled_path as multiplayer_bundled_path,
 )
-
-
+from patches.build_852_2.hammer import Hammer8522Patch
 def test_patch_registry_has_descriptive_ids_and_stable_order():
-    assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.tier0_thread_limit", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer"]
+    assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.tier0_thread_limit", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer", "852_2.hammer"]
     assert all(patch.description for patch in PATCHES)
-    assert set(PATCH_COMPATIBILITY) == {"generic", (841, 0, 0x83CED978), (852, 0), (852, 1)}
+    assert set(PATCH_COMPATIBILITY) == {"generic", (841, 0, 0x83CED978), (852, 0), (852, 1), (852, 2)}
     assert PATCH_COMPATIBILITY["generic"].required == {"launchers"}
     assert PATCH_COMPATIBILITY[(852, 0)].required == {"852_0.search_paths", "launchers"}
     assert PATCH_COMPATIBILITY[(852, 1)].required == {"launchers"}
     assert PATCH_COMPATIBILITY[(852, 1)].first_run_audio
+    assert "852_2.hammer" in PATCH_COMPATIBILITY[(852, 2)].optional
     assert "852_1.extra_assets.from_july_2010" in PATCH_COMPATIBILITY[(852, 1)].optional
     assert "852_1.extra_assets.from_july_2009" in PATCH_COMPATIBILITY[(852, 1)].optional
     assert "852_1.extra_assets.bundled" in PATCH_COMPATIBILITY[(852, 1)].optional
@@ -121,7 +121,7 @@ def test_patch_dependencies_and_required_launcher():
     assert normalize_patch_ids(("852_1.tier0_thread_limit",), "generic", depot_id=852, depot_version=2) == ("launchers",)
     assert compatible_patch_ids("852_0") == ("852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "goldberg", "852_0.multiplayer")
     assert compatible_patch_ids("generic", 852, 1) == ("thread_fix", "launchers", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.tier0_thread_limit")
-    assert compatible_patch_ids("generic", 852, 2) == ("thread_fix", "launchers", "multicore", "goldberg")
+    assert compatible_patch_ids("generic", 852, 2) == ("thread_fix", "launchers", "multicore", "goldberg", "852_2.hammer")
     assert normalize_patch_ids((), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ()
     assert normalize_patch_ids((), "generic", runnable=True, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("launchers",)
     assert normalize_patch_ids(("841_0_prereset.missing_launcher",), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("841_0_prereset.missing_launcher",)

@@ -18,10 +18,12 @@ from patches.build_852_1.tier0_thread_limit import DEFINITION as TIER0THREADLIMI
 from patches.build_841_0_prereset.missing_launcher.patch import DEFINITION as HL2LAUNCHERPATCH
 from patches.build_841_0_prereset.tier0_thread_limit import DEFINITION as TIER0THREADLIMIT8410PATCH
 from patches.build_852_0.multiplayer.patch import DEFINITION as MULTIPLAYER8520PATCH
+from patches.build_852_2.hammer import DEFINITION as HAMMER8522PATCH
 from patches.generic.profile import PROFILE as GENERIC
 from patches.build_852_0.profile import PROFILE as BUILD_852_0
 from patches.build_852_1.profile import PROFILE as BUILD_852_1
 from patches.build_841_0_prereset.profile import PROFILE as BUILD_841_0_PRERESET
+from patches.build_852_2.profile import PROFILE as BUILD_852_2
 
 DEFINITIONS = (
     HL2ASSETSPATCH,
@@ -44,9 +46,10 @@ DEFINITIONS = (
     HL2LAUNCHERPATCH,
     TIER0THREADLIMIT8410PATCH,
     MULTIPLAYER8520PATCH,
+    HAMMER8522PATCH,
 )
 
-PROFILES = (GENERIC, BUILD_852_0, BUILD_852_1, BUILD_841_0_PRERESET,)
+PROFILES = (GENERIC, BUILD_852_0, BUILD_852_1, BUILD_841_0_PRERESET, BUILD_852_2,)
 
 from patches.selection import validate_registry, ordered_definitions
 
