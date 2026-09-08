@@ -41,6 +41,17 @@ def test_ordering_is_stable_and_does_not_select_optional_predecessors():
     assert resolve_selection(('b',), profile, definitions=definitions).ids == ('b',)
 
 
+def test_subtitle_dependency_is_included_and_ordered_with_reversed_registry():
+    profile = patch_set_for_target('852_0', None, None, None)
+    selection = resolve_selection(('852_0.subtitles',), profile,
+                                  definitions=tuple(reversed(DEFINITIONS)))
+    assert '852_0.dialogue' in selection.ids
+    assert selection.ids.index('852_0.dialogue') < selection.ids.index('852_0.subtitles')
+    assert BY_ID['852_0.subtitles'].after == frozenset({'852_0.dialogue'})
+    omitted = tuple(item for item in selection.ids if item != '852_0.dialogue')
+    assert '852_0.dialogue' in resolve_selection(omitted, profile).ids
+
+
 def test_shared_patch_support_is_explicit():
     shared = definition('subtitles')
     definitions = DEFINITIONS + (shared,)

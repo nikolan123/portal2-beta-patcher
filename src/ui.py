@@ -501,6 +501,17 @@ class PatcherUI(TkBase):
     def set_patch_choice(self, patch_ids: tuple[str, ...], selected: bool) -> None:
         for patch_id in patch_ids:
             self.patch_vars[patch_id].set(selected)
+        by_id = {item.id: item for item in DEFINITIONS}
+        pending = [patch_id for patch_id, variable in self.patch_vars.items() if variable.get()]
+        seen = set()
+        while pending:
+            patch_id = pending.pop()
+            if patch_id in seen:
+                continue
+            seen.add(patch_id)
+            for dependency in by_id[patch_id].dependencies:
+                self.patch_vars[dependency].set(True)
+                pending.append(dependency)
 
     def validate_file_choices(self) -> None:
         if not Path(self.blob_var.get()).is_file():

@@ -1,0 +1,3092 @@
+//***************************************************************************************
+//Sphere01 (Richard) START
+//*****************************************************************************************
+"sphere01.BASHING01"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/PAINCRITICAL01.wav"
+}
+"sphere01.BASHING02"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/PAINCRITICAL02.wav"
+}
+"sphere01.BASHING03"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/PAINCRITICAL03.wav"
+}
+"sphere01.BASHING04"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/PAINCRITICAL04.wav"
+}
+"sphere01.BASHING05"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/PAINCRITICAL05.wav"
+}
+"sphere01.BASHING06"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/PAINCRITICAL06.wav"
+}
+"sphere01.BASHING07"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/PAINCRITICAL07.wav"
+}
+"sphere01.BASHING08"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/PAINCRITICAL08.wav"
+}
+"sphere01.BRIDGE01"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/BRIDGE01.wav"
+}
+"sphere01.BURNER01"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/BURN01.wav"
+}
+"sphere01.DROP01"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/SURPRISE01.wav"
+}
+"sphere01.DROP02"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/SURPRISE02.wav"
+}
+"sphere01.DROP03"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/SURPRISE04.wav"
+}
+"sphere01.FRUSTRATION01"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/FRUSTRATION01.wav"
+}
+"sphere01.FRUSTRATION02"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/FRUSTRATION02.wav"
+}
+"sphere01.FRUSTRATION03"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/FRUSTRATION04.wav"
+}
+"sphere01.FRUSTRATION04"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/FRUSTRATION03.wav"
+}
+"sphere01.FRUSTRATION05"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/FRUSTRATION05.wav"
+}
+"sphere01.FRUSTRATION06"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/FRUSTRATION06.wav"
+}
+"sphere01.FRUSTRATION07"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/FRUSTRATION07.wav"
+}
+"sphere01.FRUSTRATION08"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/FRUSTRATION08.wav"
+}
+"sphere01.FRUSTRATION09"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/FRUSTRATION09.wav"
+}
+"sphere01.FRUSTRATION10"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/FRUSTRATION10.wav"
+}
+"sphere01.FRUSTRATION11"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/FRUSTRATION11.wav"
+}
+"sphere01.FRUSTRATION12"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/FRUSTRATION12.wav"
+}
+"sphere01.FRUSTRATION13"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/FRUSTRATION13.wav"
+}
+"sphere01.HELD01"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/PANIC06.wav"
+}
+"sphere01.HELD02"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL01.wav"
+}
+"sphere01.HELD03"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL02.wav"
+}
+"sphere01.HELD04"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL03.wav"
+}
+"sphere01.HELD05"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL04.wav"
+}
+"sphere01.HELD06"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL05.wav"
+}
+"sphere01.HELD07"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL06.wav"
+}
+"sphere01.HELD08"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL07.wav"
+}
+"sphere01.HELD09"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL08.wav"
+}
+"sphere01.HELD10"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL09.wav"
+}
+"sphere01.HELD11"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL10.wav"
+}
+"sphere01.HELD12"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL11.wav"
+}
+"sphere01.HELD13"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL12.wav"
+}
+"sphere01.HELD14"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL13.wav"
+}
+"sphere01.HELD15"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL14.wav"
+}
+"sphere01.HELD16"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL33.wav"
+}
+"sphere01.HELD17"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL34.wav"
+}
+"sphere01.HELD18"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL15.wav"
+}
+"sphere01.HELD19"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL16.wav"
+}
+"sphere01.HELD20"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL17.wav"
+}
+"sphere01.HELD21"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL18.wav"
+}
+"sphere01.HELD22"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL19.wav"
+}
+"sphere01.HELD23"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL20.wav"
+}
+"sphere01.HELD24"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL21.wav"
+}
+"sphere01.HELD25"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL22.wav"
+}
+"sphere01.HELD26"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL23.wav"
+}
+"sphere01.HELD27"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL35.wav"
+}
+"sphere01.HELD28"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL24.wav"
+}
+"sphere01.HELD29"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL25.wav"
+}
+"sphere01.HELD30"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL26.wav"
+}
+"sphere01.HELD31"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL27.wav"
+}
+"sphere01.HELD32"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL28.wav"
+}
+"sphere01.HELD33"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL29.wav"
+}
+"sphere01.HELD34"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL30.wav"
+}
+"sphere01.HELD35"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL31.wav"
+}
+"sphere01.HELD36"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDMENTAL32.wav"
+}
+"sphere01.HELDPANIC01"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC01.wav"
+}
+"sphere01.HELDPANIC02"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC15.wav"
+}
+"sphere01.HELDPANIC03"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC02.wav"
+}
+"sphere01.HELDPANIC04"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC03.wav"
+}
+"sphere01.HELDPANIC05"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC04.wav"
+}
+"sphere01.HELDPANIC06"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC05.wav"
+}
+"sphere01.HELDPANIC07"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC06.wav"
+}
+"sphere01.HELDPANIC08"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC07.wav"
+}
+"sphere01.HELDPANIC09"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC08.wav"
+}
+"sphere01.HELDPANIC10"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC30.wav"
+}
+"sphere01.HELDPANIC11"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC09.wav"
+}
+"sphere01.HELDPANIC12"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC10.wav"
+}
+"sphere01.HELDPANIC13"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC11.wav"
+}
+"sphere01.HELDPANIC14"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC12.wav"
+}
+"sphere01.HELDPANIC15"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC29.wav"
+}
+"sphere01.HELDPANIC16"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC13.wav"
+}
+"sphere01.HELDPANIC17"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC14.wav"
+}
+"sphere01.HELDPANIC18"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC16.wav"
+}
+"sphere01.HELDPANIC19"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC17.wav"
+}
+"sphere01.HELDPANIC20"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC18.wav"
+}
+"sphere01.HELDPANIC21"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC19.wav"
+}
+"sphere01.HELDPANIC22"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC20.wav"
+}
+"sphere01.HELDPANIC23"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC21.wav"
+}
+"sphere01.HELDPANIC24"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC22.wav"
+}
+"sphere01.HELDPANIC25"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC23.wav"
+}
+"sphere01.HELDPANIC26"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC24.wav"
+}
+"sphere01.HELDPANIC27"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC25.wav"
+}
+"sphere01.HELDPANIC28"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC26.wav"
+}
+"sphere01.HELDPANIC29"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC27.wav"
+}
+"sphere01.HELDPANIC30"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/HELDPANIC28.wav"
+}
+"sphere01.MUTTER01"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/MUTTERING01.wav"
+}
+"sphere01.MUTTER02"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/MUTTERING02.wav"
+}
+"sphere01.MUTTER03"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/MUTTERING05.wav"
+}
+"sphere01.MUTTER04"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/MUTTERING06.wav"
+}
+"sphere01.MUTTER05"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/MUTTERING07.wav"
+}
+"sphere01.MUTTER06"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/MUTTERING08.wav"
+}
+"sphere01.MUTTER07"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/MUTTERING04.wav"
+}
+"sphere01.NOTHELD01"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/ABANDONEDMAD01.wav"
+}
+"sphere01.NOTHELD02"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/ABANDONEDMAD02.wav"
+}
+"sphere01.NOTHELD03"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/ABANDONEDMAD03.wav"
+}
+"sphere01.NOTHELD04"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/ABANDONEDMAD04.wav"
+}
+"sphere01.NOTHELD05"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/ABANDONEDMAD05.wav"
+}
+"sphere01.NOTHELD06"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/ABANDONEDMAD06.wav"
+}
+"sphere01.NOTHELD07"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/ABANDONEDMAD07.wav"
+}
+"sphere01.NOTHELD08"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/ABANDONEDMAD08.wav"
+}
+"sphere01.NOTHELD09"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/ABANDONEDMAD10.wav"
+}
+"sphere01.NOTHELD10"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/ABANDONEDMAD09.wav"
+}
+"sphere01.PAIN01"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/PAIN01.wav"
+}
+"sphere01.PAIN02"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/PAIN02.wav"
+}
+"sphere01.PAIN03"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/PAIN06.wav"
+}
+"sphere01.PAIN04"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/PAIN03.wav"
+}
+"sphere01.PAIN05"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/PAIN04.wav"
+}
+"sphere01.PAIN06"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/PAIN05.wav"
+}
+"sphere01.PAIN07"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/PAIN07.wav"
+}
+"sphere01.PAIN08"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/PAIN08.wav"
+}
+"sphere01.PICKUPFIRST01"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/SHOCK01.wav"
+}
+"sphere01.SEETURRET01"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/TURRETHIT01.wav"
+}
+"sphere01.SEETURRET02"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/TURRETHIT02.wav"
+}
+"sphere01.SEETURRET03"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/TURRETHIT04.wav"
+}
+"sphere01.SEETURRET04"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/TURRETHIT03.wav"
+}
+"sphere01.SURPRISE01"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/SURPRISE03.wav"
+}
+"sphere01.SUSPICIOUS01"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/SUSPICIOUS01.wav"
+}
+"sphere01.SUSPICIOUS02"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/SUSPICIOUS02.wav"
+}
+"sphere01.SUSPICIOUS03"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/SUSPICIOUS03.wav"
+}
+"sphere01.SUSPICIOUS04"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/SUSPICIOUS04.wav"
+}
+"sphere01.SUSPICIOUS05"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/SUSPICIOUS05.wav"
+}
+"sphere01.SUSPICIOUS06"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/SUSPICIOUS06.wav"
+}
+"sphere01.SUSPICIOUS07"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/SUSPICIOUS07.wav"
+}
+"sphere01.UNHELDRELIEF01"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/UNHELDPHEW01.wav"
+}
+"sphere01.UNHELDRELIEF02"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/UNHELDPHEW03.wav"
+}
+"sphere01.UNHELDRELIEF03"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/UNHELDPHEW04.wav"
+}
+"sphere01.UNHELDRELIEF04"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/UNHELDPHEW05.wav"
+}
+"sphere01.UNHELDRELIEF05"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/UNHELDPHEW06.wav"
+}
+"sphere01.UNHELDRELIEF06"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/UNHELDPHEW07.wav"
+}
+"sphere01.UNHELDRELIEF07"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/UNHELDPHEW02.wav"
+}
+"sphere01.WHOOP01"
+{
+            "channel"          "CHAN_VOICE"
+            "volume"            "VOL_NORM"
+            "pitch"   "95, 110"
+            "soundlevel"       "SNDLVL_110dB"
+            "wave"   "npc/sphere01/MISC01.wav"
+}
+
+
+//***************************************************************************************
+//Sphere02 (Aquarium) START
+//*****************************************************************************************
+"sphere02.NOTHELD"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"0"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_100dB"
+	"rndwave"
+	{
+		"wave"	"npc/sphere02/WANNAGO01.wav"
+		"wave"	"npc/sphere02/ATTENTION01.wav"
+		"wave"	"npc/sphere02/ATTENTION02.wav"
+		"wave"	"npc/sphere02/WANNAGO02.wav"
+		"wave"	"npc/sphere02/ATTENTION03.wav"
+		"wave"	"npc/sphere02/WANNAGO03.wav"
+		"wave"	"npc/sphere02/ATTENTION04.wav"
+		"wave"	"npc/sphere02/ATTENTION05.wav"
+		"wave"	"npc/sphere02/ATTENTION06.wav"
+	}
+}
+"sphere02.HELD"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"0"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_100dB"
+	"rndwave"
+	{
+		"wave"	"npc/sphere02/AQUARIUM01.wav"
+		"wave"	"npc/sphere02/AQUARIUM02.wav"
+		"wave"	"npc/sphere02/AQUARIUM03.wav"
+		"wave"	"npc/sphere02/AQUARIUM04.wav"
+		"wave"	"npc/sphere02/AQUARIUM05.wav"
+		"wave"	"npc/sphere02/AQUARIUM07.wav"
+		"wave"	"npc/sphere02/AQUARIUM08.wav"
+		"wave"	"npc/sphere02/AQUARIUM09.wav"
+		"wave"	"npc/sphere02/AQUARIUM10.wav"
+		"wave"	"npc/sphere02/AQUARIUM11.wav"
+		"wave"	"npc/sphere02/AQUARIUM12.wav"
+		"wave"	"npc/sphere02/AQUARIUM13.wav"
+		"wave"	"npc/sphere02/AQUARIUM14.wav"
+		"wave"	"npc/sphere02/AQUARIUM15.wav"
+		"wave"	"npc/sphere02/AQUARIUM16.wav"
+		"wave"	"npc/sphere02/AQUARIUM17.wav"
+	}
+}
+"sphere02.PAIN"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"0"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_100dB"
+	"rndwave"
+	{
+		"wave"	"npc/sphere02/GRUNTS01.wav"
+		"wave"	"npc/sphere02/GRUNTS02.wav"
+		"wave"	"npc/sphere02/GRUNTS03.wav"
+	}
+}
+//***************************************************************************************
+//Sphere02 END
+//*****************************************************************************************
+
+
+"sphere02.AQUARIUM01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/AQUARIUM01.wav"
+}
+"sphere02.AQUARIUM02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/AQUARIUM02.wav"
+}
+"sphere02.AQUARIUM03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/AQUARIUM03.wav"
+}
+"sphere02.AQUARIUM04"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/AQUARIUM04.wav"
+}
+"sphere02.AQUARIUM05"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/AQUARIUM05.wav"
+}
+"sphere02.AQUARIUM07"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/AQUARIUM07.wav"
+}
+"sphere02.AQUARIUM08"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/AQUARIUM08.wav"
+}
+"sphere02.AQUARIUM09"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/AQUARIUM09.wav"
+}
+"sphere02.AQUARIUM10"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/AQUARIUM10.wav"
+}
+"sphere02.AQUARIUM11"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/AQUARIUM11.wav"
+}
+"sphere02.AQUARIUM12"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/AQUARIUM12.wav"
+}
+"sphere02.AQUARIUM13"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/AQUARIUM13.wav"
+}
+"sphere02.AQUARIUM14"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/AQUARIUM14.wav"
+}
+"sphere02.AQUARIUM15"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/AQUARIUM15.wav"
+}
+"sphere02.AQUARIUM16"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/AQUARIUM16.wav"
+}
+"sphere02.AQUARIUM17"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/AQUARIUM17.wav"
+}
+"sphere02.ATTENTION01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/ATTENTION01.wav"
+}
+"sphere02.ATTENTION02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/ATTENTION02.wav"
+}
+"sphere02.ATTENTION03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/ATTENTION03.wav"
+}
+"sphere02.ATTENTION04"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/ATTENTION04.wav"
+}
+"sphere02.ATTENTION05"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/ATTENTION05.wav"
+}
+"sphere02.ATTENTION06"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/ATTENTION06.wav"
+}
+"sphere02.GRUNTS01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/GRUNTS01.wav"
+}
+"sphere02.GRUNTS02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/GRUNTS02.wav"
+}
+"sphere02.GRUNTS03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/GRUNTS03.wav"
+}
+"sphere02.WANNAGO01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/WANNAGO01.wav"
+}
+"sphere02.WANNAGO02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/WANNAGO02.wav"
+}
+"sphere02.WANNAGO03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere02/WANNAGO03.wav"
+}
+
+
+//*****************************************************************************************
+//Temp stuff
+//*****************************************************************************************
+"curiosity.hi"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95, 110"
+	"soundlevel"	"SNDLVL_100dB"
+	"wave"	"npc/CuriositySphere/hi.wav"
+}
+//*****************************************************************************************
+//Temp stuff END
+//*****************************************************************************************
+
+
+//**************************************
+//***AUTO-GENERATED! DON'T HAND EDIT!***
+//**************************************
+"sphere001.ABANDONEDMAD01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/ABANDONEDMAD01.wav"
+}
+"sphere001.ABANDONEDMAD02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/ABANDONEDMAD02.wav"
+}
+"sphere001.ABANDONEDMAD03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/ABANDONEDMAD03.wav"
+}
+"sphere001.ABANDONEDMAD04"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/ABANDONEDMAD04.wav"
+}
+"sphere001.ABANDONEDMAD05"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/ABANDONEDMAD05.wav"
+}
+"sphere001.ABANDONEDMAD06"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/ABANDONEDMAD06.wav"
+}
+"sphere001.ABANDONEDMAD07"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/ABANDONEDMAD07.wav"
+}
+"sphere001.ABANDONEDMAD08"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/ABANDONEDMAD08.wav"
+}
+"sphere001.ABANDONEDMAD10"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/ABANDONEDMAD10.wav"
+}
+"sphere001.ABANDONEDMAD09"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/ABANDONEDMAD09.wav"
+}
+"sphere001.BASHING05"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/BASHING05.wav"
+}
+"sphere001.BASHING04"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/BASHING04.wav"
+}
+"sphere001.BASHING03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/BASHING03.wav"
+}
+"sphere001.BASHING02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/BASHING02.wav"
+}
+"sphere001.BASHING01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/BASHING01.wav"
+}
+"sphere001.BASHING06"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/BASHING06.wav"
+}
+"sphere001.BASHING07"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/BASHING07.wav"
+}
+"sphere001.BRIDGE01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/BRIDGE01.wav"
+}
+"sphere001.BURN01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/BURN01.wav"
+}
+"sphere001.DIRECTIONSBACKINGUP01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSBACKINGUP01.wav"
+}
+"sphere001.DIRECTIONSBACKINGUP02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSBACKINGUP02.wav"
+}
+"sphere001.DIRECTIONSBACKINGUP03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSBACKINGUP03.wav"
+}
+"sphere001.DIRECTIONSBACKINGUP04"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSBACKINGUP04.wav"
+}
+"sphere001.DIRECTIONSDOWN01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSDOWN01.wav"
+}
+"sphere001.DIRECTIONSDOWN02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSDOWN02.wav"
+}
+"sphere001.DIRECTIONSDOWN04"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSDOWN04.wav"
+}
+"sphere001.DIRECTIONSDOWN03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSDOWN03.wav"
+}
+"sphere001.DIRECTIONSFORWARD01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSFORWARD01.wav"
+}
+"sphere001.DIRECTIONSFORWARD02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSFORWARD02.wav"
+}
+"sphere001.DIRECTIONSFORWARD03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSFORWARD03.wav"
+}
+"sphere001.DIRECTIONSFORWARD04"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSFORWARD04.wav"
+}
+"sphere001.DIRECTIONSFORWARD05"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSFORWARD05.wav"
+}
+"sphere001.DIRECTIONSFORWARD06"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSFORWARD06.wav"
+}
+"sphere001.DIRECTIONSFORWARD07"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSFORWARD07.wav"
+}
+"sphere001.DIRECTIONSLEFT01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSLEFT01.wav"
+}
+"sphere001.DIRECTIONSLEFT02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSLEFT02.wav"
+}
+"sphere001.DIRECTIONSLEFT03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSLEFT03.wav"
+}
+"sphere001.DIRECTIONSLEFT04"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSLEFT04.wav"
+}
+"sphere001.DIRECTIONSLEFT05"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSLEFT05.wav"
+}
+"sphere001.DIRECTIONSRIGHT01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSRIGHT01.wav"
+}
+"sphere001.DIRECTIONSRIGHT02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSRIGHT02.wav"
+}
+"sphere001.DIRECTIONSRIGHT03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSRIGHT03.wav"
+}
+"sphere001.DIRECTIONSRIGHT04"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSRIGHT04.wav"
+}
+"sphere001.DIRECTIONSUP01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSUP01.wav"
+}
+"sphere001.DIRECTIONSUP02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSUP02.wav"
+}
+"sphere001.DIRECTIONSUP03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSUP03.wav"
+}
+"sphere001.DIRECTIONSUP04"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/DIRECTIONSUP04.wav"
+}
+"sphere001.FRUSTRATION01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/FRUSTRATION01.wav"
+}
+"sphere001.FRUSTRATION02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/FRUSTRATION02.wav"
+}
+"sphere001.FRUSTRATION04"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/FRUSTRATION04.wav"
+}
+"sphere001.FRUSTRATION03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/FRUSTRATION03.wav"
+}
+"sphere001.FRUSTRATION05"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/FRUSTRATION05.wav"
+}
+"sphere001.FRUSTRATION06"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/FRUSTRATION06.wav"
+}
+"sphere001.FRUSTRATION07"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/FRUSTRATION07.wav"
+}
+"sphere001.FRUSTRATION08"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/FRUSTRATION08.wav"
+}
+"sphere001.FRUSTRATION09"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/FRUSTRATION09.wav"
+}
+"sphere001.FRUSTRATION10"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/FRUSTRATION10.wav"
+}
+"sphere001.FRUSTRATION11"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/FRUSTRATION11.wav"
+}
+"sphere001.FRUSTRATION12"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/FRUSTRATION12.wav"
+}
+"sphere001.FRUSTRATION13"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/FRUSTRATION13.wav"
+}
+"sphere001.HELDMENTAL01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL01.wav"
+}
+"sphere001.HELDMENTAL02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL02.wav"
+}
+"sphere001.HELDMENTAL03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL03.wav"
+}
+"sphere001.HELDMENTAL04"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL04.wav"
+}
+"sphere001.HELDMENTAL05"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL05.wav"
+}
+"sphere001.HELDMENTAL06"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL06.wav"
+}
+"sphere001.HELDMENTAL07"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL07.wav"
+}
+"sphere001.HELDMENTAL08"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL08.wav"
+}
+"sphere001.HELDMENTAL09"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL09.wav"
+}
+"sphere001.HELDMENTAL10"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL10.wav"
+}
+"sphere001.HELDMENTAL11"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL11.wav"
+}
+"sphere001.HELDMENTAL12"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL12.wav"
+}
+"sphere001.HELDMENTAL13"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL13.wav"
+}
+"sphere001.HELDMENTAL14"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL14.wav"
+}
+"sphere001.HELDMENTAL33"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL33.wav"
+}
+"sphere001.HELDMENTAL34"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL34.wav"
+}
+"sphere001.HELDMENTAL15"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL15.wav"
+}
+"sphere001.HELDMENTAL16"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL16.wav"
+}
+"sphere001.HELDMENTAL17"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL17.wav"
+}
+"sphere001.HELDMENTAL18"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL18.wav"
+}
+"sphere001.HELDMENTAL19"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL19.wav"
+}
+"sphere001.HELDMENTAL20"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL20.wav"
+}
+"sphere001.HELDMENTAL21"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL21.wav"
+}
+"sphere001.HELDMENTAL22"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL22.wav"
+}
+"sphere001.HELDMENTAL23"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL23.wav"
+}
+"sphere001.HELDMENTAL35"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL35.wav"
+}
+"sphere001.HELDMENTAL24"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL24.wav"
+}
+"sphere001.HELDMENTAL25"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL25.wav"
+}
+"sphere001.HELDMENTAL26"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL26.wav"
+}
+"sphere001.HELDMENTAL27"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL27.wav"
+}
+"sphere001.HELDMENTAL28"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL28.wav"
+}
+"sphere001.HELDMENTAL29"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL29.wav"
+}
+"sphere001.HELDMENTAL30"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL30.wav"
+}
+"sphere001.HELDMENTAL31"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL31.wav"
+}
+"sphere001.HELDMENTAL32"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDMENTAL32.wav"
+}
+"sphere001.HELDPANIC01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC01.wav"
+}
+"sphere001.HELDPANIC15"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC15.wav"
+}
+"sphere001.HELDPANIC02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC02.wav"
+}
+"sphere001.HELDPANIC03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC03.wav"
+}
+"sphere001.HELDPANIC04"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC04.wav"
+}
+"sphere001.HELDPANIC05"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC05.wav"
+}
+"sphere001.HELDPANIC06"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC06.wav"
+}
+"sphere001.HELDPANIC07"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC07.wav"
+}
+"sphere001.HELDPANIC08"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC08.wav"
+}
+"sphere001.HELDPANIC30"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC30.wav"
+}
+"sphere001.HELDPANIC09"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC09.wav"
+}
+"sphere001.HELDPANIC10"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC10.wav"
+}
+"sphere001.HELDPANIC11"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC11.wav"
+}
+"sphere001.HELDPANIC12"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC12.wav"
+}
+"sphere001.HELDPANIC29"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC29.wav"
+}
+"sphere001.HELDPANIC13"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC13.wav"
+}
+"sphere001.HELDPANIC14"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC14.wav"
+}
+"sphere001.HELDPANIC16"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC16.wav"
+}
+"sphere001.HELDPANIC17"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC17.wav"
+}
+"sphere001.HELDPANIC18"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC18.wav"
+}
+"sphere001.HELDPANIC19"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC19.wav"
+}
+"sphere001.HELDPANIC20"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC20.wav"
+}
+"sphere001.HELDPANIC21"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC21.wav"
+}
+"sphere001.HELDPANIC22"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC22.wav"
+}
+"sphere001.HELDPANIC23"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC23.wav"
+}
+"sphere001.HELDPANIC24"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC24.wav"
+}
+"sphere001.HELDPANIC25"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC25.wav"
+}
+"sphere001.HELDPANIC26"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC26.wav"
+}
+"sphere001.HELDPANIC27"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC27.wav"
+}
+"sphere001.HELDPANIC28"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/HELDPANIC28.wav"
+}
+"sphere001.JUMPING02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/JUMPING02.wav"
+}
+"sphere001.JUMPING03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/JUMPING03.wav"
+}
+"sphere001.JUMPING05"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/JUMPING05.wav"
+}
+"sphere001.JUMPING04"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/JUMPING04.wav"
+}
+"sphere001.JUMPING07"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/JUMPING07.wav"
+}
+"sphere001.JUMPING01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/JUMPING01.wav"
+}
+"sphere001.JUMPING06"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/JUMPING06.wav"
+}
+"sphere001.LAUGH01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/LAUGH01.wav"
+}
+"sphere001.LAUGH02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/LAUGH02.wav"
+}
+"sphere001.LAUGH03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/LAUGH03.wav"
+}
+"sphere001.MISC01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/MISC01.wav"
+}
+"sphere001.MISC02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/MISC02.wav"
+}
+"sphere001.MISC08"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/MISC08.wav"
+}
+"sphere001.MISC03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/MISC03.wav"
+}
+"sphere001.MISC09"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/MISC09.wav"
+}
+"sphere001.MISC04"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/MISC04.wav"
+}
+"sphere001.MISC05"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/MISC05.wav"
+}
+"sphere001.MISC06"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/MISC06.wav"
+}
+"sphere001.MISC07"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/MISC07.wav"
+}
+"sphere001.MISC10"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/MISC10.wav"
+}
+"sphere001.MISC11"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/MISC11.wav"
+}
+"sphere001.MISC12"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/MISC12.wav"
+}
+"sphere001.MUTTERING01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/MUTTERING01.wav"
+}
+"sphere001.MUTTERING02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/MUTTERING02.wav"
+}
+"sphere001.MUTTERING03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/MUTTERING03.wav"
+}
+"sphere001.MUTTERING05"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/MUTTERING05.wav"
+}
+"sphere001.MUTTERING06"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/MUTTERING06.wav"
+}
+"sphere001.MUTTERING07"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/MUTTERING07.wav"
+}
+"sphere001.MUTTERING08"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/MUTTERING08.wav"
+}
+"sphere001.MUTTERING04"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/MUTTERING04.wav"
+}
+"sphere001.PAIN01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PAIN01.wav"
+}
+"sphere001.PAIN02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PAIN02.wav"
+}
+"sphere001.PAIN06"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PAIN06.wav"
+}
+"sphere001.PAIN03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PAIN03.wav"
+}
+"sphere001.PAIN04"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PAIN04.wav"
+}
+"sphere001.PAIN05"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PAIN05.wav"
+}
+"sphere001.PAIN07"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PAIN07.wav"
+}
+"sphere001.PAIN08"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PAIN08.wav"
+}
+"sphere001.PAINCRITICAL01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PAINCRITICAL01.wav"
+}
+"sphere001.PAINCRITICAL02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PAINCRITICAL02.wav"
+}
+"sphere001.PAINCRITICAL03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PAINCRITICAL03.wav"
+}
+"sphere001.PAINCRITICAL04"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PAINCRITICAL04.wav"
+}
+"sphere001.PAINCRITICAL05"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PAINCRITICAL05.wav"
+}
+"sphere001.PAINCRITICAL06"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PAINCRITICAL06.wav"
+}
+"sphere001.PAINCRITICAL07"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PAINCRITICAL07.wav"
+}
+"sphere001.PAINCRITICAL08"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PAINCRITICAL08.wav"
+}
+"sphere001.PANIC01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PANIC01.wav"
+}
+"sphere001.PANIC02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PANIC02.wav"
+}
+"sphere001.PANIC03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PANIC03.wav"
+}
+"sphere001.PANIC15"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PANIC15.wav"
+}
+"sphere001.PANIC06"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PANIC06.wav"
+}
+"sphere001.PANIC10"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PANIC10.wav"
+}
+"sphere001.PANIC08"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PANIC08.wav"
+}
+"sphere001.PANIC09"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PANIC09.wav"
+}
+"sphere001.PANIC11"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PANIC11.wav"
+}
+"sphere001.PANIC12"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PANIC12.wav"
+}
+"sphere001.PANIC05"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PANIC05.wav"
+}
+"sphere001.PANIC04"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PANIC04.wav"
+}
+"sphere001.PANIC07"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PANIC07.wav"
+}
+"sphere001.PANIC13"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PANIC13.wav"
+}
+"sphere001.PANIC14"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/PANIC14.wav"
+}
+"sphere001.SHOCK01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/SHOCK01.wav"
+}
+"sphere001.SURPRISE01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/SURPRISE01.wav"
+}
+"sphere001.SURPRISE03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/SURPRISE03.wav"
+}
+"sphere001.SURPRISE02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/SURPRISE02.wav"
+}
+"sphere001.SURPRISE04"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/SURPRISE04.wav"
+}
+"sphere001.SUSPICIOUS01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/SUSPICIOUS01.wav"
+}
+"sphere001.SUSPICIOUS02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/SUSPICIOUS02.wav"
+}
+"sphere001.SUSPICIOUS03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/SUSPICIOUS03.wav"
+}
+"sphere001.SUSPICIOUS04"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/SUSPICIOUS04.wav"
+}
+"sphere001.SUSPICIOUS05"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/SUSPICIOUS05.wav"
+}
+"sphere001.SUSPICIOUS06"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/SUSPICIOUS06.wav"
+}
+"sphere001.SUSPICIOUS07"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/SUSPICIOUS07.wav"
+}
+"sphere001.TURRETHIT01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/TURRETHIT01.wav"
+}
+"sphere001.TURRETHIT02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/TURRETHIT02.wav"
+}
+"sphere001.TURRETHIT03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/TURRETHIT03.wav"
+}
+"sphere001.TURRETHIT04"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/TURRETHIT04.wav"
+}
+"sphere001.UNHELDPHEW01"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/UNHELDPHEW01.wav"
+}
+"sphere001.UNHELDPHEW03"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/UNHELDPHEW03.wav"
+}
+"sphere001.UNHELDPHEW04"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/UNHELDPHEW04.wav"
+}
+"sphere001.UNHELDPHEW05"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/UNHELDPHEW05.wav"
+}
+"sphere001.UNHELDPHEW06"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/UNHELDPHEW06.wav"
+}
+"sphere001.UNHELDPHEW07"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/UNHELDPHEW07.wav"
+}
+"sphere001.UNHELDPHEW02"
+{
+	"channel"	"CHAN_VOICE"
+	"volume"	"VOL_NORM"
+	"pitch"	"95,100"
+	"soundlevel"	"SNDLVL_110dB"
+	"wave"	"npc/sphere01/UNHELDPHEW02.wav"
+}

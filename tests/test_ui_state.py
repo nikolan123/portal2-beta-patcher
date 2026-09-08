@@ -1,8 +1,33 @@
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import Mock
+
+from patches import DEFINITIONS
+from ui import PatcherUI
 
 from extractor import CatalogTarget
 from models import RevisionInput
 from ui import GITHUB_ISSUES_URL, back_screen_for_mode, default_generic_output, is_core_hub_target, patch_ids_for_mode
+
+
+def test_dependency_checkbox_cannot_be_cleared_while_subtitles_selected():
+    variables = {}
+    for item in DEFINITIONS:
+        state = [False]
+        variables[item.id] = Mock(
+            get=lambda state=state: state[0],
+            set=lambda value, state=state: state.__setitem__(0, value),
+        )
+    ui = SimpleNamespace(patch_vars=variables, current_mode='852_0')
+    PatcherUI.set_patch_choice(ui, ('852_0.subtitles',), True)
+    assert variables['852_0.dialogue'].get()
+    PatcherUI.set_patch_choice(ui, ('852_0.dialogue',), False)
+    assert variables['852_0.dialogue'].get()
+    ids = PatcherUI.selected_patch_ids(ui)
+    assert ids.index('852_0.dialogue') < ids.index('852_0.subtitles')
+    PatcherUI.set_patch_choice(ui, ('852_0.subtitles',), False)
+    PatcherUI.set_patch_choice(ui, ('852_0.dialogue',), False)
+    assert not variables['852_0.dialogue'].get()
 
 
 def target(ready=True):
@@ -24,6 +49,7 @@ def test_mode_specific_patch_lists():
     assert patch_ids_for_mode("generic", 841, 1) == ("thread_fix", "multicore", "goldberg")
     assert patch_ids_for_mode("generic", 841, 0, 0x83CED978) == ("thread_fix", "multicore", "goldberg", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit")
     assert "852_0.dialogue" in patch_ids_for_mode("852_0")
+    assert "852_0.subtitles" in patch_ids_for_mode("852_0")
     assert "multicore" not in patch_ids_for_mode("852_0")
     assert patch_ids_for_mode("852_0")[-1] == "852_0.multiplayer"
 

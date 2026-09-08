@@ -18,6 +18,12 @@ from patches.build_852_0.hl2_assets.patch import ASSET_MARKER, HL2_ASSET_ALLOWLI
 from patches.build_852_0.search_paths import SearchPathsPatch
 from patches.build_852_0.sound_manifest import HL2_SOUND_SCRIPTS
 from patches.build_852_0.dialogue import ORIGINAL_SCENE_CANCEL, PATCHED_SCENE_CANCEL, patch_glados_script
+from patches.build_852_0.subtitles import (
+    FILES as SUBTITLE_FILES,
+    Subtitles8520Patch,
+    bundled_path as subtitle_bundled_path,
+    mapspawn_has_subtitle_fixes,
+)
 from patches.generic.thread_fix.patch import (
     FILES,
     ThreadFixPatch,
@@ -72,7 +78,7 @@ from patches.build_852_0.multiplayer.patch import (
 
 
 def test_patch_registry_has_descriptive_ids_and_stable_order():
-    assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.tier0_thread_limit", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer"]
+    assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.tier0_thread_limit", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer"]
     assert all(patch.description for patch in PATCHES)
     assert set(PATCH_COMPATIBILITY) == {"generic", (841, 0, 0x83CED978), (852, 0), (852, 1)}
     assert PATCH_COMPATIBILITY["generic"].required == {"launchers"}
@@ -91,6 +97,7 @@ def test_patch_registry_has_descriptive_ids_and_stable_order():
 def test_patch_dependencies_and_required_launcher():
     assert normalize_patch_ids(()) == ("852_0.search_paths", "launchers")
     assert normalize_patch_ids(("852_0.sound_manifest",)) == ("852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "launchers")
+    assert normalize_patch_ids(("852_0.subtitles",)) == ("852_0.search_paths", "852_0.dialogue", "852_0.subtitles", "launchers")
     assert "multicore" not in normalize_patch_ids(("multicore",), "852_0")
     assert normalize_patch_ids(("852_0.hl2_assets", "852_0.dialogue", "thread_fix", "multicore"), "generic", depot_id=852, depot_version=2) == ("thread_fix", "launchers", "multicore")
     assert normalize_patch_ids(("goldberg",), "852_0") == ("852_0.search_paths", "launchers", "goldberg")
@@ -106,7 +113,7 @@ def test_patch_dependencies_and_required_launcher():
     assert normalize_patch_ids(("852_1.extra_assets.bundled",), "generic", depot_id=852, depot_version=2) == ("launchers",)
     assert normalize_patch_ids(("852_1.tier0_thread_limit",), "generic", depot_id=852, depot_version=1) == ("launchers", "852_1.tier0_thread_limit")
     assert normalize_patch_ids(("852_1.tier0_thread_limit",), "generic", depot_id=852, depot_version=2) == ("launchers",)
-    assert compatible_patch_ids("852_0") == ("852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "goldberg", "852_0.multiplayer")
+    assert compatible_patch_ids("852_0") == ("852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "goldberg", "852_0.multiplayer")
     assert compatible_patch_ids("generic", 852, 1) == ("thread_fix", "launchers", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.tier0_thread_limit")
     assert compatible_patch_ids("generic", 852, 2) == ("thread_fix", "launchers", "multicore", "goldberg")
     assert normalize_patch_ids((), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ()
@@ -156,6 +163,19 @@ def test_dialogue_patch_replaces_single_player_scene_cancellation():
     assert ORIGINAL_SCENE_CANCEL not in patched
     assert PATCHED_SCENE_CANCEL in patched
     assert patch_glados_script(patched) == patched
+
+
+def test_subtitle_patch_installs_dictionary_and_map_fixes(tmp_path):
+    context = PatchContext(tmp_path, None, BuildReport(), Event())
+    patch = Subtitles8520Patch()
+
+    patch.apply(context, lambda _event: None)
+    patch.verify(context)
+
+    for name, relative in SUBTITLE_FILES.items():
+        assert (tmp_path / relative).read_bytes() == subtitle_bundled_path(name).read_bytes()
+    mapspawn = tmp_path / "portal2" / "scripts" / "vscripts" / "mapspawn.nut"
+    assert mapspawn_has_subtitle_fixes(mapspawn.read_bytes())
 
 
 def test_multiplayer_patch_bundles_32_bit_source_built_asi_and_pinned_loader():

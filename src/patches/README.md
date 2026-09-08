@@ -12,6 +12,7 @@ Patches for one specific build are in `build_852_0`, `build_852_1`, and `build_8
 | `852_0.search_paths` | — | Required | — | — |
 | `852_0.sound_manifest` | — | Optional | — | — |
 | `852_0.dialogue` | — | Optional | — | — |
+| `852_0.subtitles` | — | Optional | — | — |
 | `thread_fix` | Optional | Optional | Optional | Optional |
 | `launchers` | Required | Required | Required | Required |
 | `852_0.hammer` | — | Optional | — | — |
@@ -51,11 +52,19 @@ This patch adds the missing HL2 sound-script entries to that manifest. And of co
 
 Some maps expect an actor named `@glados` to exist when dialogue is played. In this build it is missing, which stops those lines from working correctly.
 
-This patch creates `portal2/scripts/vscripts/mapspawn.nut`. One second after the map starts, the script checks for `@glados`, if none exists, it creates a hidden `generic_actor` with that name far outside the playable map. The delay matters because creating the actor immediately can crash this build.
+This patch adds its setup to `portal2/scripts/vscripts/mapspawn.nut`. One second after the map starts, the script checks for `@glados`; if none exists, it creates a hidden `generic_actor` with that name far outside the playable map. The delay matters because creating the actor immediately can crash this build.
 
 It also updates `portal2/scripts/vscripts/choreo/glados.nut`. Starting a new single-player dialogue block cancels every previously playing or queued GLaDOS scene, preventing lines from overlapping.
 
-If a different `mapspawn.nut` already exists, it is preserved as `mapspawn.original.bak` before the replacement is written, though that is redunant so it might be removed.
+If a different `mapspawn.nut` already exists, it is preserved as `mapspawn.original.bak` before replacement.
+
+### 852_0.subtitles - English subtitles
+
+Installs the English subtitles in both raw and compiled Source formats. It includes the original Portal captions for reused dialogue and the captions transcribed for this build, styled to match retail Portal 2.
+
+The Aquarium Core uses random sound groups that cannot select the caption for the WAV that actually played. A map script replaces those groups with individually named sounds. A smaller map script redirects three raw Curiosity Core WAVs through their existing Portal sound events so their captions display consistently.
+
+This patch depends on `852_0.dialogue`, so dialogue runs first and subtitles then append their setup to `mapspawn.nut`.
 
 ### 852_0.hammer - Hammer and HLMV tools
 
