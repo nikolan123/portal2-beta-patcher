@@ -1,12 +1,12 @@
-# Portal 2 July 2009 Beta Patcher
+# Portal 2 Beta Patcher
 
-This program extracts and patches the July 2009 core hub beta of Portal 2. It can also apply generic patches to the other builds as well as extract them.
+This program extracts and patches various Portal 2 beta builds.
 
 # [Download Here](https://github.com/nikolan123/portal2-beta-patcher/releases/download/nightly/Portal2BetaPatcher.exe)
 
 ### List of supported and tested builds:
 
-- 852_0 - July 2009
+- 852_0 - July 2009 (+full subtitles)
 - 841_0 pre-reset - February 2010
 - 852_1 - March 2010
 
