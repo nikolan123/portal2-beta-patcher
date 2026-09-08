@@ -212,6 +212,8 @@ def test_continuous_campaign_patch_installs_verified_lmps(tmp_path):
     assert b'\x1bmap p2_lab_slowfield_1\x1b' not in hub_1
     hub_6 = (tmp_path / "portal2" / "maps" / "p2_lab_hub_6_l_0.lmp").read_bytes()
     assert b'campaign_incomplete_meow' in hub_6
+    hub_6_entities = re.findall(rb"\{.*?\}", hub_6[20:], flags=re.DOTALL)
+    assert b'"targetname" "campaign_incomplete_meow"' in hub_6_entities[1]
 
 
 def test_subtitle_patch_does_not_touch_autoexec(tmp_path):

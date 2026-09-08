@@ -24,7 +24,7 @@ LMP_HASHES = {
     "p2_lab_hub_3_l_0.lmp": "add32b181ea565ad29107b3c2ea10026ca784e698f77abc4cc09095cec4a2795",
     "p2_lab_hub_4_l_0.lmp": "ed88d0c28433c48f2cdcbac4ca45148a23c92d9afb81f795aa0798f2813d1918",
     "p2_lab_hub_5_l_0.lmp": "9aae5a7b7dbf0ed1bc40bf43f5347d024e887e6912c2d54958273d95d58cc127",
-    "p2_lab_hub_6_l_0.lmp": "79c30c036630db12f8dd3cd1118b2bcadff8846992ecac4b349c5f246ec49109",
+    "p2_lab_hub_6_l_0.lmp": "87c00da96eaa2a1cf4b63a6b17a299d66788ad5d7cb8cfa04349010b54a7a6b0",
     "p2_lab_prehub_2_l_0.lmp": "0de85aa02813f6361801f9b14dda8ca144d0039b2a6c649967c4ecda3c21af0a",
     "p2_lab_prehub_2a_l_0.lmp": "e4a48cf5245ae46657f171787bf20770be11ccb8329d65ac0d1777c012f7926a",
 }
