@@ -17,7 +17,7 @@ from patches.base import sha256_file
 from patches.build_852_0.hl2_assets.patch import ASSET_MARKER, HL2_ASSET_ALLOWLIST, copy_selected_loose_assets
 from patches.build_852_0.search_paths import SearchPathsPatch
 from patches.build_852_0.sound_manifest import HL2_SOUND_SCRIPTS
-from patches.build_852_0.dialogue import ORIGINAL_SCENE_CANCEL, PATCHED_SCENE_CANCEL, patch_glados_script
+from patches.build_852_0.dialogue import DialogueFixPatch, ORIGINAL_SCENE_CANCEL, PATCHED_SCENE_CANCEL, SCRIPT as DIALOGUE_MAPSPAWN, mapspawn_has_dialogue_fix, patch_glados_script
 from patches.build_852_0.subtitles import (
     FILES as SUBTITLE_FILES,
     Subtitles8520Patch,
@@ -176,6 +176,21 @@ def test_subtitle_patch_installs_dictionary_and_map_fixes(tmp_path):
         assert (tmp_path / relative).read_bytes() == subtitle_bundled_path(name).read_bytes()
     mapspawn = tmp_path / "portal2" / "scripts" / "vscripts" / "mapspawn.nut"
     assert mapspawn_has_subtitle_fixes(mapspawn.read_bytes())
+
+
+def test_dialogue_verification_accepts_subtitle_setup_appended_after_it(tmp_path):
+    context = PatchContext(tmp_path, None, BuildReport(), Event())
+    mapspawn = tmp_path / "portal2" / "scripts" / "vscripts" / "mapspawn.nut"
+    glados = tmp_path / "portal2" / "scripts" / "vscripts" / "choreo" / "glados.nut"
+    mapspawn.parent.mkdir(parents=True)
+    glados.parent.mkdir(parents=True)
+    mapspawn.write_bytes(DIALOGUE_MAPSPAWN)
+    glados.write_bytes(b"before\n" + PATCHED_SCENE_CANCEL + b"after\n")
+
+    Subtitles8520Patch().apply(context, lambda _event: None)
+
+    assert mapspawn_has_dialogue_fix(mapspawn.read_bytes())
+    DialogueFixPatch().verify(context)
 
 
 def test_multiplayer_patch_bundles_32_bit_source_built_asi_and_pinned_loader():

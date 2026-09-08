@@ -4,8 +4,6 @@ This patch adds a script to the game that fixes GLaDOS dialogue
 """
 from __future__ import annotations
 
-import hashlib
-
 from patches.definitions import PatchDefinition
 from models import PatchContext, ProgressCallback
 from patches.base import PatchError, atomic_write, backup_file
@@ -26,8 +24,6 @@ function fixlines()
 // The game crashes if the actor is created immediately.
 EntFire("worldspawn", "CallScriptFunction", "fixlines", 1.0)
 '''
-EXPECTED_SHA256 = hashlib.sha256(SCRIPT).hexdigest()
-
 ORIGINAL_SCENE_CANCEL = b'''\
 \t\t//Cancel any vcd that's already playing
 \t\tlocal curscene = self.GetCurrentScene()
@@ -76,6 +72,10 @@ def patch_glados_script(data: bytes) -> bytes:
 def glados_script_is_patched(data: bytes) -> bool:
     return PATCHED_SCENE_CANCEL in data.replace(b"\r\n", b"\n")
 
+
+def mapspawn_has_dialogue_fix(data: bytes) -> bool:
+    return SCRIPT in data.replace(b"\r\n", b"\n")
+
 class DialogueFixPatch:
     id = "852_0.dialogue"
     display_name = "GLaDOS dialogue"
@@ -92,7 +92,7 @@ class DialogueFixPatch:
         glados = self._glados_path(context)
         return (
             not path.is_file()
-            or hashlib.sha256(path.read_bytes()).hexdigest() != EXPECTED_SHA256
+            or not mapspawn_has_dialogue_fix(path.read_bytes())
             or not glados.is_file()
             or not glados_script_is_patched(glados.read_bytes())
         )
