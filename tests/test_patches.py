@@ -18,7 +18,7 @@ from patches.build_852_0.hl2_assets.patch import ASSET_MARKER, HL2_ASSET_ALLOWLI
 from patches.build_852_0.search_paths import SearchPathsPatch
 from patches.build_852_0.sound_manifest import HL2_SOUND_SCRIPTS
 from patches.build_852_0.dialogue import DialogueFixPatch, ORIGINAL_SCENE_CANCEL, PATCHED_SCENE_CANCEL, SCRIPT as DIALOGUE_MAPSPAWN, mapspawn_has_dialogue_fix, patch_glados_script
-from patches.build_852_0.subtitles import (
+from patches.build_852_0.subtitles.patch import (
     FILES as SUBTITLE_FILES,
     Subtitles8520Patch,
     bundled_path as subtitle_bundled_path,
