@@ -3,9 +3,10 @@ Install English subtitles and the fixes needed to display them correctly.
 
 - Subtitles:
   - Installs closecaption_english.txt and its compiled closecaption_english.dat (tools/compile_subtitles.py) database.
+  - Installs patcher_subtitles.cfg with scene_maxcaptionradius 0 so GLaDOS scene captions display even though the dialogue actor is outside the map.
 - Aquarium Core:
-  - Replaces game_sounds_spheres_auto_generated.txt with the original 852_0 file modified only by changing the volume of sphere02.NOTHELD, sphere02.HELD, and sphere02.PAIN to 0. These random sound groups cannot identify which WAV they selected, so we play them ourselves in aquarium_core.nut
-  - Installs aquarium_core.nut and launches it only in p2_lab_slowfield_1. The script finds brain_core_sphere_0, connects to its pickup, drop, damage, and punt outputs, activates nearby chatter using the map's existing trigger_once volumes.
+  - Replaces game_sounds_spheres_auto_generated.txt with the original 852_0 file modified only by changing sphere02.NOTHELD, sphere02.HELD, and sphere02.PAIN to volume 0 and CHAN_AUTO. These random sound groups cannot identify which WAV they selected, so we play them ourselves in aquarium_core.nut, and moving the muted events off CHAN_VOICE prevents them from cutting off those replacement lines.
+  - Installs aquarium_core.nut and launches it in p2_lab_slowfield_1 and p2_lab_hub_2. The script finds brain_core_sphere_0, connects to its pickup, drop, damage, and punt outputs, activates nearby chatter using the first map's existing trigger_once volumes, and resumes held chatter after the transition into the second map.
 - Curiosity Core:
   - Installs curiosity_core.nut and launches it only in p2_lab_lasers_1.
   - Redirects three Curiosity Core sounds through their existing Portal sound events so their captions display reliably.
@@ -30,6 +31,7 @@ PACKAGE = "build_852_0/subtitles"
 FILES = {
     "closecaption_english.txt": "portal2/resource/closecaption_english.txt",
     "closecaption_english.dat": "portal2/resource/closecaption_english.dat",
+    "patcher_subtitles.cfg": "portal2/cfg/patcher_subtitles.cfg",
     "game_sounds_spheres_auto_generated.txt": "portal2/scripts/game_sounds_spheres_auto_generated.txt",
     "aquarium_core.nut": "portal2/scripts/vscripts/subtitle_fixes/aquarium_core.nut",
     "curiosity_core.nut": "portal2/scripts/vscripts/subtitle_fixes/curiosity_core.nut",
@@ -37,7 +39,7 @@ FILES = {
 
 MAPSPAWN_BLOCK = b'''\
 // Portal 2 beta subtitle fixes
-if (GetMapName() == "p2_lab_slowfield_1")
+if (GetMapName() == "p2_lab_slowfield_1" || GetMapName() == "p2_lab_hub_2")
 {
     EntFire("worldspawn", "RunScriptFile", "subtitle_fixes/aquarium_core.nut", 0.1)
 }
@@ -47,7 +49,6 @@ if (GetMapName() == "p2_lab_lasers_1")
     EntFire("worldspawn", "RunScriptFile", "subtitle_fixes/curiosity_core.nut", 0.1)
 }
 '''
-
 
 def bundled_path(name: str) -> Path:
     return resource_path(Resource(PACKAGE, name))
@@ -59,10 +60,7 @@ def destination_path(context: PatchContext, name: str) -> Path:
 
 def mapspawn_has_subtitle_fixes(data: bytes) -> bool:
     normalized = data.replace(b"\r\n", b"\n")
-    return (
-        b'RunScriptFile", "subtitle_fixes/aquarium_core.nut"' in normalized
-        and b'RunScriptFile", "subtitle_fixes/curiosity_core.nut"' in normalized
-    )
+    return MAPSPAWN_BLOCK in normalized
 
 
 def patch_mapspawn(data: bytes) -> bytes:

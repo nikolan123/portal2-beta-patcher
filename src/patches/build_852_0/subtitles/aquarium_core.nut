@@ -1,4 +1,4 @@
-// Caption replacement for the Aquarium core in p2_lab_slowfield_1 (852_0)
+// Caption replacement for the Aquarium core in p2_lab_slowfield_1 and the following p2_lab_hub_2 (852_0)
 //
 // The game picks these voice lines at random but gives them all the same
 // subtitle. The original group is muted, and this script plays each line by
@@ -133,6 +133,15 @@ function AquariumSetup()
     AquariumCore.ConnectOutput("OnPhysGunDrop", "AquariumDropped")
     AquariumCore.ConnectOutput("OnDamaged", "AquariumHurt")
     AquariumCore.ConnectOutput("OnPhysGunPunt", "AquariumHurt")
+
+    // The player enters hub_2 already holding this core, so there is no new
+    // pickup output to start its held chatter.
+    if (GetMapName() == "p2_lab_hub_2")
+    {
+        AquariumHeld = true
+        AquariumActive = true
+        AquariumNextLine = Time() + 0.05
+    }
 
     // The map already has player-only trigger_once volumes surrounding this
     // mounted core. Use those instead of an invented distance threshold so

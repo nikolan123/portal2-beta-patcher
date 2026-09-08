@@ -174,8 +174,27 @@ def test_subtitle_patch_installs_dictionary_and_map_fixes(tmp_path):
 
     for name, relative in SUBTITLE_FILES.items():
         assert (tmp_path / relative).read_bytes() == subtitle_bundled_path(name).read_bytes()
+    sphere_sounds = subtitle_bundled_path("game_sounds_spheres_auto_generated.txt").read_bytes().replace(b"\r\n", b"\n")
+    for event in (b"NOTHELD", b"HELD", b"PAIN"):
+        prefix = b'"sphere02.' + event + b'"\n{\n\t"channel"\t"CHAN_AUTO"\n\t"volume"\t"0"'
+        assert prefix in sphere_sounds
+    assert b'"sphere02.AQUARIUM01"\n{\n\t"channel"\t"CHAN_VOICE"' in sphere_sounds
     mapspawn = tmp_path / "portal2" / "scripts" / "vscripts" / "mapspawn.nut"
     assert mapspawn_has_subtitle_fixes(mapspawn.read_bytes())
+    assert b'GetMapName() == "p2_lab_hub_2"' in mapspawn.read_bytes()
+    assert (tmp_path / "portal2" / "cfg" / "patcher_subtitles.cfg").read_bytes().splitlines() == [b"scene_maxcaptionradius 0"]
+
+
+def test_subtitle_patch_does_not_touch_autoexec(tmp_path):
+    autoexec = tmp_path / "portal2" / "cfg" / "autoexec.cfg"
+    autoexec.parent.mkdir(parents=True)
+    original = b"echo mine\r\n"
+    autoexec.write_bytes(original)
+    context = PatchContext(tmp_path, None, BuildReport(), Event())
+
+    Subtitles8520Patch().apply(context, lambda _event: None)
+
+    assert autoexec.read_bytes() == original
 
 
 def test_dialogue_verification_accepts_subtitle_setup_appended_after_it(tmp_path):
@@ -318,6 +337,8 @@ def test_launcher_uses_wrapper_with_normal_executable_fallback():
     assert b'if not exist "%GAMEROOT%hl2.exe" if exist "%GAMEROOT%portal2.exe" set "GAME=portal2.exe"' in LAUNCHER
     assert b'if exist "%GAMEROOT%hl2.exe" if exist "%GAMEROOT%hl2.wrap.exe"' in LAUNCHER
     assert b'if exist "%GAMEROOT%portal2\\cfg\\patcher_multicore.cfg"' in LAUNCHER
+    assert b'if exist "%GAMEROOT%portal2\\cfg\\patcher_subtitles.cfg"' in LAUNCHER
+    assert b'%MULTICORE% %SUBTITLES% %*' in LAUNCHER
 
 
 def test_first_launch_audio_setup_retries_and_then_skips(tmp_path):

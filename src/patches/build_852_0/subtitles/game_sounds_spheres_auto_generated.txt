@@ -1112,7 +1112,7 @@
 //*****************************************************************************************
 "sphere02.NOTHELD"
 {
-	"channel"	"CHAN_VOICE"
+	"channel"	"CHAN_AUTO"
 	"volume"	"0"
 	"pitch"	"95, 110"
 	"soundlevel"	"SNDLVL_100dB"
@@ -1131,7 +1131,7 @@
 }
 "sphere02.HELD"
 {
-	"channel"	"CHAN_VOICE"
+	"channel"	"CHAN_AUTO"
 	"volume"	"0"
 	"pitch"	"95, 110"
 	"soundlevel"	"SNDLVL_100dB"
@@ -1157,7 +1157,7 @@
 }
 "sphere02.PAIN"
 {
-	"channel"	"CHAN_VOICE"
+	"channel"	"CHAN_AUTO"
 	"volume"	"0"
 	"pitch"	"95, 110"
 	"soundlevel"	"SNDLVL_100dB"

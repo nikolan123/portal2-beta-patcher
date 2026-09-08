@@ -22,8 +22,10 @@ if not exist "%GAMEROOT%hl2.exe" if exist "%GAMEROOT%portal2.exe" set "GAME=port
 if exist "%GAMEROOT%hl2.exe" if exist "%GAMEROOT%hl2.wrap.exe" set "GAME=hl2.wrap.exe"
 set "MULTICORE="
 if exist "%GAMEROOT%portal2\cfg\patcher_multicore.cfg" set "MULTICORE=+exec patcher_multicore.cfg"
+set "SUBTITLES="
+if exist "%GAMEROOT%portal2\cfg\patcher_subtitles.cfg" set "SUBTITLES=+exec patcher_subtitles.cfg"
 
-start "" /D "%GAMEROOT%" "%GAMEROOT%%GAME%" -game portal2 -windowed -w 1366 -h 768 -console %MULTICORE% %*
+start "" /D "%GAMEROOT%" "%GAMEROOT%%GAME%" -game portal2 -windowed -w 1366 -h 768 -console %MULTICORE% %SUBTITLES% %*
 endlocal
 '''.replace("\n", "\r\n").encode("ascii")
 
