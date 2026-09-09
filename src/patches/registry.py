@@ -5,6 +5,7 @@ from patches.build_852_0.dialogue import DEFINITION as DIALOGUEFIXPATCH
 from patches.build_852_0.subtitles.patch import DEFINITION as SUBTITLES8520PATCH
 from patches.build_852_0.continuous_campaign.patch import DEFINITION as CONTINUOUSCAMPAIGNPATCH
 from patches.build_852_0.vscript_scope_fix import DEFINITION as VSCRIPTSCOPEFIXPATCH
+from patches.build_852_0.smooth_jazz import DEFINITION as SMOOTHJAZZPATCH
 from patches.generic.thread_fix.patch import DEFINITION as THREADFIXPATCH
 from patches.generic.launchers import DEFINITION as LAUNCHERSPATCH
 from patches.build_852_0.hammer import DEFINITION as HAMMERPATCH
@@ -34,6 +35,7 @@ DEFINITIONS = (
     SUBTITLES8520PATCH,
     CONTINUOUSCAMPAIGNPATCH,
     VSCRIPTSCOPEFIXPATCH,
+    SMOOTHJAZZPATCH,
     THREADFIXPATCH,
     LAUNCHERSPATCH,
     HAMMERPATCH,

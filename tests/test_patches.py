@@ -48,6 +48,11 @@ from patches.build_852_0.vscript_scope_fix import (
     patch_client,
     patch_server,
 )
+from patches.build_852_0.smooth_jazz import (
+    CUES as SMOOTH_JAZZ_CUES,
+    SmoothJazzPatch,
+    trim_smooth_jazz,
+)
 from patches.generic.thread_fix.patch import (
     FILES,
     ThreadFixPatch,
@@ -107,7 +112,7 @@ from patches import repair
 
 
 def test_patch_registry_has_descriptive_ids_and_stable_order():
-    assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.vscript_scope_fix", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer", "852_2.hammer"]
+    assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.vscript_scope_fix", "852_0.smooth_jazz", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer", "852_2.hammer"]
     assert all(patch.description for patch in PATCHES)
     assert set(PATCH_COMPATIBILITY) == {"generic", (841, 0, 0x83CED978), (852, 0), (852, 1), (852, 2)}
     assert PATCH_COMPATIBILITY["generic"].required == {"launchers"}
@@ -143,7 +148,7 @@ def test_patch_dependencies_and_required_launcher():
     assert normalize_patch_ids(("852_1.extra_assets.bundled",), "generic", depot_id=852, depot_version=2) == ("launchers",)
     assert normalize_patch_ids(("852_1.hammer",), "generic", depot_id=852, depot_version=1) == ("launchers", "852_1.hammer")
     assert normalize_patch_ids(("852_1.hammer",), "generic", depot_id=852, depot_version=2) == ("launchers",)
-    assert compatible_patch_ids("852_0") == ("852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.vscript_scope_fix", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "goldberg", "852_0.multiplayer")
+    assert compatible_patch_ids("852_0") == ("852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.vscript_scope_fix", "852_0.smooth_jazz", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "goldberg", "852_0.multiplayer")
     assert compatible_patch_ids("generic", 852, 1) == ("thread_fix", "launchers", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer")
     assert compatible_patch_ids("generic", 852, 2) == ("thread_fix", "launchers", "multicore", "goldberg", "852_2.hammer")
     assert normalize_patch_ids((), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ()
@@ -226,6 +231,39 @@ def test_mixup_turret_fix_matches_the_verified_852_0_dlls_when_available(tmp_pat
     assert not patch.check(context)
     assert sha256_file(server_destination.with_name("server.original.bak")) == ORIGINAL_SERVER_SHA256
     assert sha256_file(client_destination.with_name("client.original.bak")) == ORIGINAL_CLIENT_SHA256
+
+
+def test_smooth_jazz_patch_keeps_only_the_dialogue_in_both_cues_when_available(tmp_path):
+    source_root = Path(r"C:\Users\Niko\Documents\p2betas\852_0\portal2_tempcontent\sound\vo\glados")
+    sources = tuple(source_root / cue.filename for cue in SMOOTH_JAZZ_CUES)
+    if any(not source.is_file() for source in sources):
+        return
+    if any(sha256_file(source) != cue.original_sha256 for source, cue in zip(sources, SMOOTH_JAZZ_CUES)):
+        return
+
+    destination_root = tmp_path / "portal2_tempcontent" / "sound" / "vo" / "glados"
+    destination_root.mkdir(parents=True)
+    for source, cue in zip(sources, SMOOTH_JAZZ_CUES):
+        original = source.read_bytes()
+        patched = trim_smooth_jazz(original, cue.cut_seconds)
+        kept_data_size = cue.cut_seconds * 88200
+        assert sha256(patched).hexdigest() == cue.patched_sha256
+        assert len(patched) == 44 + kept_data_size
+        assert int.from_bytes(patched[4:8], "little") == len(patched) - 8
+        assert int.from_bytes(patched[40:44], "little") == kept_data_size
+        assert patched[8:40] == original[8:40]
+        assert patched[44:] == original[44:44 + kept_data_size]
+        (destination_root / cue.filename).write_bytes(original)
+
+    context = PatchContext(tmp_path, None, BuildReport(), Event())
+    patch = SmoothJazzPatch()
+    assert patch.check(context)
+    patch.apply(context, lambda _event: None)
+    patch.verify(context)
+    assert not patch.check(context)
+    for cue in SMOOTH_JAZZ_CUES:
+        backup = destination_root / f"{Path(cue.filename).stem}.original.bak"
+        assert sha256_file(backup) == cue.original_sha256
 
 
 def test_dialogue_patch_replaces_single_player_scene_cancellation():
