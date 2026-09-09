@@ -87,6 +87,7 @@ class PatcherUI(TkBase):
         self.generic_output_var = tk.StringVar()
         self.custom_key_var = tk.StringVar()
         self.goldberg_zip_var = tk.StringVar()
+        self.moved_build_var = tk.StringVar()
         self.catalog_targets: list[CatalogTarget] = []
         self.selected_target: CatalogTarget | None = None
         self.progress_fraction = 0.0
@@ -158,6 +159,57 @@ class PatcherUI(TkBase):
             "Extract another build and choose fixes.",
             self.show_generic_files,
         ).pack(fill="x")
+        self.wide_button(choices, "More", self.show_more_options).pack(fill="x", pady=(12, 0))
+
+    def show_more_options(self) -> None:
+        self.clear()
+        self.heading("More options", "More options")
+
+        bottom = tk.Frame(self.container, bg=BG)
+        bottom.pack(side="bottom", fill="x")
+        self.button(bottom, "Back", self.show_mode_selection, secondary=True, width=10).pack(side="left")
+
+        choices = tk.Frame(self.container, bg=BG)
+        choices.pack(fill="x", pady=(20, 0))
+        self.mode_choice(
+            choices,
+            "Fix moved build",
+            "Only use this if Hammer stopped working after you moved a patched build.",
+            self.show_repair_tools,
+        ).pack(fill="x")
+
+    def show_repair_tools(self) -> None:
+        self.moved_build_var.set("")
+        self.clear()
+        self.heading(
+            "Fix moved build",
+            "Repair Hammer's saved paths after moving a patched build to a different folder.",
+        )
+
+        bottom = tk.Frame(self.container, bg=BG)
+        bottom.pack(side="bottom", fill="x")
+        self.button(bottom, "Back", self.show_more_options, secondary=True, width=10).pack(side="left")
+        self.button(bottom, "Fix build", self.repair_tools, width=13).pack(side="right")
+
+        form = tk.Frame(self.container, bg=BG)
+        form.pack(fill="x", pady=(22, 0))
+        self.file_row(form, "Build folder", self.moved_build_var, "", True)
+
+        notice = tk.Frame(self.container, bg=PANEL, highlightbackground=BORDER, highlightthickness=1)
+        notice.pack(fill="x", pady=(10, 0))
+        tk.Label(
+            notice,
+            text=(
+                "Most builds do not need this. Use it only for a patched build when "
+                "Hammer stopped working after the build was moved. If Hammer still works, do not use it."
+            ),
+            bg=PANEL,
+            fg=MUTED,
+            anchor="w",
+            justify="left",
+            wraplength=590,
+            font=("Segoe UI", 9),
+        ).pack(fill="x", padx=16, pady=13)
 
     def mode_choice(self, parent, title: str, detail: str, command):
         panel = tk.Frame(parent, bg=PANEL, highlightbackground=BORDER, highlightthickness=1)
@@ -201,6 +253,18 @@ class PatcherUI(TkBase):
             pady=7,
         )
 
+    def wide_button(self, parent, text: str, command):
+        border = tk.Frame(parent, bg=BORDER)
+        button = self.button(border, text, command, secondary=True)
+        button.configure(
+            bg=PANEL,
+            activebackground=PANEL,
+            relief="flat",
+            borderwidth=0,
+        )
+        button.pack(fill="both", expand=True, padx=1, pady=1)
+        return border
+
     def show_generic_files(self, reset: bool = True) -> None:
         self.current_mode = "generic"
         if reset:
@@ -213,7 +277,6 @@ class PatcherUI(TkBase):
         bottom = tk.Frame(self.container, bg=BG)
         bottom.pack(side="bottom", fill="x")
         self.button(bottom, "Back", self.show_mode_selection, secondary=True, width=10).pack(side="left")
-        self.button(bottom, "Fix moved build", self.repair_tools, secondary=True, width=17).pack(side="left", padx=(10, 0))
         self.generic_next_button = self.button(bottom, "Next", self.show_generic_patch_chooser, width=13)
         self.generic_next_button.configure(state="disabled")
         self.generic_next_button.pack(side="right")
@@ -344,7 +407,6 @@ class PatcherUI(TkBase):
         bottom = tk.Frame(self.container, bg=BG)
         bottom.pack(side="bottom", fill="x")
         self.button(bottom, "Back", self.show_mode_selection, secondary=True, width=10).pack(side="left")
-        self.button(bottom, "Fix moved build", self.repair_tools, secondary=True, width=17).pack(side="left", padx=(10, 0))
         self.button(bottom, "Next", self.show_patch_chooser, width=13).pack(side="right")
         form = tk.Frame(self.container, bg=BG)
         form.pack(fill="x", pady=(20, 0))
@@ -441,13 +503,9 @@ class PatcherUI(TkBase):
             variable.set(selected)
 
     def repair_tools(self) -> None:
-        messagebox.showinfo(
-            "Fix moved build",
-            "Use this after moving a patched 852_0 or 852_2 build. It updates Hammer's paths.",
-            parent=self,
-        )
-        selected = filedialog.askdirectory(title="Select the moved patched build folder")
+        selected = self.moved_build_var.get().strip()
         if not selected:
+            messagebox.showwarning("Fix moved build", "Choose the moved build folder first.", parent=self)
             return
         try:
             build = repair_moved_build(Path(selected))
