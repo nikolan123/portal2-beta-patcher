@@ -57,13 +57,14 @@ from patches.build_852_1.legacy_paint import ORIGINAL_BYTES, PATCHED_BYTES, PATC
 from patches.build_852_1.extra_assets.from_july_2010 import July2010AssetsPatch
 from patches.build_852_1.extra_assets.from_july_2009 import July2009AssetsPatch, overlay_tree
 from patches.build_852_1.extra_assets.bundled import ARCHIVE_SHA256 as MARCH_ASSET_ARCHIVE_SHA256, MarchAssetsPatch, read_bundle
-from patches.build_852_1.tier0_thread_limit import (
+from patches.build_852_1.hammer import (
     EXPECTED_REFERENCE_OFFSETS as REFERENCE_OFFSETS_852_1,
     ORIGINAL_TIER0_SHA256 as ORIGINAL_852_1_TIER0_SHA256,
     PATCHED_TIER0_SHA256 as PATCHED_852_1_TIER0_SHA256,
-    Tier0ThreadLimit8521Patch,
+    Hammer8521Patch,
     patch_852_1_tier0,
 )
+from patches.build_852_1 import hammer as hammer_852_1
 from patches.build_841_0_prereset.missing_launcher.patch import (
     LAUNCHER_SHA256,
     Hl2LauncherPatch,
@@ -87,7 +88,7 @@ from patches import repair
 
 
 def test_patch_registry_has_descriptive_ids_and_stable_order():
-    assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.tier0_thread_limit", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer", "852_2.hammer"]
+    assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer", "852_2.hammer"]
     assert all(patch.description for patch in PATCHES)
     assert set(PATCH_COMPATIBILITY) == {"generic", (841, 0, 0x83CED978), (852, 0), (852, 1), (852, 2)}
     assert PATCH_COMPATIBILITY["generic"].required == {"launchers"}
@@ -98,7 +99,7 @@ def test_patch_registry_has_descriptive_ids_and_stable_order():
     assert "852_1.extra_assets.from_july_2010" in PATCH_COMPATIBILITY[(852, 1)].optional
     assert "852_1.extra_assets.from_july_2009" in PATCH_COMPATIBILITY[(852, 1)].optional
     assert "852_1.extra_assets.bundled" in PATCH_COMPATIBILITY[(852, 1)].optional
-    assert "852_1.tier0_thread_limit" in PATCH_COMPATIBILITY[(852, 1)].optional
+    assert "852_1.hammer" in PATCH_COMPATIBILITY[(852, 1)].optional
     assert PATCH_COMPATIBILITY[(841, 0, 0x83CED978)].required == {"launchers"}
     assert "841_0_prereset.missing_launcher" in PATCH_COMPATIBILITY[(841, 0, 0x83CED978)].optional
     assert "841_0_prereset.tier0_thread_limit" in PATCH_COMPATIBILITY[(841, 0, 0x83CED978)].optional
@@ -121,10 +122,10 @@ def test_patch_dependencies_and_required_launcher():
     assert normalize_patch_ids(("852_1.extra_assets.from_july_2009",), "generic", depot_id=852, depot_version=2) == ("launchers",)
     assert normalize_patch_ids(("852_1.extra_assets.bundled",), "generic", depot_id=852, depot_version=1) == ("launchers", "852_1.extra_assets.bundled")
     assert normalize_patch_ids(("852_1.extra_assets.bundled",), "generic", depot_id=852, depot_version=2) == ("launchers",)
-    assert normalize_patch_ids(("852_1.tier0_thread_limit",), "generic", depot_id=852, depot_version=1) == ("launchers", "852_1.tier0_thread_limit")
-    assert normalize_patch_ids(("852_1.tier0_thread_limit",), "generic", depot_id=852, depot_version=2) == ("launchers",)
+    assert normalize_patch_ids(("852_1.hammer",), "generic", depot_id=852, depot_version=1) == ("launchers", "852_1.hammer")
+    assert normalize_patch_ids(("852_1.hammer",), "generic", depot_id=852, depot_version=2) == ("launchers",)
     assert compatible_patch_ids("852_0") == ("852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "goldberg", "852_0.multiplayer")
-    assert compatible_patch_ids("generic", 852, 1) == ("thread_fix", "launchers", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.tier0_thread_limit")
+    assert compatible_patch_ids("generic", 852, 1) == ("thread_fix", "launchers", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer")
     assert compatible_patch_ids("generic", 852, 2) == ("thread_fix", "launchers", "multicore", "goldberg", "852_2.hammer")
     assert normalize_patch_ids((), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ()
     assert normalize_patch_ids((), "generic", runnable=True, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("launchers",)
@@ -287,13 +288,13 @@ def test_multiplayer_patch_installs_runtime_files_without_changing_game_dlls(tmp
     assert (tmp_path / ".p2patcher" / "LICENCE-dxwrapper.txt").is_file()
 
 
-def test_852_1_tier0_patch_matches_the_known_dll_when_available():
+def test_852_1_hammer_tier0_patch_matches_the_known_dll_when_available():
     source = Path(r"C:\Users\Niko\Documents\p2betas\852_1\bin\tier0.dll")
     if not source.is_file() or sha256_file(source) != ORIGINAL_852_1_TIER0_SHA256:
         return
     patched = patch_852_1_tier0(source.read_bytes())
     assert sha256(patched).hexdigest() == PATCHED_852_1_TIER0_SHA256
-    assert Tier0ThreadLimit8521Patch.id == "852_1.tier0_thread_limit"
+    assert Hammer8521Patch.id == "852_1.hammer"
 
 
 def test_july_2010_asset_patch_uses_requested_description():
@@ -499,6 +500,50 @@ def test_hammer_layout_physically_moves_runtime_without_duplicates(tmp_path):
     assert (tmp_path / "game" / "hl2.wrap.exe").read_bytes() == b"wrapper"
 
 
+def test_852_1_hammer_config_and_gameinfo_patch(tmp_path):
+    config = hammer_852_1.game_config(tmp_path).decode("utf-8")
+    launcher = hammer_852_1.hammer_launcher().decode("ascii")
+    gameinfo = (
+        b'"GameInfo"\n{\n\tFileSystem\n\t{\n\t\tSearchPaths\n\t\t{\n'
+        b'\t\t\tGame\t\t\t\tportal2_tempcontent\n'
+        b'\t\t\tGame\t\t\t\tportal\n\t\t}\n\t}\n}\n'
+    )
+
+    patched = hammer_852_1.patch_gameinfo(gameinfo)
+
+    assert f'"GameDir" "{tmp_path}\\portal2"' in config
+    assert f'"MapDir" "{tmp_path}\\content\\portal2\\mapsrc"' in config
+    assert '-nop4 -threads 4' in launcher
+    assert b'|gameinfo_path|..\\platform' in patched
+    assert hammer_852_1.patch_gameinfo(patched) == patched
+
+
+def test_852_1_moved_build_rewrites_absolute_hammer_paths(tmp_path, monkeypatch):
+    for path in (
+        tmp_path / "bin" / "hammer.exe",
+        tmp_path / "bin" / "portal2.fgd",
+        tmp_path / "bin" / "tier0.dll",
+        tmp_path / "platform" / "materials" / "Editor" / "wireframe.vmt",
+    ):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"test")
+    gameinfo = tmp_path / "portal2" / "GameInfo.txt"
+    gameinfo.parent.mkdir(parents=True)
+    gameinfo.write_bytes(
+        b'"GameInfo"\n{\n\tFileSystem\n\t{\n\t\tSearchPaths\n\t\t{\n'
+        b'\t\t\tGame\t\t\t\tportal2_tempcontent\n'
+        b'\t\t\tGame\t\t\t\t|gameinfo_path|..\\platform\n\t\t}\n\t}\n}\n'
+    )
+    monkeypatch.setattr(hammer_852_1, "sha256_file", lambda _path: hammer_852_1.PATCHED_TIER0_SHA256)
+
+    hammer_852_1.repair_moved_tools(tmp_path)
+
+    config = (tmp_path / "bin" / "GameConfig.txt").read_text(encoding="utf-8")
+    assert f'"GameDir" "{tmp_path.resolve()}\\portal2"' in config
+    assert (tmp_path / "content" / "portal2" / "mapsrc").is_dir()
+    assert (tmp_path / "Launch Hammer.cmd").read_bytes() == hammer_852_1.hammer_launcher()
+
+
 def test_852_2_moved_build_rewrites_absolute_hammer_paths(tmp_path, monkeypatch):
     for path in (
         tmp_path / "bin" / "hammer.exe",
@@ -525,9 +570,10 @@ def test_852_2_moved_build_rewrites_absolute_hammer_paths(tmp_path, monkeypatch)
     assert (tmp_path / "Launch Hammer.cmd").read_bytes() == hammer_852_2.hammer_launcher()
 
 
-def test_moved_build_repair_detects_both_supported_layouts(tmp_path, monkeypatch):
+def test_moved_build_repair_detects_supported_layouts(tmp_path, monkeypatch):
     calls = []
     monkeypatch.setattr(repair, "repair_852_0_tools", lambda root: calls.append(("852_0", root)))
+    monkeypatch.setattr(repair, "repair_852_1_tools", lambda root: calls.append(("852_1", root)))
     monkeypatch.setattr(repair, "repair_852_2_tools", lambda root: calls.append(("852_2", root)))
 
     old_layout = tmp_path / "old"
@@ -535,11 +581,27 @@ def test_moved_build_repair_detects_both_supported_layouts(tmp_path, monkeypatch
     (old_layout / "game" / "bin" / "hammer.exe").write_bytes(b"")
     assert repair.repair_moved_build(old_layout) == "852_0"
 
-    new_layout = tmp_path / "new"
-    (new_layout / "bin").mkdir(parents=True)
-    (new_layout / "bin" / "hammer.exe").write_bytes(b"")
-    assert repair.repair_moved_build(new_layout) == "852_2"
-    assert [build for build, _root in calls] == ["852_0", "852_2"]
+    build_852_1 = tmp_path / "852_1"
+    (build_852_1 / "bin").mkdir(parents=True)
+    (build_852_1 / "bin" / "hammer.exe").write_bytes(b"")
+    (build_852_1 / "bin" / "tier0.dll").write_bytes(b"852_1")
+    build_852_2 = tmp_path / "852_2"
+    (build_852_2 / "bin").mkdir(parents=True)
+    (build_852_2 / "bin" / "hammer.exe").write_bytes(b"")
+    (build_852_2 / "bin" / "tier0.dll").write_bytes(b"852_2")
+    monkeypatch.setattr(
+        repair,
+        "sha256_file",
+        lambda path: (
+            repair.PATCHED_852_1_TIER0_SHA256
+            if path.parent.parent.name == "852_1"
+            else repair.PATCHED_852_2_TIER0_SHA256
+        ),
+    )
+
+    assert repair.repair_moved_build(build_852_1) == "852_1"
+    assert repair.repair_moved_build(build_852_2) == "852_2"
+    assert [build for build, _root in calls] == ["852_0", "852_1", "852_2"]
 
 
 def test_hl2_assets_use_curated_compatibility_allowlist():

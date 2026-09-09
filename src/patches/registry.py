@@ -14,7 +14,7 @@ from patches.build_852_1.legacy_paint import DEFINITION as LEGACYPAINTPATCH
 from patches.build_852_1.extra_assets.from_july_2010 import DEFINITION as JULY2010ASSETSPATCH
 from patches.build_852_1.extra_assets.from_july_2009 import DEFINITION as JULY2009ASSETSPATCH
 from patches.build_852_1.extra_assets.bundled import DEFINITION as MARCHASSETSPATCH
-from patches.build_852_1.tier0_thread_limit import DEFINITION as TIER0THREADLIMIT8521PATCH
+from patches.build_852_1.hammer import DEFINITION as HAMMER8521PATCH
 from patches.build_841_0_prereset.missing_launcher.patch import DEFINITION as HL2LAUNCHERPATCH
 from patches.build_841_0_prereset.tier0_thread_limit import DEFINITION as TIER0THREADLIMIT8410PATCH
 from patches.build_852_0.multiplayer.patch import DEFINITION as MULTIPLAYER8520PATCH
@@ -42,7 +42,7 @@ DEFINITIONS = (
     JULY2010ASSETSPATCH,
     JULY2009ASSETSPATCH,
     MARCHASSETSPATCH,
-    TIER0THREADLIMIT8521PATCH,
+    HAMMER8521PATCH,
     HL2LAUNCHERPATCH,
     TIER0THREADLIMIT8410PATCH,
     MULTIPLAYER8520PATCH,

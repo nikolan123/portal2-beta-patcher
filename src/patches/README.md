@@ -6,28 +6,29 @@ Patches for one specific build are in `build_852_0`, `build_852_1`, and `build_8
 
 <!-- compatibility:start -->
 
-| Patch ID | 841_0_prereset | 852_0 | 852_1 | generic |
-| --- | --- | --- | --- | --- |
-| `852_0.hl2_assets` | — | Optional | — | — |
-| `852_0.search_paths` | — | Required | — | — |
-| `852_0.sound_manifest` | — | Optional | — | — |
-| `852_0.dialogue` | — | Optional | — | — |
-| `852_0.subtitles` | — | Optional | — | — |
-| `852_0.continuous_campaign` | — | Optional | — | — |
-| `thread_fix` | Optional | Optional | Optional | Optional |
-| `launchers` | Required | Required | Required | Required |
-| `852_0.hammer` | — | Optional | — | — |
-| `852_0.extra_assets` | — | Optional | — | — |
-| `multicore` | Optional | — | — | Optional |
-| `goldberg` | Optional | Optional | Optional | Optional |
-| `852_1.legacy_paint` | — | — | Optional | — |
-| `852_1.extra_assets.from_july_2010` | — | — | Optional | — |
-| `852_1.extra_assets.from_july_2009` | — | — | Optional | — |
-| `852_1.extra_assets.bundled` | — | — | Optional | — |
-| `852_1.tier0_thread_limit` | — | — | Optional | — |
-| `841_0_prereset.missing_launcher` | Optional | — | — | — |
-| `841_0_prereset.tier0_thread_limit` | Optional | — | — | — |
-| `852_0.multiplayer` | — | Optional | — | — |
+| Patch ID | 841_0_prereset | 852_0 | 852_1 | 852_2 | generic |
+| --- | --- | --- | --- | --- | --- |
+| `852_0.hl2_assets` | — | Optional | — | — | — |
+| `852_0.search_paths` | — | Required | — | — | — |
+| `852_0.sound_manifest` | — | Optional | — | — | — |
+| `852_0.dialogue` | — | Optional | — | — | — |
+| `852_0.subtitles` | — | Optional | — | — | — |
+| `852_0.continuous_campaign` | — | Optional | — | — | — |
+| `thread_fix` | Optional | Optional | Optional | Optional | Optional |
+| `launchers` | Required | Required | Required | Required | Required |
+| `852_0.hammer` | — | Optional | — | — | — |
+| `852_0.extra_assets` | — | Optional | — | — | — |
+| `multicore` | Optional | — | — | Optional | Optional |
+| `goldberg` | Optional | Optional | Optional | Optional | Optional |
+| `852_1.legacy_paint` | — | — | Optional | — | — |
+| `852_1.extra_assets.from_july_2010` | — | — | Optional | — | — |
+| `852_1.extra_assets.from_july_2009` | — | — | Optional | — | — |
+| `852_1.extra_assets.bundled` | — | — | Optional | — | — |
+| `852_1.hammer` | — | — | Optional | — | — |
+| `841_0_prereset.missing_launcher` | Optional | — | — | — | — |
+| `841_0_prereset.tier0_thread_limit` | Optional | — | — | — | — |
+| `852_0.multiplayer` | — | Optional | — | — | — |
+| `852_2.hammer` | — | — | — | Optional | — |
 
 <!-- compatibility:end -->
 
@@ -129,11 +130,11 @@ Copies tempcontent from July 2009 852_0. When both this patch and 852_1.extra_as
 
 Installs some missing materials and models in the supplied March build patch. The assets are bundled in a ZIP.
 
-### 852_1.tier0_thread_limit - Tier0 Thread Limit
+### 852_1.hammer - Hammer
 
-This build's `tier0.dll` has a table with only 32 thread id slots, which can fail on modern CPUs that expose more threads.
+This patch configures Portal 2 Hammer, creates the mapsource folder, mounts the included editor materials, expands this build's `tier0.dll` thread-ID table from 32 to 128 slots, and creates a movable launcher.
 
-This patch expands that table to 128 slots.
+Hammer's configuration contains the installation path. If the completed build is moved later, the patcher's **Fix moved build** action rewrites it for its new folder.
 
 ## 852_2
 
