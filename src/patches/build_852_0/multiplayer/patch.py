@@ -7,10 +7,12 @@ from patches.resources import resource_path
 from patches.definitions import PatchDefinition, Resource
 from models import BuildCancelled, PatchContext, ProgressCallback, ProgressEvent
 from patches.base import PatchError, atomic_write, backup_file, sha256_file
+from patches.build_852_0.vscript_scope_fix import PATCHED_SERVER_SHA256
 
 
 ENGINE_SHA256 = "7e39efdf3907e5b25e8d20c124d03efaf226ecd6c408829b1c0a823d96bc0d8c"
 SERVER_SHA256 = "1dc9c9ac0e12511b21beac4c183462df53b504920421e52e66e96e926659c948"
+SUPPORTED_SERVER_SHA256S = frozenset({SERVER_SHA256, PATCHED_SERVER_SHA256})
 
 BUNDLED_FILES = {
     "d3d9.dll": "7c843006f81983617a37f57d7fb615d23bda99860b71ab745f2b0cea6ab00474",
@@ -71,7 +73,7 @@ class Multiplayer8520Patch:
         server = root / "portal2" / "bin" / "server.dll"
         if not engine.is_file() or sha256_file(engine) != ENGINE_SHA256:
             raise PatchError("The multiplayer patch requires the known 852_0 engine.dll")
-        if not server.is_file() or sha256_file(server) != SERVER_SHA256:
+        if not server.is_file() or sha256_file(server) not in SUPPORTED_SERVER_SHA256S:
             raise PatchError("The multiplayer patch requires the known 852_0 server.dll")
 
     def check(self, context: PatchContext) -> bool:

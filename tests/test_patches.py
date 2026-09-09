@@ -30,6 +30,16 @@ from patches.build_852_0.continuous_campaign.patch import (
     bundled_path as campaign_bundled_path,
     validate_lmp,
 )
+from patches.build_852_0.vscript_scope_fix import (
+    CODE_CAVE_RVA,
+    ENTRY_RVA,
+    ORIGINAL_ENTRY as ORIGINAL_VSCRIPT_ENTRY,
+    ORIGINAL_SERVER_SHA256,
+    PATCHED_SERVER_SHA256,
+    PATCHED_TEXT_SIZE,
+    VScriptScopeFixPatch,
+    patch_server,
+)
 from patches.generic.thread_fix.patch import (
     FILES,
     ThreadFixPatch,
@@ -80,6 +90,7 @@ from patches.build_841_0_prereset.tier0_thread_limit import (
 from patches.build_852_0.multiplayer.patch import (
     BUNDLED_FILES as MULTIPLAYER_BUNDLED_FILES,
     Multiplayer8520Patch,
+    SUPPORTED_SERVER_SHA256S,
     bundled_path as multiplayer_bundled_path,
 )
 from patches.build_852_2 import hammer as hammer_852_2
@@ -88,7 +99,7 @@ from patches import repair
 
 
 def test_patch_registry_has_descriptive_ids_and_stable_order():
-    assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer", "852_2.hammer"]
+    assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.vscript_scope_fix", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer", "852_2.hammer"]
     assert all(patch.description for patch in PATCHES)
     assert set(PATCH_COMPATIBILITY) == {"generic", (841, 0, 0x83CED978), (852, 0), (852, 1), (852, 2)}
     assert PATCH_COMPATIBILITY["generic"].required == {"launchers"}
@@ -124,7 +135,7 @@ def test_patch_dependencies_and_required_launcher():
     assert normalize_patch_ids(("852_1.extra_assets.bundled",), "generic", depot_id=852, depot_version=2) == ("launchers",)
     assert normalize_patch_ids(("852_1.hammer",), "generic", depot_id=852, depot_version=1) == ("launchers", "852_1.hammer")
     assert normalize_patch_ids(("852_1.hammer",), "generic", depot_id=852, depot_version=2) == ("launchers",)
-    assert compatible_patch_ids("852_0") == ("852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "goldberg", "852_0.multiplayer")
+    assert compatible_patch_ids("852_0") == ("852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.vscript_scope_fix", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "goldberg", "852_0.multiplayer")
     assert compatible_patch_ids("generic", 852, 1) == ("thread_fix", "launchers", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer")
     assert compatible_patch_ids("generic", 852, 2) == ("thread_fix", "launchers", "multicore", "goldberg", "852_2.hammer")
     assert normalize_patch_ids((), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ()
@@ -166,6 +177,31 @@ def test_legacy_paint_patch_changes_only_the_missing_key_default():
     patched = patch_engine(bytes(original))
     assert patched[PATCH_OFFSET:] == PATCHED_BYTES
     assert patched[:PATCH_OFFSET] == original[:PATCH_OFFSET]
+
+
+def test_vscript_scope_fix_matches_the_verified_852_0_server_when_available(tmp_path):
+    source = Path(r"C:\Users\Niko\Documents\p2betas\852_0\portal2\bin\Server.dll.p2bp-turret-crash-backup")
+    if not source.is_file() or sha256_file(source) != ORIGINAL_SERVER_SHA256:
+        return
+    original = source.read_bytes()
+    patched = patch_server(original)
+    assert sha256(patched).hexdigest() == PATCHED_SERVER_SHA256
+    assert patched[ENTRY_RVA:ENTRY_RVA + len(ORIGINAL_VSCRIPT_ENTRY)] != ORIGINAL_VSCRIPT_ENTRY
+    assert patched[CODE_CAVE_RVA:CODE_CAVE_RVA + 2] == b"\x85\xC0"
+    assert PATCHED_TEXT_SIZE.to_bytes(4, "little") in patched[:0x1000]
+    assert VScriptScopeFixPatch.id == "852_0.vscript_scope_fix"
+    assert {ORIGINAL_SERVER_SHA256, PATCHED_SERVER_SHA256} <= SUPPORTED_SERVER_SHA256S
+
+    destination = tmp_path / "portal2" / "bin" / "Server.dll"
+    destination.parent.mkdir(parents=True)
+    destination.write_bytes(original)
+    context = PatchContext(tmp_path, None, BuildReport(), Event())
+    patch = VScriptScopeFixPatch()
+    assert patch.check(context)
+    patch.apply(context, lambda _event: None)
+    patch.verify(context)
+    assert not patch.check(context)
+    assert sha256_file(destination.with_name("server.original.bak")) == ORIGINAL_SERVER_SHA256
 
 
 def test_dialogue_patch_replaces_single_player_scene_cancellation():

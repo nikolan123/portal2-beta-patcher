@@ -14,6 +14,7 @@ Patches for one specific build are in `build_852_0`, `build_852_1`, and `build_8
 | `852_0.dialogue` | — | Optional | — | — | — |
 | `852_0.subtitles` | — | Optional | — | — | — |
 | `852_0.continuous_campaign` | — | Optional | — | — | — |
+| `852_0.vscript_scope_fix` | — | Optional | — | — | — |
 | `thread_fix` | Optional | Optional | Optional | Optional | Optional |
 | `launchers` | Required | Required | Required | Required | Required |
 | `852_0.hammer` | — | Optional | — | — | — |
@@ -71,6 +72,10 @@ This patch depends on `852_0.dialogue`, so dialogue runs first and subtitles the
 ### 852_0.continuous_campaign - Experimental speedrunning fixes
 
 This patch is intended to make speedrunning tools work easier with this build. It installs entity LMPs that replace the campaign's hub `map` commands with `changelevel`, adds an end-of-run marker to hub 6, and fixes the slowtime upgrade when the earlier gun is skipped.
+
+### 852_0.vscript_scope_fix - Mixup turret crash fix
+
+This patches `portal2/bin/Server.dll` to check whether VScript successfully created an entity scope before using it. The missing check can crash `p2_lab_mixup` while its turret group is being destroyed and can affect other scripted entities too.
 
 ### 852_0.hammer - Hammer and HLMV tools
 
