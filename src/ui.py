@@ -21,7 +21,7 @@ from extractor import CatalogTarget, has_runnable_layout, scan_archive_catalog
 from models import BuildCancelled, BuildInputs, ProgressEvent
 from patches import PATCHES, DEFINITIONS, normalize_patch_ids, selectable_patch_ids, patch_set_for_target
 from patches.selection import choices_for, requirements_for, capabilities_for, unavailable_reason, resolve_source_chains
-from patches.build_852_0.hammer import repair_moved_tools
+from patches.repair import repair_moved_build
 from pipeline import BuildPipeline
 from steam import detect_half_life_2, detect_portal_2
 
@@ -213,6 +213,7 @@ class PatcherUI(TkBase):
         bottom = tk.Frame(self.container, bg=BG)
         bottom.pack(side="bottom", fill="x")
         self.button(bottom, "Back", self.show_mode_selection, secondary=True, width=10).pack(side="left")
+        self.button(bottom, "Fix moved build", self.repair_tools, secondary=True, width=17).pack(side="left", padx=(10, 0))
         self.generic_next_button = self.button(bottom, "Next", self.show_generic_patch_chooser, width=13)
         self.generic_next_button.configure(state="disabled")
         self.generic_next_button.pack(side="right")
@@ -442,20 +443,20 @@ class PatcherUI(TkBase):
     def repair_tools(self) -> None:
         messagebox.showinfo(
             "Fix moved build",
-            "Use this after moving a patched 852_0_fixed folder. It updates Hammer and HLMV to use the folder's new location.",
+            "Use this after moving a patched 852_0 or 852_2 build. It updates Hammer's paths.",
             parent=self,
         )
-        selected = filedialog.askdirectory(title="Select the moved 852_0_fixed folder")
+        selected = filedialog.askdirectory(title="Select the moved patched build folder")
         if not selected:
             return
         try:
-            repair_moved_tools(Path(selected))
+            build = repair_moved_build(Path(selected))
         except Exception as error:
             messagebox.showerror("Fix moved build", str(error), parent=self)
             return
         messagebox.showinfo(
             "Fix moved build",
-            "Hammer and HLMV now use this folder's current location.",
+            f"The {build} tools now use this folder's current location.",
             parent=self,
         )
 

@@ -83,6 +83,30 @@ def patch_gameinfo(data: bytes) -> bytes:
     return normalized.replace(b"\n", newline)
 
 
+def repair_moved_tools(root: Path) -> None:
+    """Rewrite 852_2.hammer's location-dependent configuration after a move."""
+    root = root.expanduser().resolve()
+    tier0 = root / "bin" / "tier0.dll"
+    gameinfo = root / "portal2" / "GameInfo.txt"
+    required_files = (
+        root / "bin" / "hammer.exe",
+        root / "bin" / "portal2.fgd",
+        tier0,
+        root / "platform" / "materials" / "Editor" / "wireframe.vmt",
+        gameinfo,
+    )
+    if any(not path.is_file() for path in required_files):
+        raise PatchError("This folder does not contain an installed 852_2 Hammer fix")
+    if sha256_file(tier0) != PATCHED_TIER0_SHA256:
+        raise PatchError("This folder does not contain 852_2.hammer's patched tier0.dll")
+    if patch_gameinfo(gameinfo.read_bytes()) != gameinfo.read_bytes():
+        raise PatchError("This folder does not contain 852_2.hammer's editor-material mount")
+
+    (root / "content" / "portal2" / "mapsrc").mkdir(parents=True, exist_ok=True)
+    atomic_write(root / "bin" / "GameConfig.txt", game_config(root))
+    atomic_write(root / "Launch Hammer.cmd", hammer_launcher())
+
+
 class Hammer8522Patch:
     id = "852_2.hammer"
     display_name = "Hammer"

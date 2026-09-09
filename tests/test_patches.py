@@ -81,7 +81,11 @@ from patches.build_852_0.multiplayer.patch import (
     Multiplayer8520Patch,
     bundled_path as multiplayer_bundled_path,
 )
+from patches.build_852_2 import hammer as hammer_852_2
 from patches.build_852_2.hammer import Hammer8522Patch
+from patches import repair
+
+
 def test_patch_registry_has_descriptive_ids_and_stable_order():
     assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.tier0_thread_limit", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer", "852_2.hammer"]
     assert all(patch.description for patch in PATCHES)
@@ -493,6 +497,49 @@ def test_hammer_layout_physically_moves_runtime_without_duplicates(tmp_path):
         assert not (tmp_path / name).exists()
     assert (tmp_path / "game" / "hl2.exe").read_bytes() == b"launcher"
     assert (tmp_path / "game" / "hl2.wrap.exe").read_bytes() == b"wrapper"
+
+
+def test_852_2_moved_build_rewrites_absolute_hammer_paths(tmp_path, monkeypatch):
+    for path in (
+        tmp_path / "bin" / "hammer.exe",
+        tmp_path / "bin" / "portal2.fgd",
+        tmp_path / "bin" / "tier0.dll",
+        tmp_path / "platform" / "materials" / "Editor" / "wireframe.vmt",
+    ):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"test")
+    gameinfo = tmp_path / "portal2" / "GameInfo.txt"
+    gameinfo.parent.mkdir(parents=True)
+    gameinfo.write_bytes(
+        b'"GameInfo"\n{\n\tFileSystem\n\t{\n\t\tSearchPaths\n\t\t{\n'
+        b'\t\t\tGame\t\t\t\tportal2_tempcontent\n'
+        b'\t\t\tGame\t\t\t\t|gameinfo_path|..\\platform\n\t\t}\n\t}\n}\n'
+    )
+    monkeypatch.setattr(hammer_852_2, "sha256_file", lambda _path: hammer_852_2.PATCHED_TIER0_SHA256)
+
+    hammer_852_2.repair_moved_tools(tmp_path)
+
+    config = (tmp_path / "bin" / "GameConfig.txt").read_text(encoding="utf-8")
+    assert f'"GameDir" "{tmp_path.resolve()}\\portal2"' in config
+    assert (tmp_path / "content" / "portal2" / "mapsrc").is_dir()
+    assert (tmp_path / "Launch Hammer.cmd").read_bytes() == hammer_852_2.hammer_launcher()
+
+
+def test_moved_build_repair_detects_both_supported_layouts(tmp_path, monkeypatch):
+    calls = []
+    monkeypatch.setattr(repair, "repair_852_0_tools", lambda root: calls.append(("852_0", root)))
+    monkeypatch.setattr(repair, "repair_852_2_tools", lambda root: calls.append(("852_2", root)))
+
+    old_layout = tmp_path / "old"
+    (old_layout / "game" / "bin").mkdir(parents=True)
+    (old_layout / "game" / "bin" / "hammer.exe").write_bytes(b"")
+    assert repair.repair_moved_build(old_layout) == "852_0"
+
+    new_layout = tmp_path / "new"
+    (new_layout / "bin").mkdir(parents=True)
+    (new_layout / "bin" / "hammer.exe").write_bytes(b"")
+    assert repair.repair_moved_build(new_layout) == "852_2"
+    assert [build for build, _root in calls] == ["852_0", "852_2"]
 
 
 def test_hl2_assets_use_curated_compatibility_allowlist():

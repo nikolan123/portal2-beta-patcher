@@ -141,6 +141,8 @@ This patch expands that table to 128 slots.
 
 This patch configures Portal 2 Hammer, creates the mapsource folder, mounts the included editor materials, applies the build-specific tier0 thread fix, and creates a movable launcher.
 
+Hammer's configuration contains the installation path. If the completed build is moved later, the patcher's **Fix moved build** action rewrites it for its new folder.
+
 ## Generic
 
 This is the patch list for builds that do not have their own entry yet.
