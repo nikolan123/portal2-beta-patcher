@@ -31,13 +31,21 @@ from patches.build_852_0.continuous_campaign.patch import (
     validate_lmp,
 )
 from patches.build_852_0.vscript_scope_fix import (
-    CODE_CAVE_RVA,
-    ENTRY_RVA,
-    ORIGINAL_ENTRY as ORIGINAL_VSCRIPT_ENTRY,
+    CLIENT_CODE_CAVE_RVA,
+    CLIENT_ENTRY_RVA,
+    CLIENT_SECTION_CODE_CAVE_RVA,
+    ORIGINAL_CLIENT_ENTRY,
+    ORIGINAL_CLIENT_SHA256,
     ORIGINAL_SERVER_SHA256,
+    PATCHED_CLIENT_SHA256,
     PATCHED_SERVER_SHA256,
-    PATCHED_TEXT_SIZE,
+    PATCHED_CLIENT_TEXT_SIZE,
+    SERVER_CODE_CAVE_RVA,
+    SERVER_ENTRY_RVA,
+    ORIGINAL_SERVER_ENTRY,
+    PATCHED_SERVER_TEXT_SIZE,
     VScriptScopeFixPatch,
+    patch_client,
     patch_server,
 )
 from patches.generic.thread_fix.patch import (
@@ -179,29 +187,45 @@ def test_legacy_paint_patch_changes_only_the_missing_key_default():
     assert patched[:PATCH_OFFSET] == original[:PATCH_OFFSET]
 
 
-def test_vscript_scope_fix_matches_the_verified_852_0_server_when_available(tmp_path):
-    source = Path(r"C:\Users\Niko\Documents\p2betas\852_0\portal2\bin\Server.dll.p2bp-turret-crash-backup")
-    if not source.is_file() or sha256_file(source) != ORIGINAL_SERVER_SHA256:
+def test_mixup_turret_fix_matches_the_verified_852_0_dlls_when_available(tmp_path):
+    server_source = Path(r"C:\Users\Niko\Documents\p2betas\852_0\portal2\bin\Server.dll.p2bp-turret-crash-backup")
+    client_source = Path(r"C:\Users\Niko\Documents\p2betas\852_0\portal2\bin\Client.dll")
+    if (
+        not server_source.is_file()
+        or sha256_file(server_source) != ORIGINAL_SERVER_SHA256
+        or not client_source.is_file()
+        or sha256_file(client_source) != ORIGINAL_CLIENT_SHA256
+    ):
         return
-    original = source.read_bytes()
-    patched = patch_server(original)
-    assert sha256(patched).hexdigest() == PATCHED_SERVER_SHA256
-    assert patched[ENTRY_RVA:ENTRY_RVA + len(ORIGINAL_VSCRIPT_ENTRY)] != ORIGINAL_VSCRIPT_ENTRY
-    assert patched[CODE_CAVE_RVA:CODE_CAVE_RVA + 2] == b"\x85\xC0"
-    assert PATCHED_TEXT_SIZE.to_bytes(4, "little") in patched[:0x1000]
+    original_server = server_source.read_bytes()
+    original_client = client_source.read_bytes()
+    patched_server = patch_server(original_server)
+    patched_client = patch_client(original_client)
+    assert sha256(patched_server).hexdigest() == PATCHED_SERVER_SHA256
+    assert sha256(patched_client).hexdigest() == PATCHED_CLIENT_SHA256
+    assert patched_server[SERVER_ENTRY_RVA:SERVER_ENTRY_RVA + len(ORIGINAL_SERVER_ENTRY)] != ORIGINAL_SERVER_ENTRY
+    assert patched_server[SERVER_CODE_CAVE_RVA:SERVER_CODE_CAVE_RVA + 2] == b"\x85\xC0"
+    assert PATCHED_SERVER_TEXT_SIZE.to_bytes(4, "little") in patched_server[:0x1000]
+    assert patched_client[CLIENT_ENTRY_RVA:CLIENT_ENTRY_RVA + len(ORIGINAL_CLIENT_ENTRY)] != ORIGINAL_CLIENT_ENTRY
+    assert patched_client[CLIENT_CODE_CAVE_RVA:CLIENT_CODE_CAVE_RVA + 6] == ORIGINAL_CLIENT_ENTRY
+    assert patched_client[CLIENT_SECTION_CODE_CAVE_RVA:CLIENT_SECTION_CODE_CAVE_RVA + 6] == bytes.fromhex("8B 3B 85 FF 7D 04")
+    assert PATCHED_CLIENT_TEXT_SIZE.to_bytes(4, "little") in patched_client[:0x1000]
     assert VScriptScopeFixPatch.id == "852_0.vscript_scope_fix"
     assert {ORIGINAL_SERVER_SHA256, PATCHED_SERVER_SHA256} <= SUPPORTED_SERVER_SHA256S
 
-    destination = tmp_path / "portal2" / "bin" / "Server.dll"
-    destination.parent.mkdir(parents=True)
-    destination.write_bytes(original)
+    server_destination = tmp_path / "portal2" / "bin" / "Server.dll"
+    client_destination = tmp_path / "portal2" / "bin" / "Client.dll"
+    server_destination.parent.mkdir(parents=True)
+    server_destination.write_bytes(original_server)
+    client_destination.write_bytes(original_client)
     context = PatchContext(tmp_path, None, BuildReport(), Event())
     patch = VScriptScopeFixPatch()
     assert patch.check(context)
     patch.apply(context, lambda _event: None)
     patch.verify(context)
     assert not patch.check(context)
-    assert sha256_file(destination.with_name("server.original.bak")) == ORIGINAL_SERVER_SHA256
+    assert sha256_file(server_destination.with_name("server.original.bak")) == ORIGINAL_SERVER_SHA256
+    assert sha256_file(client_destination.with_name("client.original.bak")) == ORIGINAL_CLIENT_SHA256
 
 
 def test_dialogue_patch_replaces_single_player_scene_cancellation():

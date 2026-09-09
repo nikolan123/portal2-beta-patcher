@@ -75,7 +75,7 @@ This patch is intended to make speedrunning tools work easier with this build. I
 
 ### 852_0.vscript_scope_fix - Mixup turret crash fix
 
-This patches `portal2/bin/Server.dll` to check whether VScript successfully created an entity scope before using it. The missing check can crash `p2_lab_mixup` while its turret group is being destroyed and can affect other scripted entities too.
+This patches `portal2/bin/Server.dll` to check whether VScript successfully created an entity scope before using it. It also patches `portal2/bin/Client.dll` to clamp negative animation frames before selecting animation data. These missing checks can crash `p2_lab_mixup` while its turret group is being destroyed.
 
 ### 852_0.hammer - Hammer and HLMV tools
 
