@@ -240,7 +240,6 @@ def test_smooth_jazz_patch_keeps_only_the_dialogue_in_both_cues_when_available(t
         return
     if any(sha256_file(source) != cue.original_sha256 for source, cue in zip(sources, SMOOTH_JAZZ_CUES)):
         return
-
     destination_root = tmp_path / "portal2_tempcontent" / "sound" / "vo" / "glados"
     destination_root.mkdir(parents=True)
     for source, cue in zip(sources, SMOOTH_JAZZ_CUES):
@@ -255,6 +254,10 @@ def test_smooth_jazz_patch_keeps_only_the_dialogue_in_both_cues_when_available(t
         assert patched[44:] == original[44:44 + kept_data_size]
         (destination_root / cue.filename).write_bytes(original)
 
+    destination_music = tmp_path / "portal2_tempcontent" / "sound" / "music" / "smooth_jazz.mp3"
+    destination_music.parent.mkdir(parents=True)
+    destination_music.write_bytes(b"any credits music")
+
     context = PatchContext(tmp_path, None, BuildReport(), Event())
     patch = SmoothJazzPatch()
     assert patch.check(context)
@@ -264,6 +267,7 @@ def test_smooth_jazz_patch_keeps_only_the_dialogue_in_both_cues_when_available(t
     for cue in SMOOTH_JAZZ_CUES:
         backup = destination_root / f"{Path(cue.filename).stem}.original.bak"
         assert sha256_file(backup) == cue.original_sha256
+    assert not destination_music.exists()
 
 
 def test_dialogue_patch_replaces_single_player_scene_cancellation():

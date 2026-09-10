@@ -12,6 +12,7 @@ from patches.definitions import PatchDefinition
 
 
 VOICE_DIRECTORY = Path("portal2_tempcontent/sound/vo/glados")
+CREDITS_MUSIC = Path("portal2_tempcontent/sound/music/smooth_jazz.mp3")
 
 
 @dataclass(frozen=True)
@@ -82,10 +83,15 @@ def sound_path(root: Path, cue: VoiceCue) -> Path:
     return existing[0]
 
 
+def credits_music_paths(root: Path) -> tuple[Path, ...]:
+    candidates = (root / CREDITS_MUSIC, root / "game" / CREDITS_MUSIC)
+    return tuple(path for path in candidates if path.is_file())
+
+
 class SmoothJazzPatch:
     id = "852_0.smooth_jazz"
     display_name = "Remove copyrighted Smooth Jazz"
-    description = "Remove the Smooth Jazz from Smooth Jazz lines."
+    description = "Remove the Smooth Jazz from Smooth Jazz lines and the end scene."
 
     def check(self, context: PatchContext) -> bool:
         needs_patch = False
@@ -95,13 +101,15 @@ class SmoothJazzPatch:
                 needs_patch = True
             elif current_hash != cue.patched_sha256:
                 raise PatchError(f"Refusing to patch unknown {cue.filename} ({current_hash})")
+        for path in credits_music_paths(context.root):
+            needs_patch = True
         return needs_patch
 
     def apply(self, context: PatchContext, progress: ProgressCallback) -> None:
         for index, cue in enumerate(CUES):
             if context.cancel_event.is_set():
                 raise BuildCancelled("Build cancelled")
-            progress(ProgressEvent(self.id, index, len(CUES), f"Trimming {cue.filename}"))
+            progress(ProgressEvent(self.id, index, len(CUES) + 1, f"Trimming {cue.filename}"))
             path = sound_path(context.root, cue)
             current_hash = sha256_file(path)
             if current_hash == cue.patched_sha256:
@@ -115,12 +123,20 @@ class SmoothJazzPatch:
             if sha256(patched).hexdigest() != cue.patched_sha256:
                 raise PatchError(f"Internal {cue.filename} verification failed")
             atomic_write(path, patched)
-        progress(ProgressEvent(self.id, len(CUES), len(CUES), "Removed the Smooth Jazz music tails"))
+
+        if context.cancel_event.is_set():
+            raise BuildCancelled("Build cancelled")
+        progress(ProgressEvent(self.id, len(CUES), len(CUES) + 1, "Removing the end-credits jazz"))
+        for path in credits_music_paths(context.root):
+            path.unlink()
+        progress(ProgressEvent(self.id, len(CUES) + 1, len(CUES) + 1, "Removed the Smooth Jazz"))
 
     def verify(self, context: PatchContext) -> None:
         for cue in CUES:
             if sha256_file(sound_path(context.root, cue)) != cue.patched_sha256:
                 raise PatchError(f"{cue.filename} Smooth Jazz patch failed verification")
+        if credits_music_paths(context.root):
+            raise PatchError("End-credits Smooth Jazz file was not removed")
 
 
 DEFINITION = PatchDefinition(SmoothJazzPatch(), default_selected=False)

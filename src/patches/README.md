@@ -80,7 +80,7 @@ This patches `portal2/bin/Server.dll` to check whether VScript successfully crea
 
 ### 852_0.smooth_jazz - Remove copyrighted Smooth Jazz
 
-This patch keeps the announcer dialogue in `PreHub42.wav` and `PreHub44.wav` but removes the copyrighted Smooth Jazz.
+This patch keeps the announcer dialogue in `PreHub42.wav` and `PreHub44.wav` but removes the copyrighted Smooth Jazz. It also deletes the `smooth_jazz.mp3` played during the end scene.
 
 ### 852_0.hammer - Hammer and HLMV tools
 
