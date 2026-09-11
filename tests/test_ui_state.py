@@ -47,12 +47,12 @@ def test_mode_specific_patch_lists():
     assert patch_ids_for_mode("generic", 852, 1) == ("thread_fix", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer")
     assert patch_ids_for_mode("generic", 852, 2) == ("thread_fix", "multicore", "goldberg", "852_2.hammer")
     assert patch_ids_for_mode("generic", 841, 1) == ("thread_fix", "multicore", "goldberg")
-    assert patch_ids_for_mode("generic", 841, 0, 0x83CED978) == ("thread_fix", "multicore", "goldberg", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit")
+    assert patch_ids_for_mode("generic", 841, 0, 0x83CED978) == ("thread_fix", "multicore", "goldberg", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "841_0_prereset.node_graphs")
     assert "852_0.dialogue" in patch_ids_for_mode("852_0")
     assert "852_0.subtitles" in patch_ids_for_mode("852_0")
     assert "852_0.continuous_campaign" in patch_ids_for_mode("852_0")
     assert "multicore" not in patch_ids_for_mode("852_0")
-    assert patch_ids_for_mode("852_0")[-1] == "852_0.multiplayer"
+    assert patch_ids_for_mode("852_0")[-2:] == ("852_0.multiplayer", "852_0.node_graphs")
 
 
 def test_support_link_uses_the_project_issue_tracker():
