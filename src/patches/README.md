@@ -31,6 +31,8 @@ Patches for one specific build are in `build_852_0`, `build_852_1`, and `build_8
 | `841_0_prereset.tier0_thread_limit` | Optional | — | — | — | — |
 | `852_0.multiplayer` | — | Optional | — | — | — |
 | `852_2.hammer` | — | — | — | Optional | — |
+| `852_0.node_graphs` | — | Optional | — | — | — |
+| `841_0_prereset.node_graphs` | Optional | — | — | — | — |
 
 <!-- compatibility:end -->
 
@@ -104,9 +106,17 @@ This installs a source-built ASI for the `852_0` engine and server. At runtime i
 
 The game DLLs remain stock. The ASI loader comes from pinned official DxWrapper v1.8.8600.25 that is downloaded and SHA-256 verified while building the patcher, these loader binaries are not stored in this repository. License stored in `.p2patcher/LICENCE-dxwrapper.txt`.
 
+### 852_0.node_graphs - Prebuilt node graphs
+
+Installs 54 node graphs generated using 852_0 and checked on a second load. Avoids the rebuilding message and delay on first load.
+
 ## 841_0 Pre-reset
 
 `83ced978` manifest
+
+### 841_0_prereset.node_graphs - Prebuilt node graphs
+
+Installs 171 node graphs generated using pre-reset 841_0 and checked on a second load. Avoids the rebuilding message and delay on first load.
 
 ### 841_0_prereset.missing_launcher - Missing hl2.exe fix
 
