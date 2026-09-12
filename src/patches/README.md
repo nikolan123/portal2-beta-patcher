@@ -33,6 +33,7 @@ Patches for one specific build are in `build_852_0`, `build_852_1`, and `build_8
 | `852_2.hammer` | — | — | — | Optional | — |
 | `852_0.node_graphs` | — | Optional | — | — | — |
 | `841_0_prereset.node_graphs` | Optional | — | — | — | — |
+| `841_0_prereset.progression_fixes` | Optional | — | — | — | — |
 
 <!-- compatibility:end -->
 
@@ -117,6 +118,18 @@ Installs 54 node graphs generated using 852_0 and checked on a second load. Avoi
 ### 841_0_prereset.node_graphs - Prebuilt node graphs
 
 Installs 171 node graphs generated using pre-reset 841_0 and checked on a second load. Avoids the rebuilding message and delay on first load.
+
+### 841_0_prereset.progression_fixes - Progression Fixes
+
+Fixes five campaign progression blockers:
+
+- Makes the catapult in `sp_stop_the_box` react to the player.
+- Makes the ending of `sp_glados_01` fade and continue to the next map.
+- Fixes the entrance door in `sp_paint_stick_goo`.
+- Fixes the entrance and exit doors in `sp_paint_speed_intro`.
+- Fixes the entrance and exit doors in `sp_paint_jump_artillery`.
+
+The first two fixes use entity lumps. The other three edit the transition script.
 
 ### 841_0_prereset.missing_launcher - Missing hl2.exe fix
 

@@ -100,6 +100,13 @@ from patches.build_841_0_prereset.tier0_thread_limit import (
     Tier0ThreadLimit8410Patch,
     patch_841_0_tier0,
 )
+from patches.build_841_0_prereset.progression_fixes.patch import (
+    LMP_HASHES as PROGRESSION_LMP_HASHES,
+    ProgressionFixes8410Patch,
+    bundled_path as progression_bundled_path,
+    patch_transition_script,
+    validate_lmp as validate_progression_lmp,
+)
 from patches.build_852_0.multiplayer.patch import (
     BUNDLED_FILES as MULTIPLAYER_BUNDLED_FILES,
     Multiplayer8520Patch,
@@ -112,7 +119,7 @@ from patches import repair
 
 
 def test_patch_registry_has_descriptive_ids_and_stable_order():
-    assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.vscript_scope_fix", "852_0.smooth_jazz", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer", "852_2.hammer"]
+    assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.vscript_scope_fix", "852_0.smooth_jazz", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer", "852_2.hammer", "852_0.node_graphs", "841_0_prereset.node_graphs", "841_0_prereset.progression_fixes"]
     assert all(patch.description for patch in PATCHES)
     assert set(PATCH_COMPATIBILITY) == {"generic", (841, 0, 0x83CED978), (852, 0), (852, 1), (852, 2)}
     assert PATCH_COMPATIBILITY["generic"].required == {"launchers"}
@@ -127,6 +134,38 @@ def test_patch_registry_has_descriptive_ids_and_stable_order():
     assert PATCH_COMPATIBILITY[(841, 0, 0x83CED978)].required == {"launchers"}
     assert "841_0_prereset.missing_launcher" in PATCH_COMPATIBILITY[(841, 0, 0x83CED978)].optional
     assert "841_0_prereset.tier0_thread_limit" in PATCH_COMPATIBILITY[(841, 0, 0x83CED978)].optional
+    assert "841_0_prereset.progression_fixes" in PATCH_COMPATIBILITY[(841, 0, 0x83CED978)].optional
+
+
+def test_841_0_progression_fixes_install_lmps_and_patch_transition_script(tmp_path):
+    script = tmp_path / "portal2/scripts/vscripts/transitions/sp_transition_list.nut"
+    script.parent.mkdir(parents=True)
+    original = b"before\r\n\t\t\t// hook up the exit elevator\r\nafter\r\n"
+    script.write_bytes(original)
+    context = PatchContext(tmp_path, None, BuildReport(), Event(), mode="generic")
+    patch = ProgressionFixes8410Patch()
+
+    assert patch.check(context)
+    patch.apply(context, lambda _event: None)
+    patch.verify(context)
+    assert not patch.check(context)
+    assert script.with_name("sp_transition_list.original.bak").read_bytes() == original
+
+    patched = script.read_bytes()
+    assert patch_transition_script(patched) == patched
+    for expected in (
+        b'sp_paint_stick_goo', b'entry_door_1', b'@hallway_entry',
+        b'sp_paint_speed_intro', b'speed_intro_entry_door', b'crusher_room_exit_door',
+        b'sp_paint_jump_artillery', b'artillery_entry_door', b'artillery_exit_door',
+    ):
+        assert expected in patched
+
+    for name, expected_hash in PROGRESSION_LMP_HASHES.items():
+        bundled = progression_bundled_path(name)
+        installed = tmp_path / "portal2/maps" / name
+        assert sha256_file(bundled) == expected_hash
+        assert installed.read_bytes() == bundled.read_bytes()
+        validate_progression_lmp(name, installed.read_bytes())
 
 
 def test_patch_dependencies_and_required_launcher():
@@ -148,7 +187,7 @@ def test_patch_dependencies_and_required_launcher():
     assert normalize_patch_ids(("852_1.extra_assets.bundled",), "generic", depot_id=852, depot_version=2) == ("launchers",)
     assert normalize_patch_ids(("852_1.hammer",), "generic", depot_id=852, depot_version=1) == ("launchers", "852_1.hammer")
     assert normalize_patch_ids(("852_1.hammer",), "generic", depot_id=852, depot_version=2) == ("launchers",)
-    assert compatible_patch_ids("852_0") == ("852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.vscript_scope_fix", "852_0.smooth_jazz", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "goldberg", "852_0.multiplayer")
+    assert compatible_patch_ids("852_0") == ("852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.vscript_scope_fix", "852_0.smooth_jazz", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "goldberg", "852_0.multiplayer", "852_0.node_graphs")
     assert compatible_patch_ids("generic", 852, 1) == ("thread_fix", "launchers", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer")
     assert compatible_patch_ids("generic", 852, 2) == ("thread_fix", "launchers", "multicore", "goldberg", "852_2.hammer")
     assert normalize_patch_ids((), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ()
@@ -157,6 +196,7 @@ def test_patch_dependencies_and_required_launcher():
     assert normalize_patch_ids(("841_0_prereset.missing_launcher",), "generic", runnable=True, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("launchers", "841_0_prereset.missing_launcher")
     assert normalize_patch_ids(("841_0_prereset.tier0_thread_limit",), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("841_0_prereset.tier0_thread_limit",)
     assert normalize_patch_ids(("841_0_prereset.tier0_thread_limit",), "generic", runnable=True, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("launchers", "841_0_prereset.tier0_thread_limit")
+    assert normalize_patch_ids(("841_0_prereset.progression_fixes",), "generic", runnable=True, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("launchers", "841_0_prereset.progression_fixes")
 
 
 def test_841_0_pre_reset_launcher_patch_installs_the_binary(tmp_path):
