@@ -196,7 +196,7 @@ This patch installs the bundled [Source Thread Fix](https://mikes.software/threa
 
 ### launchers - Launcher
 
-This patch creates a launcher for portal as `Launch Portal 2.cmd` so the game can be launched without using a command line.
+This patch creates `Launch Portal 2.cmd` and a WinForms settings interface opened through `Settings.bat`. The settings interface controls resolution, fullscreen/borderless/windowed mode, debug mode, and custom launch arguments. It can also rebuild Hammer's absolute paths after the patched folder is moved.
 
 ### multicore - Disable multicore rendering
 

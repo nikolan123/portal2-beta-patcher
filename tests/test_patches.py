@@ -62,7 +62,8 @@ from patches.generic.thread_fix.patch import (
     bundled_path,
     destination_path,
 )
-from patches.generic.launchers import LAUNCHER, LaunchersPatch
+from patches.generic.launchers import LAUNCHER, SETTINGS_LAUNCHER, LaunchersPatch
+from patches.generic.settings_ui import SETTINGS_SCRIPT
 from patches.build_852_0.hammer import (
     PATCHED_TIER0_SHA256,
     RUNTIME_DIRECTORIES,
@@ -668,7 +669,47 @@ def test_launcher_uses_wrapper_with_normal_executable_fallback():
     assert b'if exist "%GAMEROOT%hl2.exe" if exist "%GAMEROOT%hl2.wrap.exe"' in LAUNCHER
     assert b'if exist "%GAMEROOT%portal2\\cfg\\patcher_multicore.cfg"' in LAUNCHER
     assert b'if exist "%GAMEROOT%portal2\\cfg\\patcher_subtitles.cfg"' in LAUNCHER
-    assert b'%MULTICORE% %SUBTITLES% %*' in LAUNCHER
+    assert b'%DISPLAY_MODE% -w %WIDTH% -h %HEIGHT%' in LAUNCHER
+    assert b'%DEBUG_ARGS% %MULTICORE% %SUBTITLES% %CUSTOM_ARGS% %*' in LAUNCHER
+
+
+def test_launcher_patch_installs_settings_gui(tmp_path):
+    context = PatchContext(tmp_path, None, BuildReport(), Event(), mode="generic")
+
+    LaunchersPatch().apply(context, lambda *_args: None)
+
+    assert (tmp_path / "Settings.bat").read_bytes() == SETTINGS_LAUNCHER
+    assert b'-Root "%~dp0."' in SETTINGS_LAUNCHER
+    assert b"if errorlevel 1" in SETTINGS_LAUNCHER
+    assert (tmp_path / ".p2patcher" / "settings.ps1").read_bytes() == SETTINGS_SCRIPT
+    assert b"Repair Hammer paths" in SETTINGS_SCRIPT
+    assert b"Launch arguments" in SETTINGS_SCRIPT
+    assert b"display-mode.txt" in SETTINGS_SCRIPT
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Exercises the Windows settings launcher")
+def test_settings_launcher_passes_a_clean_root_path(tmp_path):
+    root = tmp_path / "game folder"
+    scripts = root / ".p2patcher"
+    scripts.mkdir(parents=True)
+    (root / "Settings.bat").write_bytes(SETTINGS_LAUNCHER)
+    (scripts / "settings.ps1").write_text(
+        "param([string]$Root)\n"
+        "$normalized = [IO.Path]::GetFullPath($Root)\n"
+        "[IO.File]::WriteAllText((Join-Path $normalized 'captured-root.txt'), $Root)\n",
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        ["cmd.exe", "/d", "/c", str(root / "Settings.bat")],
+        capture_output=True,
+        timeout=10,
+    )
+
+    assert result.returncode == 0, result.stderr.decode(errors="replace")
+    captured = (root / "captured-root.txt").read_text(encoding="utf-8")
+    assert '"' not in captured
+    assert Path(captured).resolve() == root.resolve()
 
 
 def test_first_launch_audio_setup_retries_and_then_skips(tmp_path):
