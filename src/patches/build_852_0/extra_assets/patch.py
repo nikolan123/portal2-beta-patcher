@@ -14,13 +14,15 @@ from patches.base import PatchError, atomic_write, backup_file, sha256_file
 
 
 ARCHIVE_NAME = "assets.zip"
-ARCHIVE_SHA256 = "aab8f60bb903c34f193fafbbe89e2ba46b3993b05bbb63aa6d504690146fb4c3"
+ARCHIVE_SHA256 = "83d6319dce03b4be5f9e0ad97e1ec61ec9f18e25ce296d37c845d19446cb1a1e"
 ASSET_HASHES = {
     "portal/materials/props_animsign/signage_num00_frame.vmt": "a22dc260a67e35f8c1ab25781194490b41602bd2e93856b3303201eb217380e3",
     "portal/materials/props_animsign/signage_num00_frame.vtf": "b3ebcd4ab209c9f56e95499f02ce3eded0df7801d1a6e8203ec1588cff7086ce",
     "portal2/materials/effects/huntertracer.vmt": "6bc01bcf739440101d22743776b08e646a3de7ff2cb198008738f7dc94499288",
     "portal2/materials/effects/huntertracer.vtf": "a9468b5b33ead34e6c825a7f28bb94922a2459baf71c1ac20a1dfe71bfead8f0",
     "portal2/particles/achievement.pcf": "fc692170bb6c7eb80f8f8e334c2ab848b6bfd760abf1b09eb96189f656f51d9e",
+    "portal2/materials/particle/particle_ring_wave_12.vmt": "b4961c0fd451a7b48f06e29031ea097a3f5517faf8722106b065b1524a22d0d2",
+    "portal2/materials/particle/particle_ring_wave_12.vtf": "613674994adba11a34862e425f7a4e92fac19399cb0211979da312d6edba87bc",
 }
 ACHIEVEMENT_PATH = "particles/achievement.pcf"
 
@@ -53,7 +55,7 @@ def add_achievement_to_manifest(data: bytes) -> bytes:
 class PrereleaseAssetsPatch:
     id = "852_0.extra_assets"
     display_name = "Additional prerelease assets"
-    description = "Install the missing achievement particle, hunter tracer, and animated sign assets."
+    description = "Install the missing achievement particle, impact ring, hunter tracer, and animated sign assets."
 
     def _game_root(self, context: PatchContext) -> Path:
         physical_game = context.root / "game"

@@ -5,6 +5,8 @@ from pathlib import Path
 import shutil
 import subprocess
 from threading import Event
+from types import SimpleNamespace
+import pytest
 
 from models import BuildReport, PatchContext
 from patches import (
@@ -13,8 +15,9 @@ from patches import (
     compatible_patch_ids,
     normalize_patch_ids,
 )
-from patches.base import sha256_file
-from patches.build_852_0.hl2_assets.patch import ASSET_MARKER, HL2_ASSET_ALLOWLIST, copy_selected_loose_assets
+from patches.base import PatchError, sha256_file
+from patches.build_852_0.hl2_assets.patch import HL2_ASSET_ALLOWLIST, Hl2AssetsPatch
+from patches.helpers.retail_assets import CuratedHl2AssetsPatch, copy_selected_loose_assets
 from patches.build_852_0.search_paths import SearchPathsPatch
 from patches.build_852_0.sound_manifest import HL2_SOUND_SCRIPTS
 from patches.build_852_0.dialogue import DialogueFixPatch, ORIGINAL_SCENE_CANCEL, PATCHED_SCENE_CANCEL, SCRIPT as DIALOGUE_MAPSPAWN, mapspawn_has_dialogue_fix, patch_glados_script
@@ -93,6 +96,10 @@ from patches.build_841_0_prereset.missing_launcher.patch import (
     Hl2LauncherPatch,
     launcher_path,
 )
+from patches.build_841_0_prereset.hl2_assets.patch import (
+    HL2_ASSET_ALLOWLIST as MISSING_841_0_ASSETS,
+    Hl2Assets8410Patch,
+)
 from patches.build_841_0_prereset.tier0_thread_limit import (
     EXPECTED_REFERENCE_OFFSETS as REFERENCE_OFFSETS_841_0,
     ORIGINAL_TIER0_SHA256 as ORIGINAL_841_0_TIER0_SHA256,
@@ -105,6 +112,7 @@ from patches.build_841_0_prereset.progression_fixes.patch import (
     ProgressionFixes8410Patch,
     bundled_path as progression_bundled_path,
     patch_transition_script,
+    transition_script_is_patched,
     validate_lmp as validate_progression_lmp,
 )
 from patches.build_852_0.multiplayer.patch import (
@@ -119,7 +127,7 @@ from patches import repair
 
 
 def test_patch_registry_has_descriptive_ids_and_stable_order():
-    assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.vscript_scope_fix", "852_0.smooth_jazz", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer", "852_2.hammer", "852_0.node_graphs", "841_0_prereset.node_graphs", "841_0_prereset.progression_fixes"]
+    assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.vscript_scope_fix", "852_0.smooth_jazz", "841_0_prereset.hl2_assets", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer", "852_2.hammer", "852_0.node_graphs", "841_0_prereset.node_graphs", "841_0_prereset.progression_fixes"]
     assert all(patch.description for patch in PATCHES)
     assert set(PATCH_COMPATIBILITY) == {"generic", (841, 0, 0x83CED978), (852, 0), (852, 1), (852, 2)}
     assert PATCH_COMPATIBILITY["generic"].required == {"launchers"}
@@ -168,6 +176,54 @@ def test_841_0_progression_fixes_install_lmps_and_patch_transition_script(tmp_pa
         validate_progression_lmp(name, installed.read_bytes())
 
 
+@pytest.mark.parametrize("newline", [b"\n", b"\r\n"])
+def test_progression_script_preserves_line_endings_and_is_idempotent(newline):
+    original = newline.join([b"before", b"\t\t\t// hook up the exit elevator", b"after", b""])
+    patched = patch_transition_script(original)
+    assert transition_script_is_patched(patched)
+    assert patch_transition_script(patched) == patched
+    assert patched.startswith(b"before" + newline)
+    assert patched.endswith(b"after" + newline)
+    if newline == b"\r\n":
+        assert b"\n" not in patched.replace(b"\r\n", b"")
+
+
+@pytest.mark.parametrize("damage", ["comment", "missing", "moved", "brace"])
+def test_progression_script_rejects_incomplete_block(damage):
+    patched = patch_transition_script(b"\t\t\t// hook up the exit elevator\n")
+    line = b'\t\t\t\tEntFire( "artillery_exit_door", "SetPartner", "@hallway_exit", 0.0 )\n'
+    if damage == "comment":
+        broken = patched.replace(line, b"//" + line)
+    elif damage == "missing":
+        broken = patched.replace(line, b"")
+    elif damage == "moved":
+        broken = patched.replace(line, b"") + line
+    else:
+        broken = patched.replace(b"\t\t\t}\n", b"", 1)
+    assert not transition_script_is_patched(broken)
+    with pytest.raises(PatchError, match="incomplete"):
+        patch_transition_script(broken)
+
+
+def test_progression_lmps_contain_the_intended_entity_fixes():
+    def entity(name, identifier):
+        payload = progression_bundled_path(name).read_bytes()[20:]
+        matches = [block for block in re.findall(rb"\{\n(.*?)\n\}", payload, re.DOTALL)
+                   if identifier in block.split(b"\n")]
+        assert len(matches) == 1
+        return matches[0].split(b"\n")
+
+    catapult = entity("sp_stop_the_box_l_0.lmp", b'"targetname" "flingroom_1_circular_catapult_2"')
+    assert b'"classname" "trigger_catapult"' in catapult
+    assert b'"spawnflags" "4105"' in catapult
+    scene = entity("sp_glados_01_l_0.lmp", b'"hammerid" "2045731"')
+    assert b'"classname" "logic_choreographed_scene"' in scene
+    assert [line for line in scene if line.startswith(b'"OnCompletion"')] == [
+        b'"OnCompletion" "exit_fade\x1bFade\x1b\x1b24\x1b-1"',
+        b'"OnCompletion" "exit_teleport\x1bTeleport\x1b\x1b25\x1b-1"',
+    ]
+
+
 def test_patch_dependencies_and_required_launcher():
     assert normalize_patch_ids(()) == ("852_0.search_paths", "launchers")
     assert normalize_patch_ids(("852_0.sound_manifest",)) == ("852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "launchers")
@@ -207,6 +263,102 @@ def test_841_0_pre_reset_launcher_patch_installs_the_binary(tmp_path):
     patch.apply(context, lambda _event: None)
     patch.verify(context)
     assert sha256_file(tmp_path / "hl2.exe") == LAUNCHER_SHA256
+
+
+@pytest.mark.parametrize("patch_class", [Hl2AssetsPatch, Hl2Assets8410Patch])
+def test_hl2_asset_builds_share_copy_behavior(tmp_path, monkeypatch, patch_class):
+    relative = "sound/weapons/test.wav"
+    payload = b"retail HL2 sound"
+    from patches.helpers import retail_assets as hl2_assets
+    patch = patch_class()
+    assert isinstance(patch, CuratedHl2AssetsPatch)
+    patch.allowlist = frozenset({relative, "materials/test.vmt"})
+    monkeypatch.setattr(patch, "_source_archives", lambda _root: [tmp_path / "test_dir.vpk"])
+    archive = SimpleNamespace(
+        entries=[SimpleNamespace(path=relative), SimpleNamespace(path="sound/unrelated.wav")],
+        read_entry=lambda _entry: payload,
+    )
+    monkeypatch.setattr(hl2_assets, "VPKArchive", lambda _path: archive)
+    loose = tmp_path / "retail-hl2/hl2/materials/test.vmt"
+    loose.parent.mkdir(parents=True)
+    loose.write_bytes(b"loose material")
+    context = PatchContext(tmp_path, tmp_path / "retail-hl2", BuildReport(), Event(), mode="generic")
+
+    assert patch.check(context)
+    patch.apply(context, lambda _event: None)
+    patch.verify(context)
+    assert not patch.check(context)
+    output = patch._asset_folder(context)
+    assert (output / Path(relative)).read_bytes() == payload
+    assert (output / "materials/test.vmt").read_bytes() == b"loose material"
+    assert not (output / "sound/unrelated.wav").exists()
+    destination = output / Path(relative)
+    destination.write_bytes(b"existing user asset")
+    patch.apply(context, lambda _event: None)
+    patch.verify(context)
+    assert destination.read_bytes() == b"existing user asset"
+    assert not destination.with_name(destination.name + ".original.bak").exists()
+
+
+def test_hl2_assets_missing_from_source_are_not_marked_complete(tmp_path, monkeypatch):
+    patch = Hl2Assets8410Patch()
+    patch.allowlist = frozenset({"materials/effects/huntertracer.vmt"})
+    monkeypatch.setattr(patch, "_source_archives", lambda _source: [])
+    context = PatchContext(tmp_path / "output", tmp_path / "source", BuildReport(), Event())
+    with pytest.raises(PatchError, match="materials/effects/huntertracer.vmt"):
+        patch.apply(context, lambda _event: None)
+    assert not patch._marker(context).exists()
+    assert patch.check(context)
+
+
+def test_hl2_asset_verification_uses_files_not_current_report(tmp_path):
+    patch = Hl2Assets8410Patch()
+    patch.allowlist = frozenset({"sound/test.wav"})
+    context = PatchContext(tmp_path, None, BuildReport(), Event())
+    asset = patch._asset_folder(context) / "sound/test.wav"
+    asset.parent.mkdir(parents=True)
+    asset.write_bytes(b"existing asset")
+    patch._marker(context).write_text(patch.asset_marker, encoding="ascii")
+    patch.verify(context)
+    assert not patch.check(context)
+    asset.unlink()
+    assert patch.check(context)
+    with pytest.raises(PatchError, match="sound/test.wav"):
+        patch.verify(context)
+
+
+def test_852_0_silently_skips_unavailable_assets(tmp_path, monkeypatch):
+    patch = Hl2AssetsPatch()
+    patch.allowlist = frozenset({"sound/available.wav", "sound/missing.wav"})
+    monkeypatch.setattr(patch, "_source_archives", lambda _source: [])
+    source = tmp_path / "source"
+    available = source / "hl2/sound/available.wav"
+    available.parent.mkdir(parents=True)
+    available.write_bytes(b"sound")
+    context = PatchContext(tmp_path / "output", source, BuildReport(), Event())
+    patch.apply(context, lambda _event: None)
+    patch.verify(context)
+    assert (context.root / "hl2/sound/available.wav").read_bytes() == b"sound"
+    assert not (context.root / "hl2/sound/missing.wav").exists()
+    assert context.report.warnings == []
+    assert not patch.check(context)
+
+
+def test_841_0_missing_runtime_asset_manifest_is_the_verified_retail_set():
+    assert len(MISSING_841_0_ASSETS) == 25
+    assert sum(path.startswith("materials/") for path in MISSING_841_0_ASSETS) == 5
+    assert sum(path.startswith("sound/") for path in MISSING_841_0_ASSETS) == 20
+    assert {
+        "sound/ambient/materials/metal4.wav",
+        "sound/doors/default_stop.wav",
+        "sound/doors/handle_pushbar_open1.wav",
+        "sound/doors/vent_open2.wav",
+        "sound/doors/vent_open3.wav",
+        "sound/ui/buttonclickrelease.wav",
+        "sound/ui/buttonrollover.wav",
+        "sound/weapons/fx/nearmiss/bulletltor03.wav",
+        "sound/weapons/fx/nearmiss/bulletltor10.wav",
+    } <= MISSING_841_0_ASSETS
 
 
 def test_build_specific_tier0_patches_use_distinct_binaries_and_offsets():
@@ -747,8 +899,16 @@ def test_moved_build_repair_detects_supported_layouts(tmp_path, monkeypatch):
 
 
 def test_hl2_assets_use_curated_compatibility_allowlist():
-    assert ASSET_MARKER == "hl2-assets-curated-v2\n"
+    assert Hl2AssetsPatch.asset_marker == "hl2-assets-curated-v2\n"
+    assert Hl2Assets8410Patch.asset_marker == "841_0-hl2-assets-complete\n"
     assert len(HL2_ASSET_ALLOWLIST) == 312
+    assert "models/brokenglass_piece.dx90.vtx" in HL2_ASSET_ALLOWLIST
+    assert "models/brokenglass_piece.vtx" in HL2_ASSET_ALLOWLIST
+    assert "materials/skybox/sky_urb01bk.vmt" in HL2_ASSET_ALLOWLIST
+    for extension in ("vmt", "vtf"):
+        relative = f"materials/particle/particle_ring_wave_12.{extension}"
+        assert relative in HL2_ASSET_ALLOWLIST
+        assert "portal2/" + relative in ASSET_HASHES
     assert "sound/weapons/physcannon/physcannon_pickup.wav" in HL2_ASSET_ALLOWLIST
     assert "sound/vo/novaprospekt/al_pickherup.wav" not in HL2_ASSET_ALLOWLIST
     assert not any(path.startswith("media/") for path in HL2_ASSET_ALLOWLIST)
@@ -779,6 +939,7 @@ def test_selected_loose_hl2_assets_are_copied_without_overwriting(tmp_path):
         {"game_sounds.txt", "talker/npc.txt"},
         Event(),
         lambda *_args: None,
+        "852_0.hl2_assets",
     )
 
     assert (destination / "game_sounds.txt").read_text(encoding="utf-8") == "existing sound"
@@ -831,7 +992,7 @@ def test_search_paths_work_without_half_life_2(tmp_path):
 
 
 def test_prerelease_asset_bundle_is_small_and_pinned():
-    assert archive_path().stat().st_size < 100_000
+    assert archive_path().stat().st_size < 120_000
     assert len(ASSET_ARCHIVE_SHA256) == 64
     assert set(ASSET_HASHES) == {
         "portal/materials/props_animsign/signage_num00_frame.vmt",
@@ -839,6 +1000,8 @@ def test_prerelease_asset_bundle_is_small_and_pinned():
         "portal2/materials/effects/huntertracer.vmt",
         "portal2/materials/effects/huntertracer.vtf",
         "portal2/particles/achievement.pcf",
+        "portal2/materials/particle/particle_ring_wave_12.vmt",
+        "portal2/materials/particle/particle_ring_wave_12.vtf",
     }
 
 

@@ -57,7 +57,9 @@ def bundled_path(name: str) -> Path:
 
 
 def transition_script_is_patched(data: bytes) -> bool:
-    return all(line in data for line in SCRIPT_LINES if line)
+    normalized = data.replace(b"\r\n", b"\n")
+    block = b"\n".join(SCRIPT_LINES) + SCRIPT_ANCHOR
+    return normalized.count(SCRIPT_MARKER) == 1 and b"\n" + block in b"\n" + normalized
 
 
 def patch_transition_script(original: bytes) -> bytes:

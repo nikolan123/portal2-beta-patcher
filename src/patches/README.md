@@ -16,6 +16,7 @@ Patches for one specific build are in `build_852_0`, `build_852_1`, and `build_8
 | `852_0.continuous_campaign` | — | Optional | — | — | — |
 | `852_0.vscript_scope_fix` | — | Optional | — | — | — |
 | `852_0.smooth_jazz` | — | Optional | — | — | — |
+| `841_0_prereset.hl2_assets` | Optional | — | — | — | — |
 | `thread_fix` | Optional | Optional | Optional | Optional | Optional |
 | `launchers` | Required | Required | Required | Required | Required |
 | `852_0.hammer` | — | Optional | — | — | — |
@@ -44,6 +45,8 @@ These patches are specific to the July 2009 `852_0` build.
 ### 852_0.hl2_assets - Half-Life 2 assets
 
 The beta expects the shared Half-Life 2 files that Steam used to mount for it, but those files are not part of the `852_0` depot itself. Modern Steam keeps them inside VPK archives that this extracts and takes the needed stuff from.
+
+The 312-file allowlist selects which retail files to copy. Files absent from the source are silently skipped, without warnings or verification errors.
 
 ### 852_0.search_paths - Search paths
 
@@ -99,7 +102,7 @@ Hammer's configuration contains the installation path. If the completed build is
 
 This build of Portal uses a few files that are neither included in the beta nor available in Half-Life 2.
 
-This patch installs only those five runtime assets and adds `particles/achievement.pcf` to the existing particle manifest. The assets are stored together in a small ZIP.
+This patch installs seven runtime assets and adds `particles/achievement.pcf` to the existing particle manifest. The assets are stored together in a small ZIP.
 
 ### 852_0.multiplayer - Multiplayer fixes
 
@@ -114,6 +117,10 @@ Installs 54 node graphs generated using 852_0 and checked on a second load. Avoi
 ## 841_0 Pre-reset
 
 `83ced978` manifest
+
+### 841_0_prereset.hl2_assets - Missing Runtime Assets
+
+Copies 25 retail materials and sounds missing from this build. Requires a retail Half-Life 2 install.
 
 ### 841_0_prereset.node_graphs - Prebuilt node graphs
 

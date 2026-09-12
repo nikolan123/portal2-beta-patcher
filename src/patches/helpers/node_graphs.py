@@ -1,4 +1,4 @@
-"""Install generated node graphs for matching map revisions."""
+"""Install generated node graphs when the BSP revision integer matches."""
 from dataclasses import dataclass
 from pathlib import Path
 import struct
@@ -33,7 +33,7 @@ class NodeGraphsPatch:
                 if len(data) < 16 or len(header) < 1036 or header[:4] != b"VBSP":
                     raise PatchError(f"Invalid map or node graph: {name}")
                 if struct.unpack_from("<i", data, 4)[0] != struct.unpack_from("<i", header, 1032)[0]:
-                    continue  # Let the engine generate a graph for modified maps.
+                    continue  # Leave maps with a different revision to the engine.
                 yield maps / "graphs" / name, data
 
     def check(self, context: PatchContext) -> bool:

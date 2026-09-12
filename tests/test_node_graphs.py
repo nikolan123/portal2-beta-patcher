@@ -11,7 +11,7 @@ from patches.resources import resource_path
 
 @pytest.mark.parametrize('patch_id,count', [('852_0.node_graphs', 54), ('841_0_prereset.node_graphs', 171)])
 @pytest.mark.parametrize('layout', ['', 'game'])
-def test_generated_graphs_install_and_skip_modified_maps(tmp_path, patch_id, count, layout):
+def test_generated_graphs_install_and_skip_different_revisions(tmp_path, patch_id, count, layout):
     definition = BY_ID[patch_id]
     patch = definition.implementation
     maps = tmp_path / layout / 'portal2' / 'maps'

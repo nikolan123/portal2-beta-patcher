@@ -73,6 +73,9 @@ class PatcherUI(TkBase):
         self.worker: threading.Thread | None = None
         self.output_path: Path | None = None
         self.current_mode = "852_0"
+        self.generic_patch_controls = []
+        self.hl2_warning_label = None
+        self.portal2_warning_label = None
         self.blob_var = tk.StringVar()
         self.dat_var = tk.StringVar()
         self.portal2_var = tk.StringVar()
@@ -105,6 +108,9 @@ class PatcherUI(TkBase):
         return {key for key, value in (("hl2", self.hl2_var.get()), ("portal2", self.portal2_var.get())) if value.strip()}
 
     def clear(self) -> None:
+        self.generic_patch_controls.clear()
+        self.hl2_warning_label = None
+        self.portal2_warning_label = None
         for child in self.container.winfo_children():
             child.destroy()
 
@@ -437,10 +443,20 @@ class PatcherUI(TkBase):
         self.error_label = tk.Label(self.container, textvariable=self.message_var, bg=BG, fg="#e58b8b", font=("Segoe UI", 9))
         self.error_label.pack(anchor="w", pady=(0, 4))
 
-    def file_row(self, parent, label, variable, extension, folder):
+    def file_row(self, parent, label, variable, extension, folder, hint=None):
         row = tk.Frame(parent, bg=BG)
         row.pack(fill="x", pady=(0, 10))
-        tk.Label(row, text=label, width=18, anchor="w", bg=BG, fg=TEXT, font=("Segoe UI", 10)).pack(side="left")
+        if hint:
+            label_column = tk.Frame(row, bg=BG, width=130, height=38)
+            label_column.pack(side="left", fill="y")
+            label_column.pack_propagate(False)
+            tk.Label(label_column, text=label, anchor="w", bg=BG, fg=TEXT,
+                     font=("Segoe UI", 10)).pack(fill="x")
+            tk.Label(label_column, text=hint, anchor="w", bg=BG, fg=MUTED,
+                     font=("Segoe UI", 8)).pack(fill="x")
+        else:
+            tk.Label(row, text=label, width=18, anchor="w", bg=BG, fg=TEXT,
+                     font=("Segoe UI", 10)).pack(side="left")
         entry = tk.Entry(
             row,
             textvariable=variable,
@@ -531,25 +547,41 @@ class PatcherUI(TkBase):
     def update_hl2_warning(self, *_args) -> None:
         if self.hl2_var.get().strip():
             self.hl2_warning_var.set("")
-            if hasattr(self, "hl2_warning_label"):
+            if self.hl2_warning_label is not None:
                 self.hl2_warning_label.pack_forget()
         else:
             self.hl2_warning_var.set("No Half-Life 2 folder: HL2 content support will be unavailable.")
-            if hasattr(self, "hl2_warning_label"):
+            if self.hl2_warning_label is not None:
                 self.hl2_warning_label.pack(anchor="w", pady=(0, 4))
+        self.update_generic_patch_availability()
 
     def update_portal2_warning(self, *_args) -> None:
         if self.portal2_var.get().strip():
             self.portal2_warning_var.set("")
-            if hasattr(self, "portal2_warning_label"):
+            if self.portal2_warning_label is not None:
                 self.portal2_warning_label.pack_forget()
         else:
             self.portal2_warning_var.set("No Portal 2 folder: the Hammer and HLMV fix will be unavailable. Please do not pirate Portal 2!")
-            if hasattr(self, "portal2_warning_label"):
+            if self.portal2_warning_label is not None:
                 options = {"anchor": "w", "pady": (0, 4)}
-                if self.hl2_warning_label.winfo_manager():
+                if self.hl2_warning_label is not None and self.hl2_warning_label.winfo_manager():
                     options["before"] = self.hl2_warning_label
                 self.portal2_warning_label.pack(**options)
+        self.update_generic_patch_availability()
+
+    def update_generic_patch_availability(self) -> None:
+        for group, checkbox, detail_label, base_detail, content_only in self.generic_patch_controls:
+            reason = unavailable_reason(group.patch_ids, self.available_patch_inputs())
+            if reason:
+                self.set_patch_choice(group.patch_ids, False)
+            disabled = bool(reason) or content_only
+            checkbox.configure(state="disabled" if disabled else "normal")
+            detail = base_detail
+            if reason:
+                detail += f"  {reason}"
+            if content_only:
+                detail += "  Unavailable because this is a content-only depot."
+            detail_label.configure(text=detail)
 
     def selected_patch_ids(self) -> tuple[str, ...]:
         return normalize_patch_ids(
@@ -743,17 +775,13 @@ class PatcherUI(TkBase):
         for requirement in sorted(requirements_for(profile.all)):
             if requirement in installation_inputs:
                 label, variable = installation_inputs[requirement]
-                self.file_row(choices, label, variable, "", True)
-        if requirements_for(profile.all) & installation_inputs.keys():
-            self.button(choices, "Refresh choices", self.show_generic_patch_chooser, secondary=True, width=18).pack(anchor="w", pady=(0, 8))
+                hint = "Optional" if requirement == "hl2" else None
+                self.file_row(choices, label, variable, "", True, hint=hint)
         if not effectively_runnable:
             for patch_id in patch_ids:
                 self.patch_vars[patch_id].set(False)
         for group in choices_for(profile):
             patch_id = group.patch_ids[0]
-            reason = unavailable_reason(group.patch_ids, self.available_patch_inputs())
-            if reason:
-                self.set_patch_choice(group.patch_ids, False)
             panel = tk.Frame(choices, bg=PANEL, highlightbackground=BORDER, highlightthickness=1)
             panel.pack(fill="x", pady=(0, 8))
             checkbox = tk.Checkbutton(
@@ -763,6 +791,7 @@ class PatcherUI(TkBase):
                 command=lambda ids=group.patch_ids, variable=self.patch_vars[patch_id]: self.set_patch_choice(ids, variable.get()),
                 bg=PANEL,
                 fg=TEXT,
+                disabledforeground=MUTED,
                 selectcolor=FIELD,
                 activebackground=PANEL,
                 activeforeground=TEXT,
@@ -771,17 +800,16 @@ class PatcherUI(TkBase):
                 highlightthickness=0,
             )
             checkbox.pack(anchor="w", padx=14, pady=(7, 0))
-            detail = group.description
-            if reason:
-                checkbox.configure(state="disabled", disabledforeground=MUTED)
-                detail += f"  {reason}"
-            if not effectively_runnable:
-                checkbox.configure(state="disabled", disabledforeground=MUTED)
-                detail += "  Unavailable because this is a content-only depot."
-            tk.Label(panel, text=detail, bg=PANEL, fg=MUTED, anchor="w", justify="left",
-                     wraplength=560, font=("Segoe UI", 8)).pack(fill="x", padx=36, pady=(1, 7))
+            detail_label = tk.Label(panel, text=group.description, bg=PANEL, fg=MUTED, anchor="w", justify="left",
+                wraplength=560, font=("Segoe UI", 8))
+            detail_label.pack(fill="x", padx=36, pady=(1, 7))
+            self.generic_patch_controls.append(
+                (group, checkbox, detail_label, group.description, not effectively_runnable)
+            )
             if "goldberg_archive" in requirements_for(group.patch_ids):
                 self.add_goldberg_zip_field(panel)
+
+        self.update_generic_patch_availability()
 
         if target.needs_custom_key:
             key_row = tk.Frame(choices, bg=BG)

@@ -10,7 +10,7 @@ from patches import BY_ID, DEFINITIONS, PROFILES, normalize_patch_ids, patch_set
 from patches.definitions import BuildProfile, PatchDefinition, Resource, SourceRequirement
 from patches.resources import packaging_data, resource_path
 from patches.selection import (
-    capabilities_for, choices_for, ordered_definitions, resolve_selection,
+    capabilities_for, choices_for, ordered_definitions, requirements_for, resolve_selection,
     resolve_source_chains, unavailable_reason, validate_registry, validate_source_chains,
 )
 
@@ -78,6 +78,10 @@ def test_choices_defaults_requirements_and_selected_capabilities():
     assert group.patch_ids == ('852_0.hl2_assets', '852_0.sound_manifest')
     assert unavailable_reason(group.patch_ids, ())
     assert not unavailable_reason(group.patch_ids, {'hl2'})
+    profile_841 = patch_set_for_target('generic', 841, 0, 0x83CED978)
+    first_841 = choices_for(profile_841)[0]
+    assert first_841.patch_ids == ('841_0_prereset.hl2_assets',)
+    assert requirements_for(first_841.patch_ids) == {'hl2'}
     assert not BY_ID['goldberg'].default_selected
     assert not BY_ID['852_0.continuous_campaign'].default_selected
     assert not BY_ID['852_0.smooth_jazz'].default_selected
