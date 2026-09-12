@@ -59,8 +59,8 @@ def read_bundled_lmp(name: str) -> bytes:
 
 class ContinuousCampaignPatch:
     id = "852_0.continuous_campaign"
-    display_name = "Experimental speedrunning fixes"
-    description = "Fixes for speedrun tools. Not recommended for normal play"
+    display_name = "Speedrunning fixes"
+    description = "Fixes for speedrun tools."
 
     def check(self, context: PatchContext) -> bool:
         for name, expected_hash in LMP_HASHES.items():
