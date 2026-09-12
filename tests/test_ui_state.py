@@ -97,8 +97,7 @@ def test_mode_specific_patch_lists():
     assert "852_0.subtitles" in patch_ids_for_mode("852_0")
     assert "852_0.continuous_campaign" in patch_ids_for_mode("852_0")
     assert "multicore" not in patch_ids_for_mode("852_0")
-    assert "852_0.multiplayer" in patch_ids_for_mode("852_0")
-    assert "852_0.node_graphs" in patch_ids_for_mode("852_0")
+    assert patch_ids_for_mode("852_0")[-2:] == ("852_0.multiplayer", "852_0.node_graphs")
 
 
 def test_support_link_uses_the_project_issue_tracker():
