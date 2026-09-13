@@ -138,6 +138,10 @@ Fixes five campaign progression blockers:
 
 The first two fixes use entity lumps. The other three edit the transition script.
 
+### 841_0_prereset.water - Fix Goo Rendering
+
+Edits `client.dll` and the existing goo material to fix nodraw goo and restore detail.
+
 ### 841_0_prereset.missing_launcher - Missing hl2.exe fix
 
 This installs a small prebuilt executable produced from `src/patches/build_841_0_prereset/missing_launcher/native/hl2.cpp` as `hl2.exe`.
