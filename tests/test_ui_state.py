@@ -135,3 +135,42 @@ def test_ready_target_label_shows_approximate_final_size():
     assert "Ready" not in target().label
     assert "~" not in target(False).label
     assert target(False).label.endswith("Missing DAT")
+
+
+def test_existing_build_flow_starts_empty_and_allows_archives(tmp_path, monkeypatch):
+    monkeypatch.setattr(PatcherUI, 'detect_hl2', lambda self: None)
+    monkeypatch.setattr(PatcherUI, 'detect_portal2', lambda self: None)
+    (tmp_path / 'game/portal2').mkdir(parents=True)
+    (tmp_path / 'game/portal2/GameInfo.txt').write_text('original')
+    app = PatcherUI()
+    app.withdraw()
+    try:
+        app.show_existing_files()
+        assert not any(var.get() for var in app.patch_vars.values())
+        assert app.existing_version_var.get() == 'Select a build version…'
+        app.existing_build_var.set(str(tmp_path))
+        app.existing_version_var.set('852_0 - July 2009')
+        app.show_existing_patch_chooser()
+        assert app.current_mode == 'existing'
+        assert not any(var.get() for var in app.patch_vars.values())
+        controls = {group.patch_ids[0]: (checkbox, description)
+                    for group, checkbox, description, *_ in app.generic_patch_controls}
+        assert 'launchers' in controls
+        assert '852_0.search_paths' in controls
+        assert controls['goldberg'][0].cget('state') == 'normal'
+        assert 'disabled' not in controls['goldberg'][1].cget('text')
+        controls['852_0.subtitles'][0].invoke()
+        assert app.patch_vars['852_0.dialogue'].get()
+        assert not app.patch_vars['launchers'].get()
+        app.show_existing_files(False)
+        app.existing_version_var.set('852_1 - March 2010')
+        app.show_existing_patch_chooser()
+        assert not any(var.get() for var in app.patch_vars.values())
+        for group, checkbox, description, *_ in app.generic_patch_controls:
+            if group.patch_ids[0] == '852_1.extra_assets.from_july_2010':
+                assert checkbox.cget('state') == 'normal'
+        app.show_error('Test failure')
+        assert app.current_mode == 'existing'
+        assert 'changes may remain' in app.message_var.get()
+    finally:
+        app.destroy()

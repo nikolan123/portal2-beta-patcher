@@ -88,7 +88,17 @@ start "Half-Life Model Viewer" hlmv.exe -nop4 -game "%VPROJECT%" %*
 
 def move_runtime_into_game(root: Path) -> None:
     game = root / "game"
-    game.mkdir(parents=True, exist_ok=True)
+    # Existing builds may already have this layout without the Hammer fixes.
+    if (game / "portal2").is_dir():
+        for name in RUNTIME_DIRECTORIES:
+            if not (game / name).is_dir():
+                raise PatchError(f"Hammer runtime folder is missing: game\\{name}")
+        for name in (*RUNTIME_DIRECTORIES, *RUNTIME_FILES):
+            if (root / name).exists():
+                raise PatchError(f"Hammer runtime was left duplicated outside game: {name}")
+        return
+
+    # Check every source and destination before moving anything.
     for name in RUNTIME_DIRECTORIES:
         source = root / name
         destination = game / name
@@ -96,7 +106,6 @@ def move_runtime_into_game(root: Path) -> None:
             raise PatchError(f"Cannot create the Hammer layout because {name} is missing")
         if destination.exists():
             raise PatchError(f"Cannot create the Hammer layout because game\\{name} already exists")
-        source.replace(destination)
     for name in RUNTIME_FILES:
         source = root / name
         if not source.exists():
@@ -104,7 +113,11 @@ def move_runtime_into_game(root: Path) -> None:
         destination = game / name
         if destination.exists():
             raise PatchError(f"Cannot create the Hammer layout because game\\{name} already exists")
-        source.replace(destination)
+    game.mkdir(parents=True, exist_ok=True)
+    for name in (*RUNTIME_DIRECTORIES, *RUNTIME_FILES):
+        source = root / name
+        if source.exists():
+            source.replace(game / name)
 
 
 def repair_moved_tools(root: Path) -> None:
@@ -148,9 +161,9 @@ class HammerPatch:
         if context.cancel_event.is_set():
             raise BuildCancelled("Build cancelled")
 
+        move_runtime_into_game(context.root)
         mapsrc = context.root / "content" / "portal2" / "mapsrc"
         mapsrc.mkdir(parents=True, exist_ok=True)
-        move_runtime_into_game(context.root)
 
         config_path = context.root / "game" / "bin" / "GameConfig.txt"
         if config_path.exists():

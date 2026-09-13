@@ -28,6 +28,20 @@ class BuildInputs:
 
 
 @dataclass(frozen=True)
+class ExistingBuildInputs:
+    output_path: Path
+    depot_id: int
+    depot_version: int
+    depot_crc: int | None = None
+    selected_patch_ids: tuple[str, ...] = ()
+    hl2_path: Path | None = None
+    portal2_path: Path | None = None
+    goldberg_archive_path: Path | None = None
+    supplemental_revision_chains: tuple[tuple["RevisionInput", ...], ...] = ()
+    archive_folder: Path | None = None
+
+
+@dataclass(frozen=True)
 class RevisionInput:
     depot_id: int
     version: int

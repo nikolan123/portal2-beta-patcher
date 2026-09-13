@@ -6,7 +6,7 @@ from pathlib import Path
 import queue
 import threading
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, ttk
 import webbrowser
 
 try:
@@ -18,8 +18,9 @@ except ImportError:
     TkBase = tk.Tk
 
 from extractor import CatalogTarget, has_runnable_layout, scan_archive_catalog
-from models import BuildCancelled, BuildInputs, ProgressEvent
-from patches import PATCHES, DEFINITIONS, normalize_patch_ids, selectable_patch_ids, patch_set_for_target
+from models import BuildCancelled, BuildInputs, ExistingBuildInputs, ProgressEvent
+from existing_build import existing_profile, runtime_root, patch_existing_build
+from patches import PATCHES, DEFINITIONS, normalize_patch_ids, selectable_patch_ids, patch_set_for_target, resolve_selection
 from patches.selection import choices_for, requirements_for, capabilities_for, unavailable_reason, resolve_source_chains
 from patches.repair import repair_moved_build
 from pipeline import BuildPipeline
@@ -91,6 +92,9 @@ class PatcherUI(TkBase):
         self.custom_key_var = tk.StringVar()
         self.goldberg_zip_var = tk.StringVar()
         self.moved_build_var = tk.StringVar()
+        self.existing_archive_var = tk.StringVar()
+        self.existing_build_var = tk.StringVar()
+        self.existing_version_var = tk.StringVar()
         self.catalog_targets: list[CatalogTarget] = []
         self.selected_target: CatalogTarget | None = None
         self.progress_fraction = 0.0
@@ -183,6 +187,125 @@ class PatcherUI(TkBase):
             "Only use this if Hammer stopped working after you moved a patched build.",
             self.show_repair_tools,
         ).pack(fill="x")
+        self.mode_choice(
+            choices, "Patch an existing build",
+            "Apply selected fixes in place. This will not always work.",
+            self.show_existing_files, experimental=True,
+        ).pack(fill="x", pady=(12, 0))
+
+    def show_existing_files(self, reset=True) -> None:
+        self.current_mode = "existing"
+        self.clear()
+        if reset:
+            self.existing_build_var.set("")
+            self.existing_version_var.set("")
+            for variable in self.patch_vars.values():
+                variable.set(False)
+        self.message_var.set("")
+        title = tk.Frame(self.container, bg=BG)
+        title.pack(fill="x")
+        tk.Label(title, text="Patch an existing build", bg=BG, fg=TEXT,
+                 font=("Segoe UI Semibold", 18)).pack(side="left")
+        tk.Label(title, text="EXPERIMENTAL", bg="#2b2113", fg="#e1b775",
+                 font=("Segoe UI Semibold", 8), padx=9, pady=4).pack(side="left", padx=(14, 0))
+        tk.Label(self.container, text="Existing builds can differ in unpredictable ways, so fixes may not work.\n"
+                 "Changes happen in place. Close the game and back up your build first.",
+                 bg=BG, fg=MUTED, justify="left", wraplength=620,
+                 font=("Segoe UI", 10)).pack(anchor="w", pady=(5, 0))
+
+        bottom = tk.Frame(self.container, bg=BG)
+        bottom.pack(side="bottom", fill="x")
+        self.button(bottom, "Back", self.show_more_options, secondary=True, width=10).pack(side="left")
+        self.button(bottom, "Choose fixes", self.show_existing_patch_chooser, width=14).pack(side="right")
+        tk.Label(self.container, textvariable=self.message_var, bg=BG, fg="#e58b8b",
+                 anchor="w", wraplength=620, justify="left", height=2,
+                 font=("Segoe UI", 9)).pack(side="bottom", fill="x", pady=(4, 6))
+
+        form = tk.Frame(self.container, bg=BG)
+        form.pack(fill="x", pady=(18, 0))
+        tk.Label(form, text="Build folder", bg=BG, fg=TEXT,
+                 font=("Segoe UI Semibold", 10)).pack(anchor="w", pady=(0, 5))
+        folder_row = tk.Frame(form, bg=BG)
+        folder_row.pack(fill="x")
+        style = ttk.Style(self)
+        style.theme_use("clam")
+        style.configure("Build.TCombobox", fieldbackground=FIELD, background=FIELD,
+                        foreground=TEXT, bordercolor=BORDER,
+                        lightcolor=FIELD, darkcolor=FIELD, padding=(10, 8))
+        entry = tk.Entry(folder_row, textvariable=self.existing_build_var,
+                         bg=FIELD, fg=TEXT, insertbackground=TEXT,
+                         relief="flat", borderwidth=0, highlightthickness=1,
+                         highlightbackground=BORDER, highlightcolor=BORDER,
+                         font=("Segoe UI", 9))
+        entry.pack(side="left", fill="x", expand=True, ipady=9, padx=(0, 9))
+        self.button(folder_row, "Browse", lambda: self.browse_folder(self.existing_build_var),
+                    secondary=True, width=9).pack(side="right")
+        tk.Label(form, text="Build version", bg=BG, fg=TEXT,
+                 font=("Segoe UI Semibold", 10)).pack(anchor="w", pady=(12, 5))
+        versions = ("852_0 - July 2009", "852_1 - March 2010", "852_2 - July 2010",
+                    "841_0 - Pre-reset (83CED978)", "Other - generic fixes only")
+        # Keep the dropdown arrow visible on the dark background.
+        style.configure("Build.TCombobox", arrowcolor=TEXT, arrowsize=16)
+        style.map("Build.TCombobox", fieldbackground=[("readonly", FIELD)],
+                  foreground=[("readonly", TEXT)], background=[("active", "#242424")],
+                  bordercolor=[("focus", BORDER)], selectbackground=[("readonly", FIELD)],
+                  selectforeground=[("readonly", TEXT)])
+        self.option_add("*TCombobox*Listbox.background", FIELD)
+        self.option_add("*TCombobox*Listbox.foreground", TEXT)
+        self.option_add("*TCombobox*Listbox.selectBackground", "#33435a")
+        self.option_add("*TCombobox*Listbox.selectForeground", TEXT)
+        self.option_add("*TCombobox*Listbox.font", "{Segoe UI} 10")
+        if not self.existing_version_var.get():
+            self.existing_version_var.set("Select a build version…")
+        menu = ttk.Combobox(form, textvariable=self.existing_version_var, values=versions,
+                            state="readonly", style="Build.TCombobox", font=("Segoe UI", 10),
+                            height=len(versions), takefocus=True)
+        menu.pack(fill="x")
+        menu.bind("<<ComboboxSelected>>", lambda _event: self.message_var.set(""))
+
+    def show_existing_patch_chooser(self) -> None:
+        try:
+            if not self.existing_build_var.get().strip():
+                raise ValueError("Select an existing Portal 2 build folder.")
+            runtime_root(Path(self.existing_build_var.get().strip()))
+            versions = {"852_0": (852, 0, None), "852_1": (852, 1, None),
+                        "852_2": (852, 2, None), "841_0": (841, 0, 0x83CED978),
+                        "Other": (841, 1, None)}
+            key = self.existing_version_var.get().split(" - ")[0]
+            if key not in versions:
+                raise ValueError("Select the build version first.")
+            depot, version, crc = versions[key]
+            self.selected_target = CatalogTarget(depot, version, crc or 0, Path(), True, "Existing build")
+            for variable in self.patch_vars.values():
+                variable.set(False)
+        except Exception as error:
+            self.message_var.set(str(error))
+            return
+        self.show_generic_patch_chooser(existing=True)
+
+    def start_existing_build(self) -> None:
+        try:
+            target = self.selected_target
+            profile = existing_profile(target.depot_id, target.version, target.crc)
+            selected = tuple(patch_id for patch_id in profile.all if self.patch_vars[patch_id].get())
+            if not selected:
+                raise ValueError("Select at least one fix. Nothing is selected automatically.")
+            inputs = ExistingBuildInputs(
+                Path(self.existing_build_var.get().strip()), target.depot_id, target.version, target.crc,
+                selected, Path(self.hl2_var.get().strip()) if self.hl2_var.get().strip() else None,
+                Path(self.portal2_var.get().strip()) if self.portal2_var.get().strip() else None,
+                goldberg_archive_path=Path(self.goldberg_zip_var.get().strip()) if self.goldberg_zip_var.get().strip() else None,
+                archive_folder=Path(self.existing_archive_var.get().strip()) if self.existing_archive_var.get().strip() else None)
+            runtime_root(inputs.output_path)
+        except Exception as error:
+            self.message_var.set(str(error))
+            return
+        self.last_selected_patch_ids = resolve_selection(selected, profile, runnable=False).ids
+        self.active_inputs = inputs
+        self.cancel_event.clear()
+        self.show_progress()
+        self.worker = threading.Thread(target=self.run_pipeline, args=(inputs,), daemon=True)
+        self.worker.start()
 
     def show_repair_tools(self) -> None:
         self.moved_build_var.set("")
@@ -217,18 +340,23 @@ class PatcherUI(TkBase):
             font=("Segoe UI", 9),
         ).pack(fill="x", padx=16, pady=13)
 
-    def mode_choice(self, parent, title: str, detail: str, command):
+    def mode_choice(self, parent, title: str, detail: str, command, *, experimental=False):
         panel = tk.Frame(parent, bg=PANEL, highlightbackground=BORDER, highlightthickness=1)
         text = tk.Frame(panel, bg=PANEL)
         text.pack(side="left", fill="both", expand=True, padx=18, pady=16)
+        title_row = tk.Frame(text, bg=PANEL)
+        title_row.pack(fill="x")
         tk.Label(
-            text,
+            title_row,
             text=title,
             bg=PANEL,
             fg=TEXT,
             anchor="w",
             font=("Segoe UI Semibold", 12),
-        ).pack(fill="x")
+        ).pack(side="left")
+        if experimental:
+            tk.Label(title_row, text="EXPERIMENTAL", bg="#2b2113", fg="#e1b775",
+                     font=("Segoe UI Semibold", 8), padx=9, pady=4).pack(side="left", padx=(12, 0))
         tk.Label(
             text,
             text=detail,
@@ -572,6 +700,11 @@ class PatcherUI(TkBase):
     def update_generic_patch_availability(self) -> None:
         for group, checkbox, detail_label, base_detail, content_only in self.generic_patch_controls:
             reason = unavailable_reason(group.patch_ids, self.available_patch_inputs())
+            if self.current_mode == "existing":
+                target = self.selected_target
+                profile = existing_profile(target.depot_id, target.version, target.crc)
+                ids = resolve_selection(group.patch_ids, profile, runnable=False).ids
+                reason = unavailable_reason(ids, self.available_patch_inputs())
             if reason:
                 self.set_patch_choice(group.patch_ids, False)
             disabled = bool(reason) or content_only
@@ -707,32 +840,34 @@ class PatcherUI(TkBase):
 
         bind_wheel(list_frame)
 
-    def show_generic_patch_chooser(self) -> None:
+    def show_generic_patch_chooser(self, existing=False) -> None:
         target = self.selected_target
         if target is None or not target.ready:
             self.message_var.set("Select a ready revision first.")
             return
-        if is_core_hub_target(target):
+        if not existing and is_core_hub_target(target):
             revision = target.chain[-1]
             self.blob_var.set(str(revision.blob_path))
             self.dat_var.set(str(revision.dat_path))
             self.show_files()
             return
-        self.current_mode = "generic"
+        self.current_mode = "existing" if existing else "generic"
         self.message_var.set("")
         self.clear()
         patch_ids = patch_ids_for_mode("generic", target.depot_id, target.version, target.crc)
-        effectively_runnable = target.runnable or "provides_hl2_exe" in capabilities_for(patch_ids)
+        effectively_runnable = existing or target.runnable or "provides_hl2_exe" in capabilities_for(patch_ids)
         detail = (
             "Choose the patches you want to apply."
             if effectively_runnable
             else "This content-only depot can be extracted, but it is not independently runnable."
         )
-        self.heading("Choose fixes", detail)
+        self.heading("Choose fixes",
+                     "May not work. Back up and close the game."
+                     if existing else detail)
         bottom = tk.Frame(self.container, bg=BG)
         bottom.pack(side="bottom", fill="x")
-        self.button(bottom, "Back", lambda: self.show_generic_files(False), secondary=True, width=10).pack(side="left")
-        self.button(bottom, "Build", self.start_generic_build, width=13).pack(side="right")
+        self.button(bottom, "Back", lambda: self.show_existing_files(False) if existing else self.show_generic_files(False), secondary=True, width=10).pack(side="left")
+        self.button(bottom, "Patch in place" if existing else "Build", self.start_existing_build if existing else self.start_generic_build, width=13).pack(side="right")
         self.error_label = tk.Label(
             self.container,
             textvariable=self.message_var,
@@ -767,7 +902,7 @@ class PatcherUI(TkBase):
         choices_window = canvas.create_window((0, 0), window=choices, anchor="nw")
         choices.bind("<Configure>", lambda _event: canvas.configure(scrollregion=canvas.bbox("all")))
         canvas.bind("<Configure>", lambda event: canvas.itemconfigure(choices_window, width=event.width))
-        profile = patch_set_for_target("generic", target.depot_id, target.version, target.crc)
+        profile = existing_profile(target.depot_id, target.version, target.crc) if existing else patch_set_for_target("generic", target.depot_id, target.version, target.crc)
         installation_inputs = {
             "hl2": ("Half-Life 2 folder", self.hl2_var),
             "portal2": ("Portal 2 folder", self.portal2_var),
@@ -775,8 +910,13 @@ class PatcherUI(TkBase):
         for requirement in sorted(requirements_for(profile.all)):
             if requirement in installation_inputs:
                 label, variable = installation_inputs[requirement]
-                hint = "Optional" if requirement == "hl2" else None
+                hint = "Optional"
                 self.file_row(choices, label, variable, "", True, hint=hint)
+        if existing and resolve_selection(profile.all, profile, runnable=False).sources:
+            self.file_row(choices, "Source archives", self.existing_archive_var, "", True, hint="Optional")
+            tk.Label(choices, text="BLOB/DAT folder for checked archive asset fixes, including their revisions.",
+                     bg=BG, fg=MUTED, anchor="w", wraplength=560,
+                     font=("Segoe UI", 8)).pack(fill="x", pady=(0, 10))
         if not effectively_runnable:
             for patch_id in patch_ids:
                 self.patch_vars[patch_id].set(False)
@@ -811,7 +951,7 @@ class PatcherUI(TkBase):
 
         self.update_generic_patch_availability()
 
-        if target.needs_custom_key:
+        if not existing and target.needs_custom_key:
             key_row = tk.Frame(choices, bg=BG)
             key_row.pack(fill="x", pady=(5, 0))
             tk.Label(key_row, text="Depot key", width=15, anchor="w", bg=BG, fg=TEXT,
@@ -935,7 +1075,10 @@ class PatcherUI(TkBase):
 
     def run_pipeline(self, inputs):
         try:
-            output = BuildPipeline(lambda event: self.events.put(("progress", event)), self.cancel_event).run(inputs)
+            emit = lambda event: self.events.put(("progress", event))
+            output = (patch_existing_build(inputs, emit, self.cancel_event)
+                      if isinstance(inputs, ExistingBuildInputs)
+                      else BuildPipeline(emit, self.cancel_event).run(inputs))
             self.events.put(("complete", output))
         except BuildCancelled:
             self.events.put(("cancelled", None))
@@ -949,7 +1092,11 @@ class PatcherUI(TkBase):
             title = f"Patching {self.selected_target.depot_id} version {self.selected_target.version}"
         else:
             title = "Patching 852_0"
-        self.heading(title, "Preparing the build.")
+        if self.current_mode == "existing":
+            title = "Patching existing build — Experimental"
+        self.progress_fraction = 0.0
+        self.percent_var.set("0%")
+        self.heading(title, "Applying fixes in place." if self.current_mode == "existing" else "Preparing the build.")
         block = tk.Frame(self.container, bg=PANEL, highlightbackground=BORDER, highlightthickness=1)
         block.pack(fill="x", pady=(28, 0))
         inner = tk.Frame(block, bg=PANEL)
@@ -1006,6 +1153,8 @@ class PatcherUI(TkBase):
                 detail = "Extraction finished. This content-only depot is not independently runnable."
         else:
             detail = "Portal 2 build 852_0 is ready."
+        if self.current_mode == "existing":
+            detail = "Selected fixes finished in place. Experimental: the build may still not work."
         self.heading("Finished", detail)
         block = tk.Frame(self.container, bg=PANEL, highlightbackground=BORDER, highlightthickness=1)
         block.pack(fill="x", pady=(28, 0))
@@ -1037,6 +1186,10 @@ class PatcherUI(TkBase):
             self.button(bottom, "Launch Portal 2", lambda: os.startfile(launcher), width=16).pack(side="right")
 
     def show_error(self, text):
+        if self.current_mode == "existing":
+            self.show_existing_files(False)
+            self.message_var.set(f"{text} Earlier changes may remain in place; restore your backup if needed.")
+            return
         if back_screen_for_mode(self.current_mode) == "generic_files":
             self.show_generic_files(False)
         else:
