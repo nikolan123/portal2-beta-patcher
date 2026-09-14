@@ -209,7 +209,7 @@ class PatcherUI(TkBase):
         tk.Label(title, text="EXPERIMENTAL", bg="#2b2113", fg="#e1b775",
                  font=("Segoe UI Semibold", 8), padx=9, pady=4).pack(side="left", padx=(14, 0))
         tk.Label(self.container, text="Existing builds can differ in unpredictable ways, so fixes may not work.\n"
-                 "Changes happen in place. Close the game and back up your build first.",
+                 "It is recommended to go back and use a blob+dat. Close the game and back up your build before proceeding.",
                  bg=BG, fg=MUTED, justify="left", wraplength=620,
                  font=("Segoe UI", 10)).pack(anchor="w", pady=(5, 0))
 
@@ -1092,8 +1092,6 @@ class PatcherUI(TkBase):
             title = f"Patching {self.selected_target.depot_id} version {self.selected_target.version}"
         else:
             title = "Patching 852_0"
-        if self.current_mode == "existing":
-            title = "Patching existing build — Experimental"
         self.progress_fraction = 0.0
         self.percent_var.set("0%")
         self.heading(title, "Applying fixes in place." if self.current_mode == "existing" else "Preparing the build.")
@@ -1153,8 +1151,6 @@ class PatcherUI(TkBase):
                 detail = "Extraction finished. This content-only depot is not independently runnable."
         else:
             detail = "Portal 2 build 852_0 is ready."
-        if self.current_mode == "existing":
-            detail = "Selected fixes finished in place. Experimental: the build may still not work."
         self.heading("Finished", detail)
         block = tk.Frame(self.container, bg=PANEL, highlightbackground=BORDER, highlightthickness=1)
         block.pack(fill="x", pady=(28, 0))
