@@ -25,6 +25,8 @@ set "MULTICORE="
 if exist "%GAMEROOT%portal2\cfg\patcher_multicore.cfg" set "MULTICORE=+exec patcher_multicore.cfg"
 set "SUBTITLES="
 if exist "%GAMEROOT%portal2\cfg\patcher_subtitles.cfg" set "SUBTITLES=+exec patcher_subtitles.cfg"
+set "SURVEY="
+if exist "%GAMEROOT%portal2\cfg\patcher_disable_survey.cfg" set "SURVEY=+exec patcher_disable_survey.cfg"
 set "WIDTH=1366"
 set "HEIGHT=768"
 set "DISPLAY_MODE=-windowed"
@@ -38,7 +40,7 @@ if exist "%ROOT%.p2patcher\display-mode.txt" set /p "DISPLAY_MODE="<"%ROOT%.p2pa
 if exist "%ROOT%.p2patcher\debug-mode.txt" set /p "DEBUG_ARGS="<"%ROOT%.p2patcher\debug-mode.txt"
 if exist "%ROOT%.p2patcher\launch-arguments.txt" set /p "CUSTOM_ARGS="<"%ROOT%.p2patcher\launch-arguments.txt"
 
-start "" /D "%GAMEROOT%" "%GAMEROOT%%GAME%" -game portal2 %DISPLAY_MODE% -w %WIDTH% -h %HEIGHT% -console %DEBUG_ARGS% %MULTICORE% %SUBTITLES% %CUSTOM_ARGS% %*
+start "" /D "%GAMEROOT%" "%GAMEROOT%%GAME%" -game portal2 %DISPLAY_MODE% -w %WIDTH% -h %HEIGHT% -console %DEBUG_ARGS% %MULTICORE% %SUBTITLES% %SURVEY% %CUSTOM_ARGS% %*
 endlocal
 '''.replace("\n", "\r\n").encode("ascii")
 

@@ -63,6 +63,7 @@ from patches.generic.thread_fix.patch import (
     destination_path,
 )
 from patches.generic.launchers import LAUNCHER, SETTINGS_LAUNCHER, LaunchersPatch
+from patches.generic.disable_survey import DisableSurveyPatch, SURVEY_CONFIG
 from patches.generic.settings_ui import SETTINGS_SCRIPT
 from patches.build_852_0.hammer import (
     PATCHED_TIER0_SHA256,
@@ -128,7 +129,7 @@ from patches import repair
 
 
 def test_patch_registry_has_descriptive_ids_and_stable_order():
-    assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.vscript_scope_fix", "852_0.smooth_jazz", "841_0_prereset.hl2_assets", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer", "852_2.hammer", "852_0.node_graphs", "841_0_prereset.node_graphs", "841_0_prereset.progression_fixes", "841_0_prereset.water"]
+    assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.vscript_scope_fix", "852_0.smooth_jazz", "841_0_prereset.hl2_assets", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer", "852_2.hammer", "852_0.node_graphs", "841_0_prereset.node_graphs", "841_0_prereset.progression_fixes", "841_0_prereset.water", "disable_survey"]
     assert all(patch.description for patch in PATCHES)
     assert set(PATCH_COMPATIBILITY) == {"generic", (841, 0, 0x83CED978), (852, 0), (852, 1), (852, 2)}
     assert PATCH_COMPATIBILITY["generic"].required == {"launchers"}
@@ -245,8 +246,8 @@ def test_patch_dependencies_and_required_launcher():
     assert normalize_patch_ids(("852_1.hammer",), "generic", depot_id=852, depot_version=1) == ("launchers", "852_1.hammer")
     assert normalize_patch_ids(("852_1.hammer",), "generic", depot_id=852, depot_version=2) == ("launchers",)
     assert compatible_patch_ids("852_0") == ("852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.vscript_scope_fix", "852_0.smooth_jazz", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "goldberg", "852_0.multiplayer", "852_0.node_graphs")
-    assert compatible_patch_ids("generic", 852, 1) == ("thread_fix", "launchers", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer")
-    assert compatible_patch_ids("generic", 852, 2) == ("thread_fix", "launchers", "multicore", "goldberg", "852_2.hammer")
+    assert compatible_patch_ids("generic", 852, 1) == ("thread_fix", "launchers", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer", "disable_survey")
+    assert compatible_patch_ids("generic", 852, 2) == ("thread_fix", "launchers", "multicore", "goldberg", "852_2.hammer", "disable_survey")
     assert normalize_patch_ids((), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ()
     assert normalize_patch_ids((), "generic", runnable=True, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("launchers",)
     assert normalize_patch_ids(("841_0_prereset.missing_launcher",), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("841_0_prereset.missing_launcher",)
@@ -670,7 +671,7 @@ def test_launcher_uses_wrapper_with_normal_executable_fallback():
     assert b'if exist "%GAMEROOT%portal2\\cfg\\patcher_multicore.cfg"' in LAUNCHER
     assert b'if exist "%GAMEROOT%portal2\\cfg\\patcher_subtitles.cfg"' in LAUNCHER
     assert b'%DISPLAY_MODE% -w %WIDTH% -h %HEIGHT%' in LAUNCHER
-    assert b'%DEBUG_ARGS% %MULTICORE% %SUBTITLES% %CUSTOM_ARGS% %*' in LAUNCHER
+    assert b'%DEBUG_ARGS% %MULTICORE% %SUBTITLES% %SURVEY% %CUSTOM_ARGS% %*' in LAUNCHER
 
 
 def test_launcher_patch_installs_settings_gui(tmp_path):
@@ -1064,3 +1065,35 @@ def test_prerelease_assets_install_and_update_manifest(tmp_path):
 
     assert (conflicting.with_name("achievement.pcf.original.bak")).read_bytes() == b"existing"
     assert manifest.read_text(encoding="utf-8").count("particles/achievement.pcf") == 1
+
+
+@pytest.mark.parametrize('moved', [False, True])
+def test_survey_config_preserves_user_configs(tmp_path, moved):
+    root = tmp_path / 'game' if moved else tmp_path
+    cfg = root / 'portal2/cfg'
+    cfg.mkdir(parents=True)
+    for name in ('autoexec.cfg', 'config.cfg'):
+        (cfg / name).write_bytes(b'echo user settings\r\n')
+    context = PatchContext(tmp_path, None, BuildReport(), Event())
+    patch = DisableSurveyPatch()
+    assert patch.check(context)
+    patch.apply(context, lambda _: None)
+    patch.verify(context)
+    assert not patch.check(context)
+    assert (cfg / 'patcher_disable_survey.cfg').read_bytes() == SURVEY_CONFIG
+    for name in ('autoexec.cfg', 'config.cfg'):
+        assert (cfg / name).read_bytes() == b'echo user settings\r\n'
+
+
+@pytest.mark.parametrize('depot,version,crc', [(841, 0, 0x83CED978), (852, 1, None), (852, 2, None)])
+def test_survey_compatibility_and_launcher_dependency(depot, version, crc):
+    assert 'disable_survey' in compatible_patch_ids('generic', depot, version, crc)
+    ids = normalize_patch_ids(('disable_survey',), 'generic', runnable=False, depot_id=depot, depot_version=version, depot_crc=crc)
+    assert ids == ('launchers', 'disable_survey')
+
+
+def test_survey_excluded_from_core_hub_and_included_in_generic_fallback():
+    assert 'disable_survey' not in compatible_patch_ids('852_0')
+    assert 'disable_survey' in compatible_patch_ids('generic', 852, 99)
+    assert b'if exist "%GAMEROOT%portal2\\cfg\\patcher_disable_survey.cfg"' in LAUNCHER
+    assert b'%SURVEY%' in LAUNCHER

@@ -26,6 +26,7 @@ from patches.build_852_0.node_graphs.patch import DEFINITION as NODEGRAPHS8520PA
 from patches.build_841_0_prereset.node_graphs.patch import DEFINITION as NODEGRAPHS8410PATCH
 from patches.build_841_0_prereset.progression_fixes.patch import DEFINITION as PROGRESSIONFIXES8410PATCH
 from patches.build_841_0_prereset.water.patch import DEFINITION as WATER8410PATCH
+from patches.generic.disable_survey import DEFINITION as DISABLESURVEYPATCH
 from patches.generic.profile import PROFILE as GENERIC
 from patches.build_852_0.profile import PROFILE as BUILD_852_0
 from patches.build_852_1.profile import PROFILE as BUILD_852_1
@@ -61,6 +62,7 @@ DEFINITIONS = (
     NODEGRAPHS8410PATCH,
     PROGRESSIONFIXES8410PATCH,
     WATER8410PATCH,
+    DISABLESURVEYPATCH,
 )
 
 PROFILES = (GENERIC, BUILD_852_0, BUILD_852_1, BUILD_841_0_PRERESET, BUILD_852_2,)
