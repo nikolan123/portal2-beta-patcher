@@ -21,7 +21,7 @@ Patches for one specific build are in `build_852_0`, `build_852_1`, and `build_8
 | `launchers` | Required | Required | Required | Required | Required |
 | `852_0.hammer` | — | Optional | — | — | — |
 | `852_0.extra_assets` | — | Optional | — | — | — |
-| `multicore` | Optional | — | — | Optional | Optional |
+| `multicore` | Optional | — | Optional | Optional | Optional |
 | `goldberg` | Optional | Optional | Optional | Optional | Optional |
 | `852_1.legacy_paint` | — | — | Optional | — | — |
 | `852_1.extra_assets.from_july_2010` | — | — | Optional | — | — |
