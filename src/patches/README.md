@@ -192,7 +192,7 @@ Hammer's configuration contains the installation path. If the completed build is
 
 ### disable_survey - Disable Surveys
 
-Creates `portal2/cfg/patcher_disable_survey.cfg` with `cl_disable_survey_panel 1`. The launcher executes it only when present.
+Creates `portal2/cfg/patcher_disable_survey.cfg` with `cl_disable_survey_panel 1` and appends an execution line to `autoexec.cfg`.
 
 
 This is the patch list for builds that do not have their own entry yet.

@@ -247,7 +247,7 @@ def test_patch_dependencies_and_required_launcher():
     assert normalize_patch_ids(("852_1.hammer",), "generic", depot_id=852, depot_version=2) == ("launchers",)
     assert compatible_patch_ids("852_0") == ("852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.vscript_scope_fix", "852_0.smooth_jazz", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "goldberg", "852_0.multiplayer", "852_0.node_graphs")
     assert compatible_patch_ids("generic", 852, 1) == ("thread_fix", "launchers", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer", "disable_survey")
-    assert compatible_patch_ids("generic", 852, 2) == ("thread_fix", "launchers", "multicore", "goldberg", "852_2.hammer", "disable_survey")
+    assert compatible_patch_ids("generic", 852, 2) == ("thread_fix", "launchers", "multicore", "goldberg", "852_2.hammer")
     assert normalize_patch_ids((), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ()
     assert normalize_patch_ids((), "generic", runnable=True, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("launchers",)
     assert normalize_patch_ids(("841_0_prereset.missing_launcher",), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ("841_0_prereset.missing_launcher",)
@@ -1081,11 +1081,14 @@ def test_survey_config_preserves_user_configs(tmp_path, moved):
     patch.verify(context)
     assert not patch.check(context)
     assert (cfg / 'patcher_disable_survey.cfg').read_bytes() == SURVEY_CONFIG
-    for name in ('autoexec.cfg', 'config.cfg'):
-        assert (cfg / name).read_bytes() == b'echo user settings\r\n'
+    assert (cfg / 'config.cfg').read_bytes() == b'echo user settings\r\n'
+    expected_autoexec = b'echo user settings\r\nexec patcher_disable_survey.cfg\r\n'
+    assert (cfg / 'autoexec.cfg').read_bytes() == expected_autoexec
+    patch.apply(context, lambda _: None)
+    assert (cfg / 'autoexec.cfg').read_bytes() == expected_autoexec
 
 
-@pytest.mark.parametrize('depot,version,crc', [(841, 0, 0x83CED978), (852, 1, None), (852, 2, None)])
+@pytest.mark.parametrize('depot,version,crc', [(841, 0, 0x83CED978), (852, 1, None)])
 def test_survey_compatibility_and_launcher_dependency(depot, version, crc):
     assert 'disable_survey' in compatible_patch_ids('generic', depot, version, crc)
     ids = normalize_patch_ids(('disable_survey',), 'generic', runnable=False, depot_id=depot, depot_version=version, depot_crc=crc)
@@ -1094,6 +1097,7 @@ def test_survey_compatibility_and_launcher_dependency(depot, version, crc):
 
 def test_survey_excluded_from_core_hub_and_included_in_generic_fallback():
     assert 'disable_survey' not in compatible_patch_ids('852_0')
+    assert 'disable_survey' not in compatible_patch_ids('generic', 852, 2)
     assert 'disable_survey' in compatible_patch_ids('generic', 852, 99)
     assert b'if exist "%GAMEROOT%portal2\\cfg\\patcher_disable_survey.cfg"' in LAUNCHER
     assert b'%SURVEY%' in LAUNCHER
