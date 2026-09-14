@@ -48,6 +48,34 @@ if (Test-Path -LiteralPath $ReportPath -PathType Leaf) {
     } catch { }
 }
 
+function Get-InstalledHammerPatch {
+    $ReportPaths = @(Get-ChildItem -LiteralPath $SettingsDir -Filter 'existing-build-report-*.json' -File -ErrorAction SilentlyContinue |
+        Sort-Object Name -Descending | ForEach-Object { $_.FullName }) + @($ReportPath)
+    foreach ($InstalledReportPath in $ReportPaths) {
+        try {
+            $SavedReport = [IO.File]::ReadAllText($InstalledReportPath) | ConvertFrom-Json
+            if ($InstalledReportPath -eq $ReportPath) {
+                $PatchId = '{0}_{1}.hammer' -f $SavedReport.extraction.app_id, $SavedReport.extraction.version_id
+            } else {
+                if ($SavedReport.operation -ne 'patch_existing' -or @($SavedReport.target).Count -lt 2) { continue }
+                $PatchId = '{0}_{1}.hammer' -f $SavedReport.target[0], $SavedReport.target[1]
+            }
+            if ($PatchId -notin @('852_0.hammer', '852_1.hammer', '852_2.hammer')) { continue }
+            $Installed = @($SavedReport.patches | Where-Object {
+                $_.id -eq $PatchId -and $_.status -in @('applied', 'already_applied')
+            })
+            if ($Installed.Count -eq 0) { continue }
+            $Bin = if ($PatchId -eq '852_0.hammer') { 'game\bin' } else { 'bin' }
+            $MissingFiles = @(@("$Bin\hammer.exe", "$Bin\portal2.fgd", 'Launch Hammer.cmd') | Where-Object {
+                -not (Test-Path -LiteralPath (Join-Path $Root $_) -PathType Leaf)
+            })
+            if ($MissingFiles.Count -gt 0) { continue }
+            return $PatchId
+        } catch { }
+    }
+    return $null
+}
+
 function Read-Text([string]$Path, [string]$Default) {
     if (Test-Path -LiteralPath $Path -PathType Leaf) {
         return [IO.File]::ReadAllText($Path).Trim()
@@ -189,6 +217,7 @@ $SettingsButton.Add_Click({ Show-Page $SettingsPage })
 $MainPage.Controls.Add($SettingsButton)
 
 $HammerButton = New-DarkButton 'Repair Hammer paths' 260 340
+$HammerButton.Enabled = $null -ne (Get-InstalledHammerPatch)
 $MainPage.Controls.Add($HammerButton)
 
 $InstallLabel = New-Label 'INSTALL LOCATION' 45 242 9 $true
@@ -337,11 +366,20 @@ $HammerPage.Controls.Add($HammerBackButton)
 
 $HammerButton.Add_Click({
     try {
-        $MovedHammer = Test-Path -LiteralPath (Join-Path $Root 'game\bin\hammer.exe') -PathType Leaf
-        $FlatHammer = Test-Path -LiteralPath (Join-Path $Root 'bin\hammer.exe') -PathType Leaf
-        if (-not $MovedHammer -and -not $FlatHammer) {
-            throw 'Hammer is not installed in this patched build.'
+        $HammerPatch = Get-InstalledHammerPatch
+        if ($null -eq $HammerPatch) {
+            $HammerButton.Enabled = $false
+            throw 'A supported installed Hammer patch and its files are required.'
         }
+        $MovedHammer = $HammerPatch -eq '852_0.hammer'
+        $Confirmation = [Windows.Forms.MessageBox]::Show(
+            "This will recreate Hammer's GameConfig.txt.`r`n`r`nAny custom changes to that file will be lost.`r`n`r`nContinue?",
+            'Replace Hammer configuration?',
+            [Windows.Forms.MessageBoxButtons]::YesNo,
+            [Windows.Forms.MessageBoxIcon]::Warning,
+            [Windows.Forms.MessageBoxDefaultButton]::Button2
+        )
+        if ($Confirmation -ne [Windows.Forms.DialogResult]::Yes) { return }
         [void](Write-HammerConfig $Root $MovedHammer)
         $PathBox.Text = $Root
         Show-Page $HammerPage
