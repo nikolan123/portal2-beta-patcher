@@ -1,7 +1,8 @@
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from dataclasses import replace
+import pytest
 import tkinter as tk
 
 from patches import DEFINITIONS
@@ -12,12 +13,24 @@ from models import RevisionInput
 from ui import GITHUB_ISSUES_URL, back_screen_for_mode, default_generic_output, is_core_hub_target, patch_ids_for_mode
 
 
-def test_live_folder_updates_survive_chooser_navigation(monkeypatch):
-    monkeypatch.setattr(PatcherUI, 'detect_hl2', lambda self: None)
-    monkeypatch.setattr(PatcherUI, 'detect_portal2', lambda self: None)
-    app = PatcherUI()
-    app.withdraw()
+@pytest.fixture(scope="module")
+def ui_app():
+    # Use one Tk interpreter, as the application does. Repeated destruction and
+    # initialization of Tk/tkdnd in one process is unreliable on Windows.
+    with patch.object(PatcherUI, "detect_hl2", lambda self: None), \
+         patch.object(PatcherUI, "detect_portal2", lambda self: None):
+        app = PatcherUI()
+        app.withdraw()
+        try:
+            yield app
+        finally:
+            app.destroy()
+
+
+def test_live_folder_updates_survive_chooser_navigation(ui_app):
+    app = ui_app
     errors = []
+    original_exception_handler = app.report_callback_exception
     app.report_callback_exception = lambda *args: errors.append(args)
     try:
         app.selected_target = replace(target(), depot_id=841, version=0, crc=0x83CED978)
@@ -52,7 +65,8 @@ def test_live_folder_updates_survive_chooser_navigation(monkeypatch):
             assert len(app.generic_patch_controls) == len(expected)
         assert errors == []
     finally:
-        app.destroy()
+        app.report_callback_exception = original_exception_handler
+        app.clear()
 
 
 def test_dependency_checkbox_cannot_be_cleared_while_subtitles_selected():
@@ -137,13 +151,10 @@ def test_ready_target_label_shows_approximate_final_size():
     assert target(False).label.endswith("Missing DAT")
 
 
-def test_existing_build_flow_starts_empty_and_allows_archives(tmp_path, monkeypatch):
-    monkeypatch.setattr(PatcherUI, 'detect_hl2', lambda self: None)
-    monkeypatch.setattr(PatcherUI, 'detect_portal2', lambda self: None)
+def test_existing_build_flow_starts_empty_and_allows_archives(tmp_path, ui_app):
     (tmp_path / 'game/portal2').mkdir(parents=True)
     (tmp_path / 'game/portal2/GameInfo.txt').write_text('original')
-    app = PatcherUI()
-    app.withdraw()
+    app = ui_app
     try:
         app.show_existing_files()
         assert not any(var.get() for var in app.patch_vars.values())
@@ -173,4 +184,4 @@ def test_existing_build_flow_starts_empty_and_allows_archives(tmp_path, monkeypa
         assert app.current_mode == 'existing'
         assert 'changes may remain' in app.message_var.get()
     finally:
-        app.destroy()
+        app.clear()
