@@ -14,6 +14,7 @@ Patches for one specific build are in `build_852_0`, `build_852_1`, and `build_8
 | `852_0.dialogue` | — | Optional | — | — | — |
 | `852_0.subtitles` | — | Optional | — | — | — |
 | `852_0.continuous_campaign` | — | Optional | — | — | — |
+| `852_0.fov_limit` | — | Optional | — | — | — |
 | `852_0.vscript_scope_fix` | — | Optional | — | — | — |
 | `852_0.smooth_jazz` | — | Optional | — | — | — |
 | `841_0_prereset.hl2_assets` | Optional | — | — | — | — |
@@ -35,6 +36,8 @@ Patches for one specific build are in `build_852_0`, `build_852_1`, and `build_8
 | `852_0.node_graphs` | — | Optional | — | — | — |
 | `841_0_prereset.node_graphs` | Optional | — | — | — | — |
 | `841_0_prereset.progression_fixes` | Optional | — | — | — | — |
+| `841_0_prereset.water` | Optional | — | — | — | — |
+| `disable_survey` | Optional | — | Optional | — | Optional |
 
 <!-- compatibility:end -->
 
@@ -79,6 +82,10 @@ This patch depends on `852_0.dialogue`, so dialogue runs first and subtitles the
 ### 852_0.continuous_campaign - Experimental speedrunning fixes
 
 This patch is intended to make speedrunning tools work easier with this build. It installs entity LMPs that replace the campaign's hub `map` commands with `changelevel`, adds an end-of-run marker to hub 6, and fixes the slowtime upgrade when the earlier gun is skipped.
+
+### 852_0.fov_limit - Increase FOV limit to 120
+
+Raises `fov_desired`'s max value from 90 to 120, and extends the settings slider to match.
 
 ### 852_0.vscript_scope_fix - Mixup turret crash fix
 

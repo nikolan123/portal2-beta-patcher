@@ -1,13 +1,13 @@
 """Guard 852_0 against a null VScript scope returned during entity setup. Fixes crash in mixup"""
 from __future__ import annotations
 
-from hashlib import sha256
 from pathlib import Path
 import struct
 
 from models import BuildCancelled, PatchContext, ProgressCallback, ProgressEvent
-from patches.base import PatchError, atomic_write, backup_file, sha256_file
+from patches.base import PatchError, atomic_write, backup_file
 from patches.definitions import PatchDefinition
+from patches.build_852_0.fov_limit import fov_enabled, normalized_hash, with_fov
 
 
 ORIGINAL_SERVER_SHA256 = "1dc9c9ac0e12511b21beac4c183462df53b504920421e52e66e96e926659c948"
@@ -171,8 +171,8 @@ class VScriptScopeFixPatch:
     description = "Prevent p2_lab_mixup turret crashes caused by failed VScript scopes and invalid animation frames."
 
     def check(self, context: PatchContext) -> bool:
-        server_hash = sha256_file(server_path(context.root))
-        client_hash = sha256_file(client_path(context.root))
+        server_hash = normalized_hash(server_path(context.root).read_bytes(), "server")
+        client_hash = normalized_hash(client_path(context.root).read_bytes(), "client")
         if server_hash not in {ORIGINAL_SERVER_SHA256, PATCHED_SERVER_SHA256}:
             raise PatchError(f"Refusing to patch unknown Server.dll ({server_hash})")
         if client_hash not in {ORIGINAL_CLIENT_SHA256, INTERMEDIATE_CLIENT_SHA256, PATCHED_CLIENT_SHA256}:
@@ -184,8 +184,8 @@ class VScriptScopeFixPatch:
             raise BuildCancelled("Build cancelled")
         server = server_path(context.root)
         client = client_path(context.root)
-        server_hash = sha256_file(server)
-        client_hash = sha256_file(client)
+        server_hash = normalized_hash(server.read_bytes(), "server")
+        client_hash = normalized_hash(client.read_bytes(), "client")
         if server_hash not in {ORIGINAL_SERVER_SHA256, PATCHED_SERVER_SHA256}:
             raise PatchError("Server.dll changed before it could be patched")
         if client_hash not in {ORIGINAL_CLIENT_SHA256, INTERMEDIATE_CLIENT_SHA256, PATCHED_CLIENT_SHA256}:
@@ -195,7 +195,7 @@ class VScriptScopeFixPatch:
         if server_hash == ORIGINAL_SERVER_SHA256:
             backup_file(server, "server.original.bak", context)
             patched_server = patch_server(server.read_bytes())
-            if sha256(patched_server).hexdigest() != PATCHED_SERVER_SHA256:
+            if normalized_hash(patched_server, "server") != PATCHED_SERVER_SHA256:
                 raise PatchError("Internal Server.dll verification failed")
             atomic_write(server, patched_server)
 
@@ -208,19 +208,20 @@ class VScriptScopeFixPatch:
                 backup_file(client, "client.original.bak", context)
             else:
                 backup = client.with_name("client.original.bak")
-                if not backup.is_file() or sha256_file(backup) != ORIGINAL_CLIENT_SHA256:
+                if not backup.is_file() or normalized_hash(backup.read_bytes(), "client") != ORIGINAL_CLIENT_SHA256:
                     raise PatchError("Cannot upgrade the earlier Client.dll fix without its verified backup")
-                original_client = backup.read_bytes()
+                original_client = with_fov(backup.read_bytes(), "client",
+                                           fov_enabled(client.read_bytes(), "client"))
             patched_client = patch_client(original_client)
-            if sha256(patched_client).hexdigest() != PATCHED_CLIENT_SHA256:
+            if normalized_hash(patched_client, "client") != PATCHED_CLIENT_SHA256:
                 raise PatchError("Internal Client.dll verification failed")
             atomic_write(client, patched_client)
         progress(ProgressEvent(self.id, 2, 2, "Installed the Mixup turret crash fix"))
 
     def verify(self, context: PatchContext) -> None:
-        if sha256_file(server_path(context.root)) != PATCHED_SERVER_SHA256:
+        if normalized_hash(server_path(context.root).read_bytes(), "server") != PATCHED_SERVER_SHA256:
             raise PatchError("Mixup turret Server.dll fix failed verification")
-        if sha256_file(client_path(context.root)) != PATCHED_CLIENT_SHA256:
+        if normalized_hash(client_path(context.root).read_bytes(), "client") != PATCHED_CLIENT_SHA256:
             raise PatchError("Mixup turret Client.dll fix failed verification")
 
 

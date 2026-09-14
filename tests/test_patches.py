@@ -4,11 +4,12 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import struct
 from threading import Event
 from types import SimpleNamespace
 import pytest
 
-from models import BuildReport, PatchContext
+from models import BuildCancelled, BuildReport, PatchContext
 from patches import (
     PATCHES,
     PATCH_COMPATIBILITY,
@@ -126,10 +127,16 @@ from patches.build_852_0.multiplayer.patch import (
 from patches.build_852_2 import hammer as hammer_852_2
 from patches.build_852_2.hammer import Hammer8522Patch
 from patches import repair
+from patches.build_852_0 import fov_limit as fov
+from patches.build_852_0 import vscript_scope_fix as turret
+from patches.build_852_0.fov_limit import EDITS, fov_enabled, with_fov
+from patches.build_852_0.multiplayer import patch as multiplayer
+from patches.registry import BY_ID, DEFINITIONS, PROFILES
+from patches.selection import resolve_selection
 
 
 def test_patch_registry_has_descriptive_ids_and_stable_order():
-    assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.vscript_scope_fix", "852_0.smooth_jazz", "841_0_prereset.hl2_assets", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer", "852_2.hammer", "852_0.node_graphs", "841_0_prereset.node_graphs", "841_0_prereset.progression_fixes", "841_0_prereset.water", "disable_survey"]
+    assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.fov_limit", "852_0.vscript_scope_fix", "852_0.smooth_jazz", "841_0_prereset.hl2_assets", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer", "852_2.hammer", "852_0.node_graphs", "841_0_prereset.node_graphs", "841_0_prereset.progression_fixes", "841_0_prereset.water", "disable_survey"]
     assert all(patch.description for patch in PATCHES)
     assert set(PATCH_COMPATIBILITY) == {"generic", (841, 0, 0x83CED978), (852, 0), (852, 1), (852, 2)}
     assert PATCH_COMPATIBILITY["generic"].required == {"launchers"}
@@ -245,7 +252,7 @@ def test_patch_dependencies_and_required_launcher():
     assert normalize_patch_ids(("852_1.extra_assets.bundled",), "generic", depot_id=852, depot_version=2) == ("launchers",)
     assert normalize_patch_ids(("852_1.hammer",), "generic", depot_id=852, depot_version=1) == ("launchers", "852_1.hammer")
     assert normalize_patch_ids(("852_1.hammer",), "generic", depot_id=852, depot_version=2) == ("launchers",)
-    assert compatible_patch_ids("852_0") == ("852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.vscript_scope_fix", "852_0.smooth_jazz", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "goldberg", "852_0.multiplayer", "852_0.node_graphs")
+    assert compatible_patch_ids("852_0") == ("852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.fov_limit", "852_0.vscript_scope_fix", "852_0.smooth_jazz", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "goldberg", "852_0.multiplayer", "852_0.node_graphs")
     assert compatible_patch_ids("generic", 852, 1) == ("thread_fix", "launchers", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer", "disable_survey")
     assert compatible_patch_ids("generic", 852, 2) == ("thread_fix", "launchers", "multicore", "goldberg", "852_2.hammer")
     assert normalize_patch_ids((), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ()
@@ -1101,3 +1108,199 @@ def test_survey_excluded_from_core_hub_and_included_in_generic_fallback():
     assert 'disable_survey' in compatible_patch_ids('generic', 852, 99)
     assert b'if exist "%GAMEROOT%portal2\\cfg\\patcher_disable_survey.cfg"' in LAUNCHER
     assert b'%SURVEY%' in LAUNCHER
+
+
+FOV_SLIDER_RESOURCE = b'"Dialog"\r\n{\r\n"FovSlider" { "cvar_name" "fov_desired" "minvalue" "75" "maxvalue" "90" "allowoutofrange" "0" }\r\n"Other" { "maxvalue" "90" }\r\n}\r\n'
+
+
+def synthetic_fov_binary(kind):
+    """Minimal PE with real patch locations; no proprietary fov_binaries in tests."""
+    data = bytearray(0x420000)
+    struct.pack_into('<I', data, 0x3C, 0x80)
+    data[0x80:0x84] = b'PE\0\0'
+    struct.pack_into('<H', data, 0x86, 1)
+    header = 0x98
+    data[header:header + 8] = b'.text\0\0\0'
+    size = turret.ORIGINAL_CLIENT_TEXT_SIZE if kind == 'client' else turret.ORIGINAL_SERVER_TEXT_SIZE
+    struct.pack_into('<IIII', data, header + 8, size, 0x1000, 0x41F000, 0x1000)
+    entries = [(turret.CLIENT_ENTRY_RVA, turret.ORIGINAL_CLIENT_ENTRY),
+               (turret.CLIENT_SECTION_ENTRY_RVA, turret.ORIGINAL_CLIENT_SECTION_ENTRY)] if kind == 'client' else [
+                   (turret.SERVER_ENTRY_RVA, turret.ORIGINAL_SERVER_ENTRY)]
+    for offset, payload in entries:
+        data[offset:offset + len(payload)] = payload
+    for offset, old, _ in EDITS[kind]:
+        data[offset:offset + len(old)] = old
+    return bytes(data)
+
+
+@pytest.fixture
+def fov_binaries(monkeypatch):
+    originals = {kind: synthetic_fov_binary(kind) for kind in ('client', 'server')}
+    patched = {'client': turret.patch_client(originals['client']),
+               'server': turret.patch_server(originals['server'])}
+    for kind in originals:
+        monkeypatch.setattr(turret, f'ORIGINAL_{kind.upper()}_SHA256', sha256(originals[kind]).hexdigest())
+        monkeypatch.setattr(turret, f'PATCHED_{kind.upper()}_SHA256', sha256(patched[kind]).hexdigest())
+    monkeypatch.setattr(multiplayer, 'SUPPORTED_SERVER_SHA256S', fov.supported_hashes('server'))
+    monkeypatch.setattr(multiplayer, 'ENGINE_SHA256', sha256(b'engine').hexdigest())
+    return originals, patched
+
+
+def install_fov_test_build(root, fov_binaries, moved=False):
+    runtime = root / 'game' if moved else root
+    for kind, data in fov_binaries.items():
+        path = runtime / 'portal2/bin' / (kind.title() + '.dll')
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+    slider = runtime / 'portal2/resource/OptionsSubVideoAdvancedDlg.res'
+    slider.parent.mkdir(parents=True)
+    slider.write_bytes(FOV_SLIDER_RESOURCE)
+    (runtime / 'bin').mkdir()
+    (runtime / 'bin/engine.dll').write_bytes(b'engine')
+    return PatchContext(root, None, BuildReport(), Event())
+
+
+def test_fov_catalog_scope_defaults_order():
+    ids = [item.id for item in DEFINITIONS]
+    assert ids[ids.index('852_0.continuous_campaign') + 1] == fov.FovLimitPatch.id
+    assert not BY_ID[fov.FovLimitPatch.id].default_selected
+    for profile in PROFILES:
+        assert (fov.FovLimitPatch.id in profile.optional) == (profile.id == '852_0')
+        selection = resolve_selection([fov.FovLimitPatch.id], profile, runnable=False)
+        assert selection.ids == ((fov.FovLimitPatch.id,) if profile.id == '852_0' else ())
+
+
+@pytest.mark.parametrize('moved', [False, True])
+@pytest.mark.parametrize('fov_first', [False, True])
+def test_fov_composition_and_multiplayer_in_both_orders(tmp_path, fov_binaries, moved, fov_first):
+    originals, patched = fov_binaries
+    context = install_fov_test_build(tmp_path, originals, moved)
+    patches = [fov.FovLimitPatch(), turret.VScriptScopeFixPatch()]
+    if not fov_first:
+        patches.reverse()
+    for patch in patches:
+        assert patch.check(context)
+        patch.apply(context, lambda _: None)
+        patch.verify(context)
+        multiplayer.Multiplayer8520Patch()._validate_build(context)
+    for patch in patches:
+        patch.verify(context)
+        assert not patch.check(context)
+        patch.apply(context, lambda _: None)
+    for kind, path in [('client', turret.client_path(tmp_path)), ('server', turret.server_path(tmp_path))]:
+        assert path.read_bytes() == with_fov(patched[kind], kind, True)
+    assert len(context.report.backups) == 5
+
+
+@pytest.mark.parametrize('fault', ['unknown_client', 'partial_server', 'missing_slider', 'bad_slider'])
+def test_fov_invalid_inputs_do_not_partially_patch(tmp_path, fov_binaries, fault):
+    context = install_fov_test_build(tmp_path, fov_binaries[0])
+    if fault == 'unknown_client':
+        path = turret.client_path(tmp_path)
+        data = bytearray(path.read_bytes()); data[0x1001] ^= 1; path.write_bytes(data)
+    elif fault == 'partial_server':
+        path = turret.server_path(tmp_path)
+        data = bytearray(path.read_bytes()); data[0x14A1FD] = 0x78; path.write_bytes(data)
+    else:
+        path = tmp_path / 'portal2/resource/OptionsSubVideoAdvancedDlg.res'
+        if fault == 'missing_slider':
+            path.unlink()
+        else:
+            path.write_bytes(FOV_SLIDER_RESOURCE.replace(b'"90"', b'"95"'))
+    before = {path: path.read_bytes() for path in tmp_path.rglob('*') if path.is_file()}
+    with pytest.raises(PatchError):
+        fov.FovLimitPatch().apply(context, lambda _: None)
+    assert {path: path.read_bytes() for path in tmp_path.rglob('*') if path.is_file()} == before
+
+
+def test_fov_cancellation(tmp_path, fov_binaries):
+    context = install_fov_test_build(tmp_path, fov_binaries[0])
+    context.cancel_event.set()
+    with pytest.raises(BuildCancelled):
+        fov.FovLimitPatch().apply(context, lambda _: None)
+    assert not context.report.backups
+
+
+def test_fov_interrupted_apply_can_resume(tmp_path, fov_binaries):
+    context = install_fov_test_build(tmp_path, fov_binaries[0])
+    patch = fov.FovLimitPatch()
+    with pytest.raises(BuildCancelled):
+        patch.apply(context, lambda _: context.cancel_event.set())
+    context.cancel_event.clear()
+    assert patch.check(context)
+    patch.apply(context, lambda _: None)
+    patch.verify(context)
+    assert len(context.report.backups) == 3
+
+
+def test_fov_existing_backup_conflict_prevents_writes(tmp_path, fov_binaries):
+    context = install_fov_test_build(tmp_path, fov_binaries[0])
+    server = turret.server_path(tmp_path)
+    server.with_name(server.name + '.before-fov120.bak').write_bytes(b'unrelated backup')
+    with pytest.raises(PatchError, match='unexpected backup'):
+        fov.FovLimitPatch().apply(context, lambda _: None)
+    assert server.read_bytes() == fov_binaries[0]['server']
+    assert turret.client_path(tmp_path).read_bytes() == fov_binaries[0]['client']
+
+
+def test_fov_shared_validation_still_rejects_unrelated_modifications(tmp_path, fov_binaries):
+    context = install_fov_test_build(tmp_path, fov_binaries[0])
+    fov.FovLimitPatch().apply(context, lambda _: None)
+    server = turret.server_path(tmp_path)
+    data = bytearray(server.read_bytes()); data[0x1001] ^= 1; server.write_bytes(data)
+    for patch in (fov.FovLimitPatch(), turret.VScriptScopeFixPatch(), multiplayer.Multiplayer8520Patch()):
+        with pytest.raises(PatchError):
+            patch.check(context)
+
+
+def test_fov_slider_preserves_other_settings_and_is_idempotent():
+    patched = fov.patch_slider(FOV_SLIDER_RESOURCE)
+    assert patched == FOV_SLIDER_RESOURCE.replace(b'"maxvalue" "90"', b'"maxvalue" "120"', 1)
+    assert fov.patch_slider(patched) == patched
+    with pytest.raises(PatchError):
+        fov.patch_slider(FOV_SLIDER_RESOURCE + FOV_SLIDER_RESOURCE)
+
+
+def test_fov_upgrade_old_turret_fix_preserves_fov(tmp_path, fov_binaries, monkeypatch):
+    originals, patched = fov_binaries
+    # Stand-in for the older recognized decoder-only fix, recovered via backup.
+    earlier = bytearray(originals['client']); earlier[0x1001] = 1; earlier = bytes(earlier)
+    digest = sha256(earlier).hexdigest()
+    monkeypatch.setattr(turret, 'INTERMEDIATE_CLIENT_SHA256', digest)
+    context = install_fov_test_build(tmp_path, {'client': earlier, 'server': patched['server']})
+    client = turret.client_path(tmp_path)
+    client.with_name('client.original.bak').write_bytes(originals['client'])
+    fov.FovLimitPatch().apply(context, lambda _: None)
+    turret.VScriptScopeFixPatch().apply(context, lambda _: None)
+    turret.VScriptScopeFixPatch().verify(context)
+    fov.FovLimitPatch().verify(context)
+    assert client.read_bytes() == with_fov(patched['client'], 'client', True)
+
+
+def test_fov_real_852_0_binaries_when_available(tmp_path):
+    source = Path(r'C:\Users\Niko\Documents\p2betas\852_0\portal2\bin')
+    client = source / 'Client.dll.before-fov120-test.bak'
+    server = source / 'Server.dll.p2bp-turret-crash-backup'
+    engine = source.parent.parent / 'bin/engine.dll.original'
+    if not client.is_file() or not server.is_file() or not engine.is_file():
+        pytest.skip('Local original 852_0 fov_binaries unavailable')
+    originals = {'client': client.read_bytes(), 'server': server.read_bytes()}
+    assert sha256(originals['client']).hexdigest() == turret.ORIGINAL_CLIENT_SHA256
+    assert sha256(originals['server']).hexdigest() == turret.ORIGINAL_SERVER_SHA256
+    assert struct.unpack_from('<f', originals['client'], 0x3A2A10)[0] == 120.0
+    for kind, original in originals.items():
+        modified = fov.patch_binary(original, kind)
+        assert sum(a != b for a, b in zip(original, modified)) == (3 if kind == 'client' else 2)
+    for fov_first in (False, True):
+        context = install_fov_test_build(tmp_path / str(fov_first), originals)
+        (context.root / 'bin/engine.dll').write_bytes(engine.read_bytes())
+        patches = [fov.FovLimitPatch(), turret.VScriptScopeFixPatch()]
+        if not fov_first:
+            patches.reverse()
+        for patch in patches:
+            patch.apply(context, lambda _: None)
+        for patch in patches:
+            patch.verify(context)
+            assert not patch.check(context)
+        multiplayer.Multiplayer8520Patch()._validate_build(context)
+        assert fov_enabled(turret.client_path(context.root).read_bytes(), 'client')

@@ -8,6 +8,7 @@ from patches.definitions import PatchDefinition, Resource
 from models import BuildCancelled, PatchContext, ProgressCallback, ProgressEvent
 from patches.base import PatchError, atomic_write, backup_file, sha256_file
 from patches.build_852_0.vscript_scope_fix import PATCHED_SERVER_SHA256
+from patches.build_852_0.fov_limit import normalized_hash
 
 
 ENGINE_SHA256 = "7e39efdf3907e5b25e8d20c124d03efaf226ecd6c408829b1c0a823d96bc0d8c"
@@ -73,7 +74,7 @@ class Multiplayer8520Patch:
         server = root / "portal2" / "bin" / "server.dll"
         if not engine.is_file() or sha256_file(engine) != ENGINE_SHA256:
             raise PatchError("The multiplayer patch requires the known 852_0 engine.dll")
-        if not server.is_file() or sha256_file(server) not in SUPPORTED_SERVER_SHA256S:
+        if not server.is_file() or normalized_hash(server.read_bytes(), "server") not in SUPPORTED_SERVER_SHA256S:
             raise PatchError("The multiplayer patch requires the known 852_0 server.dll")
 
     def check(self, context: PatchContext) -> bool:
