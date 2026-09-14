@@ -40,6 +40,14 @@ exe = EXE(
     upx_exclude=[],
     runtime_tmpdir=None,
     console=False,
+    manifest='''<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+      <application xmlns="urn:schemas-microsoft-com:asm.v3">
+        <windowsSettings>
+          <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true</dpiAware>
+          <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">system</dpiAwareness>
+        </windowsSettings>
+      </application>
+    </assembly>''',
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

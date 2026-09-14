@@ -62,9 +62,16 @@ def back_screen_for_mode(mode: str) -> str:
 
 class PatcherUI(TkBase):
     def __init__(self):
+        if os.name == "nt":
+            import ctypes
+
+            # Tk 8.6 uses system DPI. Set awareness before it creates any HWNDs
+            # so Windows doesn't bitmap-stretch the UI. The EXE also declares it.
+            ctypes.windll.user32.SetProcessDPIAware()
         super().__init__()
+        self.dpi_scale = self.winfo_fpixels("1i") / 96 if os.name == "nt" else 1.0
         self.title("Portal 2 Beta Patcher")
-        self.geometry("700x440")
+        self.geometry(f"{self.px(700)}x{self.px(440)}")
         self.resizable(False, False)
         self.configure(bg=BG)
         self.protocol("WM_DELETE_WINDOW", self.close_requested)
@@ -102,11 +109,14 @@ class PatcherUI(TkBase):
         self.last_selected_patch_ids = tuple(patch.id for patch in PATCHES)
 
         self.container = tk.Frame(self, bg=BG)
-        self.container.pack(fill="both", expand=True, padx=28, pady=24)
+        self.container.pack(fill="both", expand=True, padx=self.px(28), pady=self.px(24))
         self.show_mode_selection()
         self.after(100, self.poll_events)
         threading.Thread(target=self.detect_portal2, daemon=True).start()
         threading.Thread(target=self.detect_hl2, daemon=True).start()
+
+    def px(self, value: int) -> int:
+        return round(value * self.dpi_scale)
 
     def available_patch_inputs(self):
         return {key for key, value in (("hl2", self.hl2_var.get()), ("portal2", self.portal2_var.get())) if value.strip()}
@@ -210,7 +220,7 @@ class PatcherUI(TkBase):
                  font=("Segoe UI Semibold", 8), padx=9, pady=4).pack(side="left", padx=(14, 0))
         tk.Label(self.container, text="Existing builds can differ in unpredictable ways, so fixes may not work.\n"
                  "It is recommended to go back and use a blob+dat. Close the game and back up your build before proceeding.",
-                 bg=BG, fg=MUTED, justify="left", wraplength=620,
+                 bg=BG, fg=MUTED, justify="left", wraplength=self.px(620),
                  font=("Segoe UI", 10)).pack(anchor="w", pady=(5, 0))
 
         bottom = tk.Frame(self.container, bg=BG)
@@ -218,7 +228,7 @@ class PatcherUI(TkBase):
         self.button(bottom, "Back", self.show_more_options, secondary=True, width=10).pack(side="left")
         self.button(bottom, "Choose fixes", self.show_existing_patch_chooser, width=14).pack(side="right")
         tk.Label(self.container, textvariable=self.message_var, bg=BG, fg="#e58b8b",
-                 anchor="w", wraplength=620, justify="left", height=2,
+                 anchor="w", wraplength=self.px(620), justify="left", height=2,
                  font=("Segoe UI", 9)).pack(side="bottom", fill="x", pady=(4, 6))
 
         form = tk.Frame(self.container, bg=BG)
@@ -336,7 +346,7 @@ class PatcherUI(TkBase):
             fg=MUTED,
             anchor="w",
             justify="left",
-            wraplength=590,
+            wraplength=self.px(590),
             font=("Segoe UI", 9),
         ).pack(fill="x", padx=16, pady=13)
 
@@ -364,7 +374,7 @@ class PatcherUI(TkBase):
             fg=MUTED,
             anchor="w",
             justify="left",
-            wraplength=480,
+            wraplength=self.px(480),
             font=("Segoe UI", 9),
         ).pack(fill="x", pady=(5, 0))
         self.button(panel, "Choose", command, width=10).pack(side="right", padx=16)
@@ -485,7 +495,7 @@ class PatcherUI(TkBase):
             tk.Label(self.catalog_frame, text="No scan results yet.", bg=BG, fg=MUTED,
                      font=("Segoe UI", 9)).pack(anchor="w", pady=(8, 0))
             return
-        canvas = tk.Canvas(self.catalog_frame, bg=BG, highlightthickness=0, height=130)
+        canvas = tk.Canvas(self.catalog_frame, bg=BG, highlightthickness=0, height=self.px(130))
         scrollbar = tk.Scrollbar(self.catalog_frame, orient="vertical", command=canvas.yview)
         canvas.configure(yscrollcommand=scrollbar.set)
         scrollbar.pack(side="right", fill="y")
@@ -575,7 +585,7 @@ class PatcherUI(TkBase):
         row = tk.Frame(parent, bg=BG)
         row.pack(fill="x", pady=(0, 10))
         if hint:
-            label_column = tk.Frame(row, bg=BG, width=130, height=38)
+            label_column = tk.Frame(row, bg=BG, width=self.px(130), height=self.px(38))
             label_column.pack(side="left", fill="y")
             label_column.pack_propagate(False)
             tk.Label(label_column, text=label, anchor="w", bg=BG, fg=TEXT,
@@ -824,7 +834,7 @@ class PatcherUI(TkBase):
                 fg=MUTED,
                 anchor="w",
                 justify="left",
-                wraplength=610,
+                wraplength=self.px(610),
                 font=("Segoe UI", 8),
             ).pack(fill="x", padx=36, pady=(1, 7))
             if "goldberg_archive" in requirements_for(patch_ids):
@@ -875,7 +885,7 @@ class PatcherUI(TkBase):
             fg="#e58b8b",
             anchor="w",
             justify="left",
-            wraplength=620,
+            wraplength=self.px(620),
             font=("Segoe UI", 9),
         )
         self.error_label.pack(side="bottom", fill="x", pady=(0, 5))
@@ -915,7 +925,7 @@ class PatcherUI(TkBase):
         if existing and resolve_selection(profile.all, profile, runnable=False).sources:
             self.file_row(choices, "Source archives", self.existing_archive_var, "", True, hint="Optional")
             tk.Label(choices, text="BLOB/DAT folder for checked archive asset fixes, including their revisions.",
-                     bg=BG, fg=MUTED, anchor="w", wraplength=560,
+                     bg=BG, fg=MUTED, anchor="w", wraplength=self.px(560),
                      font=("Segoe UI", 8)).pack(fill="x", pady=(0, 10))
         if not effectively_runnable:
             for patch_id in patch_ids:
@@ -941,7 +951,7 @@ class PatcherUI(TkBase):
             )
             checkbox.pack(anchor="w", padx=14, pady=(7, 0))
             detail_label = tk.Label(panel, text=group.description, bg=PANEL, fg=MUTED, anchor="w", justify="left",
-                wraplength=560, font=("Segoe UI", 8))
+                wraplength=self.px(560), font=("Segoe UI", 8))
             detail_label.pack(fill="x", padx=36, pady=(1, 7))
             self.generic_patch_controls.append(
                 (group, checkbox, detail_label, group.description, not effectively_runnable)
@@ -1103,7 +1113,7 @@ class PatcherUI(TkBase):
         top.pack(fill="x")
         tk.Label(top, textvariable=self.message_var, bg=PANEL, fg=TEXT, font=("Segoe UI", 10)).pack(side="left")
         tk.Label(top, textvariable=self.percent_var, bg=PANEL, fg=TEXT, font=("Segoe UI", 10)).pack(side="right")
-        self.progress = tk.Canvas(inner, height=10, bg=PANEL, highlightthickness=0)
+        self.progress = tk.Canvas(inner, height=self.px(10), bg=PANEL, highlightthickness=0)
         self.progress.pack(fill="x", pady=(12, 16))
         self.progress.bind("<Configure>", lambda _event: self.draw_progress())
         self.detail = tk.Label(inner, text="Validating inputs", anchor="w", bg=PANEL, fg=MUTED, font=("Cascadia Mono", 9))
@@ -1165,7 +1175,7 @@ class PatcherUI(TkBase):
         inner.pack(fill="x", padx=18, pady=8)
         tk.Label(inner, text="Installed to", bg=PANEL, fg=MUTED, font=("Segoe UI", 9)).pack(anchor="w")
         path_label = tk.Label(inner, text=str(output), bg=PANEL, fg=TEXT,
-                              justify="left", anchor="w", wraplength=600, font=("Cascadia Mono", 9))
+                              justify="left", anchor="w", wraplength=self.px(600), font=("Cascadia Mono", 9))
         path_label.pack(fill="x", pady=(6, 0))
         inner.bind("<Configure>", lambda event: path_label.configure(wraplength=max(1, event.width)))
         selected_patches = [patch for patch in PATCHES if patch.id in self.last_selected_patch_ids]
