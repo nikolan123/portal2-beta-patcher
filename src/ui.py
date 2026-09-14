@@ -1152,34 +1152,46 @@ class PatcherUI(TkBase):
         else:
             detail = "Portal 2 build 852_0 is ready."
         self.heading("Finished", detail)
-        block = tk.Frame(self.container, bg=PANEL, highlightbackground=BORDER, highlightthickness=1)
-        block.pack(fill="x", pady=(28, 0))
-        inner = tk.Frame(block, bg=PANEL)
-        inner.pack(fill="x", padx=18, pady=17)
-        tk.Label(inner, text="Installed to", bg=PANEL, fg=MUTED, font=("Segoe UI", 9)).pack(anchor="w")
-        tk.Label(inner, text=str(output), bg=PANEL, fg=TEXT, font=("Cascadia Mono", 9)).pack(anchor="w", pady=(6, 0))
-        summary = tk.Frame(self.container, bg=BG)
-        summary.pack(fill="x", pady=(18, 0))
-        selected_patches = [patch for patch in PATCHES if patch.id in self.last_selected_patch_ids]
-        for index, patch in enumerate(selected_patches):
-            row = index % 4
-            column = index // 4
-            tk.Label(
-                summary,
-                text=f"✓  {patch.id}  {patch.display_name}",
-                bg=BG,
-                fg=MUTED,
-                anchor="w",
-                font=("Segoe UI", 9),
-            ).grid(row=row, column=column, sticky="w", padx=(0, 28), pady=1)
-        summary.grid_columnconfigure(0, weight=1)
-        summary.grid_columnconfigure(1, weight=1)
         bottom = tk.Frame(self.container, bg=BG)
-        bottom.pack(side="bottom", fill="x")
+        bottom.pack(side="bottom", fill="x", pady=(10, 0))
         self.button(bottom, "Open folder", lambda: os.startfile(output), secondary=True, width=12).pack(side="left")
         launcher = output / "Launch Portal 2.cmd"
         if launcher.is_file():
             self.button(bottom, "Launch Portal 2", lambda: os.startfile(launcher), width=16).pack(side="right")
+
+        block = tk.Frame(self.container, bg=PANEL, highlightbackground=BORDER, highlightthickness=1)
+        block.pack(fill="x", pady=(10, 0))
+        inner = tk.Frame(block, bg=PANEL)
+        inner.pack(fill="x", padx=18, pady=8)
+        tk.Label(inner, text="Installed to", bg=PANEL, fg=MUTED, font=("Segoe UI", 9)).pack(anchor="w")
+        path_label = tk.Label(inner, text=str(output), bg=PANEL, fg=TEXT,
+                              justify="left", anchor="w", wraplength=600, font=("Cascadia Mono", 9))
+        path_label.pack(fill="x", pady=(6, 0))
+        inner.bind("<Configure>", lambda event: path_label.configure(wraplength=max(1, event.width)))
+        selected_patches = [patch for patch in PATCHES if patch.id in self.last_selected_patch_ids]
+        tk.Label(self.container, text=f"Applied fixes ({len(selected_patches)})", bg=BG,
+                 fg=TEXT, font=("Segoe UI Semibold", 10)).pack(anchor="w", pady=(8, 6))
+        summary = tk.Frame(self.container, bg=BG)
+        summary.pack(fill="both", expand=True)
+        patch_list = tk.Text(summary, height=1, width=1, wrap="word", bg=BG, fg=MUTED,
+                             font=("Segoe UI", 10), relief="flat", borderwidth=0,
+                             highlightthickness=0, padx=0, pady=0, spacing3=7,
+                             cursor="arrow")
+        scrollbar = tk.Scrollbar(summary, orient="vertical", command=patch_list.yview,
+                                 bg=FIELD, activebackground=BORDER, troughcolor=BG,
+                                 relief="flat", borderwidth=0, highlightthickness=0)
+        patch_list.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side="right", fill="y")
+        patch_list.pack(side="left", fill="both", expand=True, padx=(0, 8))
+        patch_list.tag_configure("patch_id", foreground="#666666", font=("Segoe UI", 8))
+        for index, patch in enumerate(selected_patches):
+            if index:
+                patch_list.insert("end", "\n", ())
+            patch_list.insert("end", f"✓  {patch.display_name}   ", ())
+            patch_list.insert("end", patch.id, "patch_id")
+        if not selected_patches:
+            patch_list.insert("end", "No optional fixes applied.")
+        patch_list.configure(state="disabled")
 
     def show_error(self, text):
         if self.current_mode == "existing":
