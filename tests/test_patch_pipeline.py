@@ -56,7 +56,7 @@ def test_unselected_launcher_capability_does_not_enable_content_only_build(tmp_p
 
 
 @pytest.mark.parametrize('with_hammer', [False, True])
-def test_normal_8520_pipeline_preserves_layout_and_final_paths(tmp_path, monkeypatch, with_hammer):
+def test_normal_8520_pipeline_preserves_layout_and_final_paths(tmp_path, monkeypatch, with_hammer, retail_tool_vpk):
     from hashlib import sha256
     import pipeline
     from patches.build_852_0 import hammer
@@ -92,6 +92,7 @@ def test_normal_8520_pipeline_preserves_layout_and_final_paths(tmp_path, monkeyp
     editor.mkdir(parents=True)
     for name in hammer.EDITOR_REQUIRED_FILES:
         (editor / name).write_text(name)
+    tools = retail_tool_vpk(retail)
     output = tmp_path / 'output'
     selected = ('852_0.hammer',) if with_hammer else ()
     inputs = BuildInputs(blob, dat, None, output, selected, portal2_path=retail)
@@ -116,6 +117,8 @@ def test_normal_8520_pipeline_preserves_layout_and_final_paths(tmp_path, monkeyp
         assert (output / 'Launch HLMV.cmd').read_bytes() == hammer.hlmv_launcher(output)
         assert (output / 'game/bin/tier0.original.bak').read_bytes() == original
         assert (output / 'game/bin/tier0.dll').read_bytes() == patched
+        for relative in hammer.TOOL_REQUIRED_FILES:
+            assert (runtime / 'portal2' / relative).read_bytes() == tools[relative]
         assert all(not (output / name).exists() for name in hammer.RUNTIME_DIRECTORIES)
         assert not (output / 'game/game').exists()
     else:
