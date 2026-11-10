@@ -1,5 +1,7 @@
 from dataclasses import replace
 import json
+import struct
+import zlib
 from threading import Event
 from unittest.mock import Mock
 
@@ -9,6 +11,36 @@ from existing_build import existing_profile, patch_existing_build, runtime_root
 from models import BuildCancelled, ExistingBuildInputs
 from patches import resolve_selection
 from patches.registry import BY_ID
+
+
+def retail_tool_vpk(retail):
+    from vpk import DIR_ARCHIVE_INDEX, VPK_SIGNATURE
+    files = {
+        'materials/tools/toolsblocklight.vmt': b'LightmappedGeneric { $basetexture tools/toolsblocklight }',
+        'materials/tools/toolsblocklight.vtf': b'blocklight texture',
+        'materials/tools/toolsclip.vmt': b'retail clip material',
+        'materials/tools/toolsclip.vtf': b'retail clip texture',
+        'materials/dev/unrelated.vmt': b'do not copy',
+    }
+    groups = {}
+    for path, payload in files.items():
+        folder, filename = path.rsplit('/', 1)
+        name, extension = filename.rsplit('.', 1)
+        groups.setdefault(extension, {}).setdefault(folder, {})[name] = payload
+    tree = bytearray()
+    for extension, folders in groups.items():
+        tree += extension.encode() + b'\0'
+        for folder, names in folders.items():
+            tree += folder.encode() + b'\0'
+            for name, payload in names.items():
+                tree += name.encode() + b'\0'
+                tree += struct.pack('<IHHIIH', zlib.crc32(payload), len(payload), DIR_ARCHIVE_INDEX, 0, 0, 0xffff)
+                tree += payload
+            tree += b'\0'
+        tree += b'\0'
+    tree += b'\0'
+    (retail / 'portal2/pak01_dir.vpk').write_bytes(struct.pack('<III', VPK_SIGNATURE, 1, len(tree)) + tree)
+    return files
 
 
 def build(tmp_path, nested=False):
@@ -146,6 +178,14 @@ def test_hammer_repairs_existing_layout(tmp_path, monkeypatch, nested, tier0_alr
     editor.mkdir(parents=True)
     for name in hammer.EDITOR_REQUIRED_FILES:
         (editor / name).write_text(name)
+    tools = retail_tool_vpk(retail)
+    for folder, filename, payload in (
+        ('portal2_tempcontent', 'toolsclip.vmt', b'beta clip material'),
+        ('portal', 'toolsclip.vtf', b'beta clip texture'),
+    ):
+        target = runtime / folder / 'materials/tools' / filename
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(payload)
     inputs = ExistingBuildInputs(root, 852, 0, selected_patch_ids=('852_0.hammer',), portal2_path=retail)
 
     patch_existing_build(inputs, Mock(), Event())
@@ -155,6 +195,13 @@ def test_hammer_repairs_existing_layout(tmp_path, monkeypatch, nested, tier0_alr
     assert (root / 'Launch HLMV.cmd').read_bytes() == hammer.hlmv_launcher(root)
     assert (root / 'game/bin/tier0.dll').read_bytes() == patched
     assert (root / 'game/hl2.exe').read_bytes() == b'launcher'
+    for path in hammer.TOOL_REQUIRED_FILES:
+        assert (root / 'game/portal2' / path).read_bytes() == tools[path]
+    assert (root / 'game/portal2_tempcontent/materials/tools/toolsclip.vmt').read_bytes() == b'beta clip material'
+    assert (root / 'game/portal/materials/tools/toolsclip.vtf').read_bytes() == b'beta clip texture'
+    assert not (root / 'game/portal2/materials/tools/toolsclip.vmt').exists()
+    assert not (root / 'game/portal2/materials/tools/toolsclip.vtf').exists()
+    assert not (root / 'game/portal2/materials/dev/unrelated.vmt').exists()
     for name in hammer.RUNTIME_DIRECTORIES:
         assert (root / 'game' / name / 'kept.txt').read_text() == name
         assert not (root / name).exists()
@@ -164,6 +211,26 @@ def test_hammer_repairs_existing_layout(tmp_path, monkeypatch, nested, tier0_alr
     patch_existing_build(inputs, Mock(), Event())
     reports = [json.loads(path.read_text()) for path in (root / '.p2patcher').glob('existing-build-report-*.json')]
     assert sorted(report['patches'][0]['status'] for report in reports) == ['already_applied', 'applied']
+    # An older patched install without blocklight must be detected and repaired.
+    texture = root / 'game/portal2/materials/tools/toolsblocklight.vtf'
+    texture.unlink()
+    patch_existing_build(inputs, Mock(), Event())
+    assert texture.read_bytes() == tools['materials/tools/toolsblocklight.vtf']
+
+
+def test_hammer_rejects_missing_tool_archive_before_moving_runtime(tmp_path):
+    from models import BuildReport, PatchContext
+    from patches.base import PatchError
+    from patches.build_852_0.hammer import HammerPatch
+    root = tmp_path / 'build'
+    runtime = build(root)
+    retail = tmp_path / 'retail'
+    (retail / 'portal2').mkdir(parents=True)
+    context = PatchContext(root, None, BuildReport(), Event(), portal2_source=retail)
+    with pytest.raises(PatchError, match='Cannot read retail Portal 2 tool materials'):
+        HammerPatch().apply(context, Mock())
+    assert (runtime / 'portal2/GameInfo.txt').read_text() == 'original'
+    assert not (root / 'game').exists()
 
 
 @pytest.mark.parametrize('invalid', ['missing_nested', 'duplicate', 'missing_flat'])

@@ -104,7 +104,7 @@ Enables Steam matchmaking and lobby creation using the Spacewar app ID 480 in `s
 
 The Hammer and Half-Life Model Viewer programs are present in `852_0`, but the extracted depot is missing the layout and editor materials they expect.
 
-This patch copies the `platform/materials/Editor` folder from the user's retail Portal 2 installation, moves the runtime into a normal `game` folder, writes the Portal 2 Hammer configuration, and creates separate launchers for Hammer and HLMV. The files are physically moved, no junctions anymore!
+This patch copies the `platform/materials/Editor` folder from the user's retail Portal 2 installation and extracts missing `materials/tools` material definitions and textures, including `tools/toolsblocklight`, from its `portal2/pak01_dir.vpk`. It moves the runtime into a normal `game` folder, writes the Portal 2 Hammer configuration, and creates separate launchers for Hammer and HLMV. The files are physically moved, no junctions anymore!
 
 It also patches this build's `game/bin/tier0.dll` thread table from 32 slots to 128. The original DLL is preserved as `tier0.original.bak`, and the patch is accepted only when both the original and resulting SHA-256 hashes match the known files.
 

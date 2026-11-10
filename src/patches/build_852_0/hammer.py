@@ -8,6 +8,8 @@ from patches.definitions import PatchDefinition
 from models import BuildCancelled, PatchContext, ProgressCallback, ProgressEvent
 from patches.base import PatchError, atomic_write, backup_file
 from patches.helpers.tier0 import patch_tier0 as _patch_tier0, sha256
+from patches.helpers.retail_assets import copy_selected_vpk_assets
+from vpk import VPKArchive, VPKError
 
 
 ORIGINAL_TIER0_SHA256 = "ef0da9d93ba7cac265db82ebff189c6568a121a366ce28d256772d4ab9579cf1"
@@ -17,6 +19,26 @@ EXPECTED_REFERENCE_OFFSETS = [0xB0A2, 0xB0ED, 0xB153]
 RUNTIME_DIRECTORIES = ("bin", "hl2", "platform", "portal", "portal2", "portal2_tempcontent")
 RUNTIME_FILES = ("hl2.exe", "hl2.wrap.exe", "steam_appid.txt")
 EDITOR_REQUIRED_FILES = ("wireframe.vmt", "flat.vmt", "logic_coop_manager.vmt")
+TOOL_CONTENT_FOLDERS = ("portal2", "portal2_tempcontent", "platform", "portal", "hl2")
+TOOL_REQUIRED_FILES = ("materials/tools/toolsblocklight.vmt", "materials/tools/toolsblocklight.vtf")
+
+
+def retail_tool_materials(source: Path):
+    index = source / "portal2" / "pak01_dir.vpk"
+    try:
+        archive = VPKArchive(index)
+    except (OSError, VPKError) as error:
+        raise PatchError(f"Cannot read retail Portal 2 tool materials: {error}") from error
+    entries = [entry for entry in archive.entries
+               if entry.path.casefold().startswith("materials/tools/")
+               and Path(entry.path).suffix.casefold() in {".vmt", ".vtf"}]
+    if not set(TOOL_REQUIRED_FILES) <= {entry.path.casefold() for entry in entries}:
+        raise PatchError("Retail Portal 2 is missing the blocklight material or texture")
+    return archive, entries
+
+
+def has_tool_material(runtime: Path, relative: str) -> bool:
+    return any((runtime / folder / relative).is_file() for folder in TOOL_CONTENT_FOLDERS)
 
 
 def patch_tier0(original: bytes) -> bytes:
@@ -161,6 +183,7 @@ class HammerPatch:
         if context.cancel_event.is_set():
             raise BuildCancelled("Build cancelled")
 
+        tool_archive, tool_entries = retail_tool_materials(context.portal2_source)
         move_runtime_into_game(context.root)
         mapsrc = context.root / "content" / "portal2" / "mapsrc"
         mapsrc.mkdir(parents=True, exist_ok=True)
@@ -180,6 +203,11 @@ class HammerPatch:
             shutil.copy2(path, target)
             if index == 1 or index == len(files) or index % 25 == 0:
                 progress(ProgressEvent("852_0.hammer", index, len(files), f"Hammer material: {path.name}"))
+
+        runtime = context.root / "game"
+        missing_tools = [(tool_archive.directory_file, tool_archive, entry) for entry in tool_entries
+                         if not has_tool_material(runtime, entry.path)]
+        copy_selected_vpk_assets(missing_tools, runtime / "portal2", context.cancel_event, progress, self.id)
 
         tier0 = context.root / "game" / "bin" / "tier0.dll"
         current = tier0.read_bytes()
@@ -209,6 +237,13 @@ class HammerPatch:
         editor = context.root / "game" / "platform" / "materials" / "Editor"
         if any(not (editor / name).is_file() for name in EDITOR_REQUIRED_FILES):
             raise PatchError("Hammer editor materials are incomplete")
+        required_tools = TOOL_REQUIRED_FILES
+        if context.portal2_source is not None:
+            _, entries = retail_tool_materials(context.portal2_source)
+            required_tools = tuple(entry.path for entry in entries)
+        missing_tools = [path for path in required_tools if not has_tool_material(context.root / "game", path)]
+        if missing_tools:
+            raise PatchError("Hammer tool materials are missing: " + ", ".join(missing_tools))
         tier0 = context.root / "game" / "bin" / "tier0.dll"
         if sha256(tier0.read_bytes()) != PATCHED_TIER0_SHA256:
             raise PatchError("tier0.dll does not contain the Hammer thread fix")
