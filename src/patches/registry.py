@@ -7,6 +7,7 @@ from patches.build_852_0.continuous_campaign.patch import DEFINITION as CONTINUO
 from patches.build_852_0.fov_limit import DEFINITION as FOVLIMITPATCH
 from patches.build_852_0.vscript_scope_fix import DEFINITION as VSCRIPTSCOPEFIXPATCH
 from patches.build_852_0.smooth_jazz import DEFINITION as SMOOTHJAZZPATCH
+from patches.build_852_0.matchmaking import DEFINITION as MATCHMAKING8520PATCH
 from patches.build_841_0_prereset.hl2_assets.patch import DEFINITION as HL2ASSETS8410PATCH
 from patches.generic.thread_fix.patch import DEFINITION as THREADFIXPATCH
 from patches.generic.launchers import DEFINITION as LAUNCHERSPATCH
@@ -44,6 +45,7 @@ DEFINITIONS = (
     FOVLIMITPATCH,
     VSCRIPTSCOPEFIXPATCH,
     SMOOTHJAZZPATCH,
+    MATCHMAKING8520PATCH,
     HL2ASSETS8410PATCH,
     THREADFIXPATCH,
     LAUNCHERSPATCH,

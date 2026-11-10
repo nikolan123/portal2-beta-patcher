@@ -17,6 +17,7 @@ Patches for one specific build are in `build_852_0`, `build_852_1`, and `build_8
 | `852_0.fov_limit` | — | Optional | — | — | — |
 | `852_0.vscript_scope_fix` | — | Optional | — | — | — |
 | `852_0.smooth_jazz` | — | Optional | — | — | — |
+| `852_0.matchmaking` | — | Optional | — | — | — |
 | `841_0_prereset.hl2_assets` | Optional | — | — | — | — |
 | `thread_fix` | Optional | Optional | Optional | Optional | Optional |
 | `launchers` | Required | Required | Required | Required | Required |
@@ -94,6 +95,10 @@ This patches `portal2/bin/Server.dll` to check whether VScript successfully crea
 ### 852_0.smooth_jazz - Remove copyrighted Smooth Jazz
 
 This patch keeps the announcer dialogue in `PreHub42.wav` and `PreHub44.wav` but removes the copyrighted Smooth Jazz. It also deletes the `smooth_jazz.mp3` played during the end scene.
+
+### 852_0.matchmaking - Steam matchmaking
+
+Enables Steam matchmaking and lobby creation using the Spacewar app ID 480 in `steam_appid.txt` and `portal/steam.inf`.
 
 ### 852_0.hammer - Hammer and HLMV tools
 

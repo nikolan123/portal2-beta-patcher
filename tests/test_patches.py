@@ -57,6 +57,7 @@ from patches.build_852_0.smooth_jazz import (
     SmoothJazzPatch,
     trim_smooth_jazz,
 )
+from patches.build_852_0.matchmaking import Matchmaking8520Patch, patch_appid, patch_steam_inf
 from patches.generic.thread_fix.patch import (
     FILES,
     ThreadFixPatch,
@@ -136,7 +137,7 @@ from patches.selection import resolve_selection
 
 
 def test_patch_registry_has_descriptive_ids_and_stable_order():
-    assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.fov_limit", "852_0.vscript_scope_fix", "852_0.smooth_jazz", "841_0_prereset.hl2_assets", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer", "852_2.hammer", "852_0.node_graphs", "841_0_prereset.node_graphs", "841_0_prereset.progression_fixes", "841_0_prereset.water", "disable_survey"]
+    assert [patch.id for patch in PATCHES] == ["852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.fov_limit", "852_0.vscript_scope_fix", "852_0.smooth_jazz", "852_0.matchmaking", "841_0_prereset.hl2_assets", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "852_0.multiplayer", "852_2.hammer", "852_0.node_graphs", "841_0_prereset.node_graphs", "841_0_prereset.progression_fixes", "841_0_prereset.water", "disable_survey"]
     assert all(patch.description for patch in PATCHES)
     assert set(PATCH_COMPATIBILITY) == {"generic", (841, 0, 0x83CED978), (852, 0), (852, 1), (852, 2)}
     assert PATCH_COMPATIBILITY["generic"].required == {"launchers"}
@@ -252,7 +253,7 @@ def test_patch_dependencies_and_required_launcher():
     assert normalize_patch_ids(("852_1.extra_assets.bundled",), "generic", depot_id=852, depot_version=2) == ("launchers",)
     assert normalize_patch_ids(("852_1.hammer",), "generic", depot_id=852, depot_version=1) == ("launchers", "852_1.hammer")
     assert normalize_patch_ids(("852_1.hammer",), "generic", depot_id=852, depot_version=2) == ("launchers",)
-    assert compatible_patch_ids("852_0") == ("852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.fov_limit", "852_0.vscript_scope_fix", "852_0.smooth_jazz", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "goldberg", "852_0.multiplayer", "852_0.node_graphs")
+    assert compatible_patch_ids("852_0") == ("852_0.hl2_assets", "852_0.search_paths", "852_0.sound_manifest", "852_0.dialogue", "852_0.subtitles", "852_0.continuous_campaign", "852_0.fov_limit", "852_0.vscript_scope_fix", "852_0.smooth_jazz", "852_0.matchmaking", "thread_fix", "launchers", "852_0.hammer", "852_0.extra_assets", "goldberg", "852_0.multiplayer", "852_0.node_graphs")
     assert compatible_patch_ids("generic", 852, 1) == ("thread_fix", "launchers", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer", "disable_survey")
     assert compatible_patch_ids("generic", 852, 2) == ("thread_fix", "launchers", "multicore", "goldberg", "852_2.hammer")
     assert normalize_patch_ids((), "generic", runnable=False, depot_id=841, depot_version=0, depot_crc=0x83CED978) == ()
@@ -534,6 +535,58 @@ def test_subtitle_patch_does_not_touch_autoexec(tmp_path):
     Subtitles8520Patch().apply(context, lambda _event: None)
 
     assert autoexec.read_bytes() == original
+
+
+@pytest.mark.parametrize("moved", [False, True])
+@pytest.mark.parametrize("existing_appid", [False, True])
+def test_matchmaking_patch_updates_only_two_app_ids_and_preserves_backups(tmp_path, moved, existing_appid):
+    root = tmp_path / "game" if moved else tmp_path
+    (root / "portal2").mkdir(parents=True)
+    (root / "portal2" / "GameInfo.txt").write_bytes(b'"GameInfo" {}')
+    (root / "hl2.exe").write_bytes(b"test")
+    (root / "portal").mkdir()
+    appid = root / "steam_appid.txt"
+    steam_inf = root / "portal" / "steam.inf"
+    if existing_appid:
+        appid.write_bytes(b"852\0")
+    original_inf = b"PatchVersion=1.0.0.0\r\nProductName=portal\r\nappID=852\r\n"
+    steam_inf.write_bytes(original_inf)
+    patch = Matchmaking8520Patch()
+    context = PatchContext(tmp_path, None, BuildReport(), Event())
+
+    assert patch.check(context)
+    patch.apply(context, lambda _event: None)
+    patch.verify(context)
+    assert not patch.check(context)
+    assert appid.read_bytes() == (b"480\0" if existing_appid else b"480\n")
+    assert steam_inf.read_bytes() == original_inf.replace(b"appID=852", b"appID=480")
+    backup = appid.with_name("steam_appid.txt.before-matchmaking.bak")
+    if existing_appid:
+        assert backup.read_bytes() == b"852\0"
+    else:
+        assert not backup.exists()
+    assert steam_inf.with_name("steam.inf.before-matchmaking.bak").read_bytes() == original_inf
+    patch.apply(context, lambda _event: None)
+    patch.verify(context)
+
+
+def test_matchmaking_patch_validates_steam_inf_before_creating_appid(tmp_path):
+    (tmp_path / "portal2").mkdir()
+    (tmp_path / "portal2/GameInfo.txt").write_bytes(b'"GameInfo" {}')
+    (tmp_path / "hl2.exe").write_bytes(b"test")
+    context = PatchContext(tmp_path, None, BuildReport(), Event())
+    with pytest.raises(PatchError, match="steam.inf"):
+        Matchmaking8520Patch().apply(context, lambda _event: None)
+    assert not (tmp_path / "steam_appid.txt").exists()
+
+
+def test_matchmaking_patch_rejects_unexpected_values_before_writing(tmp_path):
+    assert patch_appid(b"852\0") == b"480\0"
+    assert patch_steam_inf(b"appID=852\n") == b"appID=480\n"
+    with pytest.raises(PatchError):
+        patch_appid(b"123\0")
+    with pytest.raises(PatchError):
+        patch_steam_inf(b"appID=852\nappID=852\n")
 
 
 def test_dialogue_verification_accepts_subtitle_setup_appended_after_it(tmp_path):
