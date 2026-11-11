@@ -29,3 +29,19 @@ def test_vpk_unsafe_paths():
     with pytest.raises(VPKError):
         safe_relative_path("C:/bad.txt")
 
+
+def test_crc_validation_is_strict_by_default_and_can_be_disabled(tmp_path, write_vpk):
+    path = tmp_path / 'test_dir.vpk'
+    payload = b'stored retail bytes'
+    write_vpk(path, {'sound/voice.wav': payload}, split=True)
+    checksum = struct.pack('<I', zlib.crc32(payload))
+    path.write_bytes(path.read_bytes().replace(checksum, b'\0' * 4, 1))
+    archive = VPKArchive(path)
+    entry = archive.entries[0]
+    with pytest.raises(VPKError, match='CRC mismatch'):
+        archive.read_entry(entry)
+    assert archive.read_entry(entry, verify_crc=False) == payload
+    path.with_name('test_000.vpk').write_bytes(payload[:-1])
+    with pytest.raises(VPKError, match='truncated'):
+        archive.read_entry(entry, verify_crc=False)
+

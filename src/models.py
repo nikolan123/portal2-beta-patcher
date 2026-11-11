@@ -25,6 +25,7 @@ class BuildInputs:
     custom_depot_key: bytes | None = None
     goldberg_archive_path: Path | None = None
     supplemental_revision_chains: tuple[tuple["RevisionInput", ...], ...] = ()
+    tf2_path: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -39,6 +40,7 @@ class ExistingBuildInputs:
     goldberg_archive_path: Path | None = None
     supplemental_revision_chains: tuple[tuple["RevisionInput", ...], ...] = ()
     archive_folder: Path | None = None
+    tf2_path: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -86,6 +88,7 @@ class PatchContext:
     mode: str = "852_0"
     supplemental_revision_chains: tuple[tuple[RevisionInput, ...], ...] = ()
     profile: BuildProfile | None = None
+    tf2_source: Path | None = None
 
 
 class Patch(Protocol):

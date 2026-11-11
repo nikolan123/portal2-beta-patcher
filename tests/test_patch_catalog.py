@@ -88,7 +88,7 @@ def test_choices_defaults_requirements_and_selected_capabilities():
     assert not BY_ID['852_0.matchmaking'].default_selected
     assert not BY_ID['852_0.fov_limit'].default_selected
     assert all(item.default_selected for item in DEFINITIONS
-               if item.id not in {'goldberg', '852_0.continuous_campaign', '852_0.smooth_jazz', '852_0.fov_limit', '852_0.matchmaking'})
+               if item.id not in {'goldberg', '852_0.continuous_campaign', '852_0.smooth_jazz', '852_0.fov_limit', '852_0.matchmaking', 'full_hl2_assets', 'full_tf_assets'})
     assert 'provides_hl2_exe' not in capabilities_for(())
     assert 'provides_hl2_exe' in capabilities_for(('841_0_prereset.missing_launcher',))
 

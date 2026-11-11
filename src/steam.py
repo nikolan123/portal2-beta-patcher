@@ -134,6 +134,25 @@ def detect_half_life_2() -> Path | None:
     return None
 
 
+def validate_tf2(path: Path) -> Path:
+    path = path.expanduser().resolve()
+    if not (path / 'tf').is_dir() or not any((path / 'tf').glob('*_dir.vpk')):
+        raise SteamDetectionError('The selected Team Fortress 2 folder has no tf VPK indexes')
+    return path
+
+
+def detect_team_fortress_2() -> Path | None:
+    for library in steam_libraries():
+        manifest = library / 'steamapps/appmanifest_440.acf'
+        game = library / 'steamapps/common/Team Fortress 2'
+        if manifest.is_file() and game.is_dir():
+            try:
+                return validate_tf2(game)
+            except SteamDetectionError:
+                continue
+    return None
+
+
 def validate_portal_2(path: Path) -> Path:
     path = path.expanduser().resolve()
     editor = path / "platform" / "materials" / "Editor"

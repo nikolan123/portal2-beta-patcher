@@ -39,6 +39,8 @@ Patches for one specific build are in `build_852_0`, `build_852_1`, and `build_8
 | `841_0_prereset.progression_fixes` | Optional | — | — | — | — |
 | `841_0_prereset.water` | Optional | — | — | — | — |
 | `disable_survey` | Optional | — | Optional | — | Optional |
+| `full_hl2_assets` | Optional | Optional | Optional | Optional | Optional |
+| `full_tf_assets` | Optional | Optional | Optional | Optional | Optional |
 
 <!-- compatibility:end -->
 
@@ -201,6 +203,10 @@ This patch configures Portal 2 Hammer, creates the mapsource folder, mounts the 
 Hammer's configuration contains the installation path. If the completed build is moved later, the patcher's **Fix moved build** action rewrites it for its new folder.
 
 ## Generic
+
+### full_hl2_assets / full_tf_assets - All retail assets
+
+Copy the entire `hl2` or `tf` content folder from the selected Half-Life 2 or Team Fortress 2 installation, with no curated file list. The content is mounted after the beta's own search paths. These options can use many gigabytes and do not convert newer map or model formats for the older engine.
 
 ### disable_survey - Disable Surveys
 

@@ -25,7 +25,7 @@ def validate_registry(definitions, profiles):
     targets = set()
     profile_ids = set()
     for item in definitions:
-        if item.requirements - {'hl2', 'portal2', 'goldberg_archive'}:
+        if item.requirements - {'hl2', 'portal2', 'tf2', 'goldberg_archive'}:
             raise ValueError(f'Unknown input requirement for {item.id}')
         if item.capabilities - {'provides_hl2_exe'}:
             raise ValueError(f'Unknown capability for {item.id}')
@@ -128,7 +128,7 @@ def choices_for(profile):
 
 
 def unavailable_reason(patch_ids, available_inputs):
-    labels = {'hl2': 'a Half-Life 2 folder', 'portal2': 'a retail Portal 2 folder'}
+    labels = {'hl2': 'a Half-Life 2 folder', 'portal2': 'a retail Portal 2 folder', 'tf2': 'a Team Fortress 2 folder'}
     missing = requirements_for(patch_ids) - set(available_inputs)
     # Archive controls remain enabled so the user can supply the required ZIP.
     return ' '.join(f'Unavailable because no {labels[value]} was selected.' for value in sorted(missing) if value in labels)

@@ -113,7 +113,7 @@ class VPKArchive:
             raise VPKError(f"Cannot derive VPK segment name from {name}")
         return self.directory_file.with_name(f"{name[:-8]}_{archive_index:03d}.vpk")
 
-    def read_entry(self, entry: VPKEntry) -> bytes:
+    def read_entry(self, entry: VPKEntry, *, verify_crc: bool = True) -> bytes:
         if entry.archive_index == DIR_ARCHIVE_INDEX:
             source_path = self.directory_file
             source_offset = self.data_section_offset + entry.offset
@@ -129,7 +129,7 @@ class VPKArchive:
         if len(payload) != entry.length:
             raise VPKError(f"VPK entry is truncated: {entry.path}")
         result = entry.preload + payload
-        if zlib.crc32(result) & 0xFFFFFFFF != entry.crc32:
+        if verify_crc and zlib.crc32(result) & 0xFFFFFFFF != entry.crc32:
             raise VPKError(f"VPK CRC mismatch: {entry.path}")
         return result
 

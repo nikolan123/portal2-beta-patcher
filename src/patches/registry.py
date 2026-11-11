@@ -30,6 +30,7 @@ from patches.build_841_0_prereset.progression_fixes.patch import DEFINITION as P
 from patches.build_841_0_prereset.water.patch import DEFINITION as WATER8410PATCH
 from patches.generic.disable_survey import DEFINITION as DISABLESURVEYPATCH
 from patches.generic.profile import PROFILE as GENERIC
+from patches.generic.full_assets import HL2_DEFINITION as FULLHL2PATCH, TF2_DEFINITION as FULLTF2PATCH
 from patches.build_852_0.profile import PROFILE as BUILD_852_0
 from patches.build_852_1.profile import PROFILE as BUILD_852_1
 from patches.build_841_0_prereset.profile import PROFILE as BUILD_841_0_PRERESET
@@ -67,6 +68,8 @@ DEFINITIONS = (
     PROGRESSIONFIXES8410PATCH,
     WATER8410PATCH,
     DISABLESURVEYPATCH,
+    FULLHL2PATCH,
+    FULLTF2PATCH,
 )
 
 PROFILES = (GENERIC, BUILD_852_0, BUILD_852_1, BUILD_841_0_PRERESET, BUILD_852_2,)

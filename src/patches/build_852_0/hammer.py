@@ -110,18 +110,20 @@ start "Half-Life Model Viewer" hlmv.exe -nop4 -game "%VPROJECT%" %*
 
 def move_runtime_into_game(root: Path) -> None:
     game = root / "game"
+    # Full TF2 content may have been installed before adding the Hammer layout.
+    directories = RUNTIME_DIRECTORIES + (("tf",) if (root / "tf").exists() or (game / "tf").exists() else ())
     # Existing builds may already have this layout without the Hammer fixes.
     if (game / "portal2").is_dir():
-        for name in RUNTIME_DIRECTORIES:
+        for name in directories:
             if not (game / name).is_dir():
                 raise PatchError(f"Hammer runtime folder is missing: game\\{name}")
-        for name in (*RUNTIME_DIRECTORIES, *RUNTIME_FILES):
+        for name in (*directories, *RUNTIME_FILES):
             if (root / name).exists():
                 raise PatchError(f"Hammer runtime was left duplicated outside game: {name}")
         return
 
     # Check every source and destination before moving anything.
-    for name in RUNTIME_DIRECTORIES:
+    for name in directories:
         source = root / name
         destination = game / name
         if not source.is_dir():
@@ -136,7 +138,7 @@ def move_runtime_into_game(root: Path) -> None:
         if destination.exists():
             raise PatchError(f"Cannot create the Hammer layout because game\\{name} already exists")
     game.mkdir(parents=True, exist_ok=True)
-    for name in (*RUNTIME_DIRECTORIES, *RUNTIME_FILES):
+    for name in (*directories, *RUNTIME_FILES):
         source = root / name
         if source.exists():
             source.replace(game / name)

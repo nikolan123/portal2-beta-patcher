@@ -13,9 +13,9 @@ import uuid
 
 from extractor import extract_depot, extract_revision_chain, has_runnable_layout
 from models import BuildCancelled, BuildInputs, BuildReport, PatchContext, ProgressEvent, ProgressCallback
-from patches import PATCHES, normalize_patch_ids, patch_set_for_target, resolve_selection
+from patches import DEFINITIONS, normalize_patch_ids, patch_set_for_target, resolve_selection
 from patches.selection import requirements_for, capabilities_for, validate_source_chains
-from steam import validate_hl2, validate_portal_2
+from steam import validate_hl2, validate_portal_2, validate_tf2
 
 
 BLOB_SHA256 = "3a6ea6546058bfe1a396d5167a869f626e26b9118eee9c95594d08e2b87c169f"
@@ -48,11 +48,11 @@ class BuildPipeline:
         dat = inputs.dat_path.expanduser().resolve()
         output = inputs.output_path.expanduser().resolve()
         requested_ids = (
-            tuple(patch.id for patch in PATCHES)
+            tuple(item.id for item in DEFINITIONS if item.default_selected)
             if inputs.selected_patch_ids is None
             else inputs.selected_patch_ids
         )
-        known_ids = {patch.id for patch in PATCHES}
+        known_ids = {item.id for item in DEFINITIONS}
         unknown_ids = set(requested_ids) - known_ids
         if unknown_ids:
             raise ValueError(f"Unknown patch IDs: {', '.join(sorted(unknown_ids))}")
@@ -79,6 +79,11 @@ class BuildPipeline:
         if needs_hl2 and inputs.hl2_path is None:
             raise ValueError("Half-Life 2 is required for the HL2 content support fix")
         hl2 = validate_hl2(inputs.hl2_path) if needs_hl2 else None
+        tf2 = None
+        if 'tf2' in requirements:
+            if inputs.tf2_path is None:
+                raise ValueError('A Team Fortress 2 installation folder is required')
+            tf2 = validate_tf2(inputs.tf2_path)
         needs_hammer = "portal2" in requirements
         if needs_hammer and inputs.portal2_path is None:
             raise ValueError("A retail Portal 2 installation is required for the Hammer and HLMV fix")
@@ -163,6 +168,7 @@ class BuildPipeline:
                 mode=inputs.mode,
                 profile=profile,
                 supplemental_revision_chains=inputs.supplemental_revision_chains,
+                tf2_source=tf2,
             )
             selection = resolve_selection(selected_ids, profile, runnable=False)
             selected_patches = [item.implementation for item in selection.definitions]

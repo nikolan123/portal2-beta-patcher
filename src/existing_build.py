@@ -6,7 +6,7 @@ from pathlib import Path
 
 from models import BuildCancelled, BuildReport, PatchContext, ProgressEvent
 from patches import patch_set_for_target, resolve_selection
-from steam import validate_hl2, validate_portal_2
+from steam import validate_hl2, validate_portal_2, validate_tf2
 
 
 def existing_profile(depot_id, version, crc=None):
@@ -76,6 +76,7 @@ def patch_existing_build(inputs, emit, cancel_event):
     for requirement, path, validate in (
         ('hl2', inputs.hl2_path, validate_hl2),
         ('portal2', inputs.portal2_path, validate_portal_2),
+        ('tf2', inputs.tf2_path, validate_tf2),
     ):
         if requirement in selection.requirements:
             if path is None:
@@ -91,7 +92,8 @@ def patch_existing_build(inputs, emit, cancel_event):
         context = PatchContext(patch_root, sources.get('hl2'), report, cancel_event,
                                sources.get('portal2'), patch_root, goldberg,
                                supplemental_revision_chains=chains,
-                               mode='852_0' if profile.id == '852_0' else 'generic', profile=profile)
+                               mode='852_0' if profile.id == '852_0' else 'generic', profile=profile,
+                               tf2_source=sources.get('tf2'))
         patch = item.implementation
         emit(ProgressEvent('patches', index, len(selection.ids), f'{item.id}: {item.title}'))
         needed = patch.check(context)

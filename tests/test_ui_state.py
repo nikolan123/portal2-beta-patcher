@@ -18,7 +18,8 @@ def ui_app():
     # Use one Tk interpreter, as the application does. Repeated destruction and
     # initialization of Tk/tkdnd in one process is unreliable on Windows.
     with patch.object(PatcherUI, "detect_hl2", lambda self: None), \
-         patch.object(PatcherUI, "detect_portal2", lambda self: None):
+         patch.object(PatcherUI, "detect_portal2", lambda self: None), \
+         patch.object(PatcherUI, "detect_tf2", lambda self: None):
         app = PatcherUI()
         app.withdraw()
         try:
@@ -89,6 +90,51 @@ def test_dependency_checkbox_cannot_be_cleared_while_subtitles_selected():
     assert not variables['852_0.dialogue'].get()
 
 
+def test_tf2_source_field_updates_both_choosers(tmp_path, ui_app):
+    app = ui_app
+
+    def assert_tf2_field_in_card(checkbox):
+        entries = [child for row in checkbox.master.winfo_children()
+                   for child in row.winfo_children() if isinstance(child, tk.Entry)]
+        assert len(entries) == 1
+        assert str(entries[0].cget('textvariable')) == str(app.tf2_var)
+        assert '(power users)' not in checkbox.cget('text')
+
+    for name in ('input.blob', 'input.dat'):
+        (tmp_path / name).touch()
+    app.blob_var.set(str(tmp_path / 'input.blob'))
+    app.dat_var.set(str(tmp_path / 'input.dat'))
+    app.tf2_var.set('')
+    for variable in app.patch_vars.values():
+        variable.set(False)
+    try:
+        app.show_files()
+        app.show_patch_chooser()
+        controls = {group.patch_ids[0]: checkbox for group, checkbox, *_ in app.generic_patch_controls}
+        assert_tf2_field_in_card(controls['full_tf_assets'])
+        assert controls['full_tf_assets'].cget('state') == 'disabled'
+        assert not app.patch_vars['full_hl2_assets'].get()
+        assert not app.patch_vars['full_tf_assets'].get()
+        app.tf2_var.set(str(tmp_path))
+        assert controls['full_tf_assets'].cget('state') == 'normal'
+        controls['full_tf_assets'].invoke()
+        assert app.patch_vars['full_tf_assets'].get()
+        app.tf2_var.set('')
+        assert controls['full_tf_assets'].cget('state') == 'disabled'
+        assert not app.patch_vars['full_tf_assets'].get()
+        app.selected_target = replace(target(), runnable=True)
+        app.show_generic_patch_chooser()
+        controls = {group.patch_ids[0]: checkbox for group, checkbox, *_ in app.generic_patch_controls}
+        assert_tf2_field_in_card(controls['full_tf_assets'])
+        app.tf2_var.set(str(tmp_path))
+        assert controls['full_tf_assets'].cget('state') == 'normal'
+        app.tf2_var.set('')
+        assert controls['full_tf_assets'].cget('state') == 'disabled'
+    finally:
+        app.tf2_var.set('')
+        app.clear()
+
+
 def target(ready=True):
     chain = (
         RevisionInput(852, 0, 0x10, Path("0.blob"), Path("0.dat")),
@@ -103,15 +149,15 @@ def target(ready=True):
 
 
 def test_mode_specific_patch_lists():
-    assert patch_ids_for_mode("generic", 852, 1) == ("thread_fix", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer", "disable_survey")
-    assert patch_ids_for_mode("generic", 852, 2) == ("thread_fix", "multicore", "goldberg", "852_2.hammer")
-    assert patch_ids_for_mode("generic", 841, 1) == ("thread_fix", "multicore", "goldberg", "disable_survey")
-    assert patch_ids_for_mode("generic", 841, 0, 0x83CED978) == ("841_0_prereset.hl2_assets", "thread_fix", "multicore", "goldberg", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "841_0_prereset.node_graphs", "841_0_prereset.progression_fixes", "841_0_prereset.water", "disable_survey")
+    assert patch_ids_for_mode("generic", 852, 1) == ("thread_fix", "multicore", "goldberg", "852_1.legacy_paint", "852_1.extra_assets.from_july_2010", "852_1.extra_assets.from_july_2009", "852_1.extra_assets.bundled", "852_1.hammer", "disable_survey", "full_hl2_assets", "full_tf_assets")
+    assert patch_ids_for_mode("generic", 852, 2) == ("thread_fix", "multicore", "goldberg", "852_2.hammer", "full_hl2_assets", "full_tf_assets")
+    assert patch_ids_for_mode("generic", 841, 1) == ("thread_fix", "multicore", "goldberg", "disable_survey", "full_hl2_assets", "full_tf_assets")
+    assert patch_ids_for_mode("generic", 841, 0, 0x83CED978) == ("841_0_prereset.hl2_assets", "thread_fix", "multicore", "goldberg", "841_0_prereset.missing_launcher", "841_0_prereset.tier0_thread_limit", "841_0_prereset.node_graphs", "841_0_prereset.progression_fixes", "841_0_prereset.water", "disable_survey", "full_hl2_assets", "full_tf_assets")
     assert "852_0.dialogue" in patch_ids_for_mode("852_0")
     assert "852_0.subtitles" in patch_ids_for_mode("852_0")
     assert "852_0.continuous_campaign" in patch_ids_for_mode("852_0")
     assert "multicore" not in patch_ids_for_mode("852_0")
-    assert patch_ids_for_mode("852_0")[-2:] == ("852_0.multiplayer", "852_0.node_graphs")
+    assert patch_ids_for_mode("852_0")[-4:] == ("852_0.multiplayer", "852_0.node_graphs", "full_hl2_assets", "full_tf_assets")
 
 
 def test_support_link_uses_the_project_issue_tracker():

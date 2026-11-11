@@ -24,7 +24,7 @@ from patches import PATCHES, DEFINITIONS, normalize_patch_ids, selectable_patch_
 from patches.selection import choices_for, requirements_for, capabilities_for, unavailable_reason, resolve_source_chains
 from patches.repair import repair_moved_build
 from pipeline import BuildPipeline
-from steam import detect_half_life_2, detect_portal_2
+from steam import detect_half_life_2, detect_portal_2, detect_team_fortress_2
 
 
 BG = "#090909"
@@ -88,10 +88,12 @@ class PatcherUI(TkBase):
         self.dat_var = tk.StringVar()
         self.portal2_var = tk.StringVar()
         self.hl2_var = tk.StringVar()
+        self.tf2_var = tk.StringVar()
         self.hl2_warning_var = tk.StringVar()
         self.portal2_warning_var = tk.StringVar()
         self.hl2_var.trace_add("write", self.update_hl2_warning)
         self.portal2_var.trace_add("write", self.update_portal2_warning)
+        self.tf2_var.trace_add("write", lambda *_args: self.update_generic_patch_availability())
         self.message_var = tk.StringVar()
         self.percent_var = tk.StringVar(value="0%")
         self.archive_folder_var = tk.StringVar()
@@ -114,12 +116,14 @@ class PatcherUI(TkBase):
         self.after(100, self.poll_events)
         threading.Thread(target=self.detect_portal2, daemon=True).start()
         threading.Thread(target=self.detect_hl2, daemon=True).start()
+        threading.Thread(target=self.detect_tf2, daemon=True).start()
 
     def px(self, value: int) -> int:
         return round(value * self.dpi_scale)
 
     def available_patch_inputs(self):
-        return {key for key, value in (("hl2", self.hl2_var.get()), ("portal2", self.portal2_var.get())) if value.strip()}
+        return {key for key, value in (("hl2", self.hl2_var.get()), ("portal2", self.portal2_var.get()),
+                                       ("tf2", self.tf2_var.get())) if value.strip()}
 
     def clear(self) -> None:
         self.generic_patch_controls.clear()
@@ -305,7 +309,8 @@ class PatcherUI(TkBase):
                 selected, Path(self.hl2_var.get().strip()) if self.hl2_var.get().strip() else None,
                 Path(self.portal2_var.get().strip()) if self.portal2_var.get().strip() else None,
                 goldberg_archive_path=Path(self.goldberg_zip_var.get().strip()) if self.goldberg_zip_var.get().strip() else None,
-                archive_folder=Path(self.existing_archive_var.get().strip()) if self.existing_archive_var.get().strip() else None)
+                archive_folder=Path(self.existing_archive_var.get().strip()) if self.existing_archive_var.get().strip() else None,
+                tf2_path=Path(self.tf2_var.get().strip()) if self.tf2_var.get().strip() else None)
             runtime_root(inputs.output_path)
         except Exception as error:
             self.message_var.set(str(error))
@@ -631,11 +636,14 @@ class PatcherUI(TkBase):
             self.goldberg_zip_var.set(selected)
 
     def add_goldberg_zip_field(self, panel) -> None:
+        self.add_patch_input_field(panel, self.goldberg_zip_var, self.browse_goldberg_zip)
+
+    def add_patch_input_field(self, panel, variable, browse) -> None:
         zip_row = tk.Frame(panel, bg=PANEL)
         zip_row.pack(fill="x", padx=36, pady=(0, 8))
         tk.Entry(
             zip_row,
-            textvariable=self.goldberg_zip_var,
+            textvariable=variable,
             bg=FIELD,
             fg=TEXT,
             insertbackground=TEXT,
@@ -646,7 +654,7 @@ class PatcherUI(TkBase):
         self.button(
             zip_row,
             "Browse",
-            self.browse_goldberg_zip,
+            browse,
             secondary=True,
             width=8,
         ).pack(side="right", padx=(8, 0))
@@ -681,6 +689,11 @@ class PatcherUI(TkBase):
         detected = detect_portal_2()
         if detected:
             self.events.put(("portal2", detected))
+
+    def detect_tf2(self):
+        detected = detect_team_fortress_2()
+        if detected:
+            self.events.put(("tf2", detected))
 
     def update_hl2_warning(self, *_args) -> None:
         if self.hl2_var.get().strip():
@@ -827,7 +840,7 @@ class PatcherUI(TkBase):
             if reason:
                 checkbox.configure(state="disabled", disabledforeground=MUTED)
                 detail += f"  {reason}"
-            tk.Label(
+            detail_label = tk.Label(
                 panel,
                 text=detail,
                 bg=PANEL,
@@ -836,9 +849,13 @@ class PatcherUI(TkBase):
                 justify="left",
                 wraplength=self.px(610),
                 font=("Segoe UI", 8),
-            ).pack(fill="x", padx=36, pady=(1, 7))
+            )
+            detail_label.pack(fill="x", padx=36, pady=(1, 7))
+            self.generic_patch_controls.append((group, checkbox, detail_label, group.description, False))
             if "goldberg_archive" in requirements_for(patch_ids):
                 self.add_goldberg_zip_field(panel)
+            if "tf2" in requirements_for(patch_ids):
+                self.add_patch_input_field(panel, self.tf2_var, lambda: self.browse_folder(self.tf2_var))
 
         def scroll(event):
             canvas.yview_scroll(-1 if event.delta > 0 else 1, "units")
@@ -958,6 +975,8 @@ class PatcherUI(TkBase):
             )
             if "goldberg_archive" in requirements_for(group.patch_ids):
                 self.add_goldberg_zip_field(panel)
+            if "tf2" in requirements_for(group.patch_ids):
+                self.add_patch_input_field(panel, self.tf2_var, lambda: self.browse_folder(self.tf2_var))
 
         self.update_generic_patch_availability()
 
@@ -1027,6 +1046,7 @@ class PatcherUI(TkBase):
                 custom_key,
                 goldberg_archive,
                 supplemental_chains,
+                tf2_path=Path(self.tf2_var.get().strip()) if self.tf2_var.get().strip() else None,
             )
         except Exception as error:
             self.message_var.set(str(error))
@@ -1071,6 +1091,7 @@ class PatcherUI(TkBase):
                 selected_patch_ids,
                 portal2,
                 goldberg_archive_path=goldberg_archive,
+                tf2_path=Path(self.tf2_var.get().strip()) if self.tf2_var.get().strip() else None,
             )
         except Exception as error:
             self.message_var.set(str(error))
@@ -1222,6 +1243,8 @@ class PatcherUI(TkBase):
                     self.hl2_var.set(str(payload))
                 elif kind == "portal2" and not self.portal2_var.get():
                     self.portal2_var.set(str(payload))
+                elif kind == "tf2" and not self.tf2_var.get():
+                    self.tf2_var.set(str(payload))
                 elif kind == "catalog":
                     self.catalog_targets = payload
                     self.message_var.set(
