@@ -110,8 +110,10 @@ start "Half-Life Model Viewer" hlmv.exe -nop4 -game "%VPROJECT%" %*
 
 def move_runtime_into_game(root: Path) -> None:
     game = root / "game"
-    # Full TF2 content may have been installed before adding the Hammer layout.
-    directories = RUNTIME_DIRECTORIES + (("tf",) if (root / "tf").exists() or (game / "tf").exists() else ())
+    # Full retail content may have been installed before adding the Hammer layout.
+    directories = RUNTIME_DIRECTORIES + tuple(
+        name for name in ("tf", "episodic", "ep2") if (root / name).exists() or (game / name).exists()
+    )
     # Existing builds may already have this layout without the Hammer fixes.
     if (game / "portal2").is_dir():
         for name in directories:

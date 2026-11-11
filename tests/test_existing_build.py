@@ -147,8 +147,9 @@ def test_hammer_repairs_existing_layout(tmp_path, monkeypatch, nested, tier0_alr
     for name in hammer.EDITOR_REQUIRED_FILES:
         (editor / name).write_text(name)
     tools = retail_tool_vpk(retail)
-    (runtime / 'tf').mkdir()
-    (runtime / 'tf/kept.txt').write_bytes(b'previously installed TF2 content')
+    for folder in ('tf', 'episodic', 'ep2'):
+        (runtime / folder).mkdir()
+        (runtime / folder / 'kept.txt').write_bytes(b'previously installed retail content')
     for folder, filename, payload in (
         ('portal2_tempcontent', 'toolsclip.vmt', b'beta clip material'),
         ('portal', 'toolsclip.vtf', b'beta clip texture'),
@@ -165,8 +166,9 @@ def test_hammer_repairs_existing_layout(tmp_path, monkeypatch, nested, tier0_alr
     assert (root / 'Launch HLMV.cmd').read_bytes() == hammer.hlmv_launcher(root)
     assert (root / 'game/bin/tier0.dll').read_bytes() == patched
     assert (root / 'game/hl2.exe').read_bytes() == b'launcher'
-    assert (root / 'game/tf/kept.txt').read_bytes() == b'previously installed TF2 content'
-    assert not (root / 'tf').exists()
+    for folder in ('tf', 'episodic', 'ep2'):
+        assert (root / 'game' / folder / 'kept.txt').read_bytes() == b'previously installed retail content'
+        assert not (root / folder).exists()
     for path in hammer.TOOL_REQUIRED_FILES:
         assert (root / 'game/portal2' / path).read_bytes() == tools[path]
     assert (root / 'game/portal2_tempcontent/materials/tools/toolsclip.vmt').read_bytes() == b'beta clip material'

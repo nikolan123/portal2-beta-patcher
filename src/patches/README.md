@@ -206,7 +206,7 @@ Hammer's configuration contains the installation path. If the completed build is
 
 ### full_hl2_assets / full_tf_assets - All retail assets
 
-Copy the entire `hl2` or `tf` content folder from the selected Half-Life 2 or Team Fortress 2 installation, with no curated file list. The content is mounted after the beta's own search paths. These options can use many gigabytes and do not convert newer map or model formats for the older engine.
+Copy the entire `hl2` + `episodic` + `ep2` content folders from the selected Half-Life 2 installation, or the `tf` folder from Team Fortress 2, with no curated file list. Each copied folder is mounted after the beta's own search paths. These options can use many gigabytes and do not convert newer map or model formats for the older engine.
 
 ### disable_survey - Disable Surveys
 

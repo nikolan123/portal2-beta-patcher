@@ -46,6 +46,12 @@ def test_full_copy_in_existing_build_unpacks_all_archives_and_keeps_beta(tmp_pat
     destination = runtime / patch.folder
     (destination / 'materials').mkdir(parents=True)
     (destination / 'materials/keep.vmt').write_bytes(b'beta material')
+    for folder in patch.folders[1:]:
+        write_vpk(retail / folder / 'pak_dir.vpk', {'materials/episode.vmt': folder.encode()}, split=True)
+        (retail / folder / 'maps').mkdir()
+        (retail / folder / 'maps/episode.bsp').write_bytes(b'episode map')
+        (runtime / folder / 'materials').mkdir(parents=True)
+        (runtime / folder / 'materials/episode.vmt').write_bytes(b'existing episode material')
     source_argument = {'hl2_path' if patch.folder == 'hl2' else 'tf2_path': retail}
     inputs = ExistingBuildInputs(root, 852, 0, selected_patch_ids=(patch.id,), **source_argument)
 
@@ -62,12 +68,39 @@ def test_full_copy_in_existing_build_unpacks_all_archives_and_keeps_beta(tmp_pat
     assert not list(destination.glob('*.vpk'))
     assert gameinfo.read_bytes().index(b'|gameinfo_path|.') < gameinfo.read_bytes().index(patch.folder.encode())
     assert gameinfo.with_name(f'GameInfo.before-full-{patch.folder}.bak').read_bytes() == original
+    for folder in patch.folders[1:]:
+        assert (runtime / folder / 'maps/episode.bsp').read_bytes() == b'episode map'
+        assert (runtime / folder / 'materials/episode.vmt').read_bytes() == b'existing episode material'
+        assert mount_content(gameinfo.read_bytes(), folder) == gameinfo.read_bytes()
     # Reapplying fills missing files, without changing existing content or mounts.
     mounted = gameinfo.read_bytes()
     (destination / 'sound/vo/everything.wav').unlink()
     patch_existing_build(inputs, Mock(), Event())
     assert gameinfo.read_bytes() == mounted
     assert (destination / 'sound/vo/everything.wav').read_bytes() == b'voice'
+
+
+@pytest.mark.parametrize('moved', [False, True])
+def test_hl2_copy_adds_newly_installed_episodes_and_keeps_original_backup(tmp_path, write_vpk, moved):
+    retail = tmp_path / 'retail'
+    write_vpk(retail / 'hl2/pak_dir.vpk', {'materials/base.vmt': b'base'})
+    root = tmp_path / 'output'
+    runtime = root / 'game' if moved else root
+    (runtime / 'portal2').mkdir(parents=True)
+    original = b'GameInfo\n{\nSearchPaths\n{\nGame |gameinfo_path|.\n}\n}'
+    gameinfo = runtime / 'portal2/GameInfo.txt'
+    gameinfo.write_bytes(original)
+    inputs = ExistingBuildInputs(root, 852, 0, selected_patch_ids=('full_hl2_assets',), hl2_path=retail)
+
+    patch_existing_build(inputs, Mock(), Event())
+    assert b'episodic' not in gameinfo.read_bytes()
+    assert b'ep2' not in gameinfo.read_bytes()
+    for folder in ('episodic', 'ep2'):
+        write_vpk(retail / folder / 'episode_dir.vpk', {'sound/episode.wav': folder.encode()}, split=True)
+        patch_existing_build(inputs, Mock(), Event())
+        assert (runtime / folder / 'sound/episode.wav').read_bytes() == folder.encode()
+        assert mount_content(gameinfo.read_bytes(), folder) == gameinfo.read_bytes()
+    assert gameinfo.with_name('GameInfo.before-full-hl2.bak').read_bytes() == original
 
 
 @pytest.mark.parametrize('definition', [HL2_DEFINITION, TF2_DEFINITION])
